@@ -1,4 +1,5 @@
 # Django settings for Jingo project.
+import os
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -111,7 +112,8 @@ TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
-    '/Volumes/Data/02-Coding/01-Web/Jingo/Jingo/tmp'
+    # '/Volumes/Data/02-Coding/01-Web/Jingo/Jingo/tmp'
+    (os.path.join(os.path.dirname(__file__), 'tmp').replace('\\', '/'),)
 )
 
 INSTALLED_APPS = (
