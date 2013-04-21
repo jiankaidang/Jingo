@@ -7,7 +7,7 @@
 # Also note: You'll have to insert the output of 'django-admin.py sqlcustom [appname]'
 # into your database.
 from __future__ import unicode_literals
-
+from Jingo.lib.HttpRequestTasks import HttpRequestResponser
 from django.db import models
 
 class Comments(models.Model):
@@ -86,7 +86,7 @@ class Tag(models.Model):
     class Meta:
         db_table = 'tag'
 
-class User(models.Model):
+class User(models.Model, HttpRequestResponser):
     uid         = models.IntegerField(primary_key=True)
     u_name      = models.CharField(max_length=45L)
     email       = models.CharField(max_length=45L)
@@ -94,5 +94,35 @@ class User(models.Model):
     password    = models.CharField(max_length=15L)
     class Meta:
         db_table = 'user'
+        
+    def login(self, request):
+        if request.method != 'POST':
+            pass
+            # raise Http404('Only POSTs are allowed')
+        print request.session.get('uid', False)
+        if request.session.get('uid', False):
+            print 'you already logged in!'
+            return dict([('result', 'fail'), ('data', '')])
+        else:
+            try:
+                data = self.readData(request)
+                print data
+                usr  = User.objects.get(email=data['email']).__dict__
+                
+                if usr['password'] == data['password']:
+                    del usr['_state']
+                    request.session['uid'] = usr['uid']
+                    usr['u_timestamp'] = usr['u_timestamp'].isoformat()
+                    #print usr
+                    return dict([('result', 'success'), ('data', usr)])
+                
+            except User.DoesNotExist:
+                return dict([('result', 'fail'), ('data', 0)])
     
-
+    def logout(self, request):
+        try:
+            del request.session['uid']
+            request.session.clear()
+        except KeyError:
+            pass
+        return dict([('result', 'success'), ('message', 'You\'re logged out.')])

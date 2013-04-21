@@ -1,23 +1,24 @@
 from django.shortcuts import render, render_to_response
-from Jingo.lib.HttpRequestTasks import HttpRequestParser
-from Jingo.lib.Users import Users
-import json
-
-hrt = HttpRequestParser()
+from Jingo.models import *
+from Jingo.lib.HttpRequestTasks import HttpRequestResponser
 
 def index(request):
-    request.session.clear()
     test = {
             'test': 'This is Jingo Homepage.',
             }
     return render(request, 'index.html', test)
 
 def tasks(request, mode):
-    data = hrt.readData(request)
     #page = 'index.html'
-    page = 'response.html'
+    http_res = HttpRequestResponser()
+    
     if mode == 'login':
-        usr = Users()
-        result = {'result' : json.dumps(usr.doLogin(request, data)),}
-        #print result
-    return render_to_response(page, result)
+        page = 'response.html'
+        data = User().login(request)
+        
+    if mode == 'logout':
+        page = 'logout.html'
+        data = User().logout(request)
+        
+    return http_res.response(page, data)
+    
