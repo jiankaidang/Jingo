@@ -1,0 +1,18 @@
+<div>
+<h3>regular post method</h3>
+<form action="{% url 'tasks' mode='login' %}" method="post">
+	{% csrf_token %}
+    <input type="text" name="email" value="cchang08@students.poly.edu"/>
+    <input type="text" name="password" value="pwd123"/>
+    <input type="submit"/>
+</form>
+</div>
+<div>
+<h3>AJAX post method</h3>
+<form action="{% url 'tasks' mode='login' %}" method="post">
+    <input type="text" name="email" value="cchang08@students.poly.edu"/>
+    <input type="text" name="password" value="pwd123"/>
+    <input type="button" value="submit"/>
+</form>
+</div>
+<a href="{% url 'index' %}">home</a>

@@ -13,7 +13,7 @@ MANAGERS = ADMINS
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': 'jingo',                      # Or path to database file if using sqlite3.
+        'NAME': 'jingodb',                      # Or path to database file if using sqlite3.
         # The following settings are not used with sqlite3:
         'USER': 'root',
         'PASSWORD': '2012nyudatabase',
@@ -73,7 +73,11 @@ STATICFILES_DIRS = (
     # Put strings here, like "/home/html/static" or "C:/www/django/static".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
+<<<<<<< HEAD
     (os.path.join(os.path.dirname(__file__), 'static').replace('\\', '/'),)
+=======
+    '/Volumes/Data/02-Coding/01-Web/Jingo/Jingo/static',
+>>>>>>> This is a prototype showing how to submit form, do ajax-post, and control sessions.
 )
 
 # List of finder classes that know how to find static files in
@@ -95,6 +99,7 @@ TEMPLATE_LOADERS = (
 )
 
 MIDDLEWARE_CLASSES = (
+    'django.middleware.cache.UpdateCacheMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -102,6 +107,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     # Uncomment the next line for simple clickjacking protection:
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.middleware.cache.FetchFromCacheMiddleware',
 )
 
 ROOT_URLCONF = 'Jingo.urls'
@@ -113,16 +119,20 @@ TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
+<<<<<<< HEAD
     # '/Volumes/Data/02-Coding/01-Web/Jingo/Jingo/tmp'
     (os.path.join(os.path.dirname(__file__), 'tmp').replace('\\', '/'),)
+=======
+    '/Volumes/Data/02-Coding/01-Web/Jingo/Jingo/tmp',
+>>>>>>> This is a prototype showing how to submit form, do ajax-post, and control sessions.
 )
 
 INSTALLED_APPS = (
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
+    #'django.contrib.auth',
+    #'django.contrib.contenttypes',
     'django.contrib.sessions',
-    'django.contrib.sites',
-    'django.contrib.messages',
+    #'django.contrib.sites',
+    #'django.contrib.messages',
     'django.contrib.staticfiles',
     # Uncomment the next line to enable the admin:
     # 'django.contrib.admin',
@@ -158,3 +168,17 @@ LOGGING = {
         },
     }
 }
+# settings about Django's cache framework
+'''
+SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'LOCATION': '127.0.0.1:11211',
+        'TIMEOUT': 20,
+        'OPTIONS': {
+            'MAX_ENTRIES': 1000
+        }
+    }
+}
+'''
