@@ -8,6 +8,8 @@
 # into your database.
 from __future__ import unicode_literals
 from Jingo.lib.HttpRequestTasks import HttpRequestResponser
+from Jingo.lib.DataVerification import Formatter, DataVerifier
+from django.utils import timezone
 from django.db import models
 
 class Comments(models.Model):
@@ -17,7 +19,7 @@ class Comments(models.Model):
     uid         = models.ForeignKey('User', db_column='uid')
     c_latitude  = models.DecimalField(max_digits=9, decimal_places=6)
     c_longitude = models.DecimalField(max_digits=9, decimal_places=6)
-    comment     = models.CharField(max_length=140L)
+    comment     = models.CharField(max_length=140)
     class Meta:
         db_table = 'comments'
 
@@ -41,7 +43,7 @@ class Friend(models.Model):
         db_table = 'friend'
 
 class Note(models.Model):
-    note         = models.CharField(max_length=140L)
+    note         = models.CharField(max_length=140)
     n_timestamp  = models.DateTimeField()
     link         = models.TextField(blank=True)
     noteid       = models.IntegerField(primary_key=True)
@@ -71,13 +73,26 @@ class Note_Time(models.Model):
         db_table = 'note_time'
 
 class State(models.Model):
-    stateid    = models.IntegerField(primary_key=True, )
-    state_name = models.CharField(max_length=45L)
+    stateid    = models.IntegerField(primary_key=True)
+    state_name = models.CharField(max_length=45)
     uid        = models.ForeignKey('User', db_column='uid', primary_key=True)
     is_current = models.IntegerField()
     class Meta:
         db_table = 'state'
-
+    
+    def getNewStateid(self):
+        ustate = State.objects.all().order_by('uid, stateid').latest('stateid')
+        return ustate.stateid + 1
+    
+    def addState(self, data):
+        state            = State()
+        state.stateid    = 0
+        state.state_name = data['state_name']
+        state.uid        = User(uid=int(data['uid']))
+        state.is_current = 1
+        state.save();
+        return State.objects.filter(stateid=0, uid=data['uid']).values()[0]
+    
 class Tag(models.Model):
     tagid     = models.IntegerField(primary_key=True)
     tag_name  = models.CharField(max_length=45L)
@@ -88,13 +103,51 @@ class Tag(models.Model):
 
 class User(models.Model, HttpRequestResponser):
     uid         = models.IntegerField(primary_key=True)
-    u_name      = models.CharField(max_length=45L)
-    email       = models.CharField(max_length=45L)
+    u_name      = models.CharField(max_length=45)
+    email       = models.CharField(max_length=45)
     u_timestamp = models.DateTimeField()
-    password    = models.CharField(max_length=15L)
+    password    = models.CharField(max_length=15)
     class Meta:
         db_table = 'user'
+    
+    def getNewUid(self):
+        usr = User.objects.all().order_by('uid').latest('uid')
+        print usr.uid
+        return usr.uid + 1
+    
+    def addUser(self, data):
+        usr             = User()
+        usr.uid         = self.getNewUid()
+        usr.u_name      = data['u_name']
+        usr.email       = data['email']
+        usr.password    = data['password']
+        usr.u_timestamp = timezone.now()
+        usr.save()
+        return User.objects.filter(email=data['email']).values()[0]
+                   
+    def signup(self, request):
+        result    = 'success'
+        message   = []
+        verifier  = DataVerifier()
+        formatter = Formatter()
+        data      = self.readData(request)
         
+        if not verifier.isValidFormat(data['email'], 'email'):
+            message.append('The email address is invalid.')
+            result = 'fail'
+        
+        if not verifier.isEmailUnique(User.objects, data['email']):
+            message.append('The email address is already taken.')
+            result = 'fail'
+        
+        usr               = formatter.simplifyObjToData(self.addUser(data))
+        usr['state_name'] = 'myState'
+        state             = State().addState(usr)
+        data              = dict([('usr', usr), ('state', state),])
+        
+        #print data
+        return dict([('result', result), ('data', data), ('message', message),])
+    
     def login(self, request):
         if request.method != 'POST':
             pass

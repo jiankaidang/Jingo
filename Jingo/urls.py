@@ -15,5 +15,6 @@ urlpatterns = patterns('',
     # Uncomment the next line to enable the admin:
     # url(r'^admin/', include(admin.site.urls)),
     url(r'^$', 'Jingo.views.index', name='index'),
+    url(r'^pages/(?P<mode>\w+)/$', 'Jingo.views.pages', name='pages'),
     url(r'^tasks/(?P<mode>\w+)/$', 'Jingo.views.tasks', name='tasks'),
 )

@@ -15,4 +15,6 @@
     <input type="button" value="submit"/>
 </form>
 </div>
+{{ request.session.uid }}
+<a class="signup" href="{% url 'pages' mode='signupform' %}">signup</a>
 <a class="logout" href="{% url 'tasks' mode='logout' %}">logout</a>

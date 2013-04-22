@@ -1,0 +1,11 @@
+<div>
+<h3>signup</h3>
+<form action="{% url 'tasks' mode='signup' %}" method="post">
+	{% csrf_token %}
+	<input type="text" name="u_name" value="Kevin233"/>
+    <input type="text" name="email" value="cchang08123@students.poly.edu"/>
+    <input type="password" name="password" value="pwd123456"/>
+    <input type="password" name="confirm_password" value="pwd123456"/>
+    <input type="submit"/>
+</form>
+</div>
