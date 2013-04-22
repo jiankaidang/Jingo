@@ -1,23 +1,14 @@
-<<<<<<< HEAD
 {% extends "base.html" %}
-{% block content %}
-    {{ test }}
-{% endblock content %}
-=======
 {% load staticfiles %}
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<title>Jingo Test</title>
-<link rel="stylesheet" type="text/css" href="{% static 'css/login.css' %}" />
-<script type="text/javascript" src="{% static 'js/jqueryLib.js' %}"></script>
-<script type="text/javascript" src="{% static 'js/index.js' %}"></script>
-</head>
-<body>
+{% block title %}Jingo Test{% endblock title %}
+{% block css %}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/login.css' %}"/>
+{% endblock css %}
+{% block content %}
     {{ test }}
     <br/>
     {% include 'login.html' %}
-</body>
-</html>
->>>>>>> This is a prototype showing how to submit form, do ajax-post, and control sessions.
+{% endblock content %}
+{% block js %}
+    <script type="text/javascript" src="{% static 'js/index.js' %}"></script>
+{% endblock js %}
