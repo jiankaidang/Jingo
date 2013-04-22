@@ -95,11 +95,14 @@ class State(models.Model):
     
 class Tag(models.Model):
     tagid     = models.IntegerField(primary_key=True)
-    tag_name  = models.CharField(max_length=45L)
+    tag_name  = models.CharField(max_length=45)
     uid       = models.ForeignKey('User', null=True, db_column='uid', blank=True)
     sys_tagid = models.IntegerField(null=True, blank=True)
     class Meta:
         db_table = 'tag'
+    
+    def getSysTags(self):
+        return Tag.objects.order_by('tagid').filter(tagid__gte=0, tagid__lte=10)
 
 class User(models.Model, HttpRequestResponser):
     uid         = models.IntegerField(primary_key=True)
