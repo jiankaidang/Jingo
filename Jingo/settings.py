@@ -73,15 +73,7 @@ STATICFILES_DIRS = (
     # Put strings here, like "/home/html/static" or "C:/www/django/static".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
-<<<<<<< HEAD
-<<<<<<< HEAD
     (os.path.join(os.path.dirname(__file__), 'static').replace('\\', '/'),)
-=======
-    '/Volumes/Data/02-Coding/01-Web/Jingo/Jingo/static',
->>>>>>> This is a prototype showing how to submit form, do ajax-post, and control sessions.
-=======
-    (os.path.join(os.path.dirname(__file__), 'static').replace('\\', '/'),)
->>>>>>> Whole prototype for the project
 )
 
 # List of finder classes that know how to find static files in
@@ -128,16 +120,7 @@ TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
-<<<<<<< HEAD
-<<<<<<< HEAD
-    # '/Volumes/Data/02-Coding/01-Web/Jingo/Jingo/tmp'
-    (os.path.join(os.path.dirname(__file__), 'tmp').replace('\\', '/'),)
-=======
-    '/Volumes/Data/02-Coding/01-Web/Jingo/Jingo/tmp',
->>>>>>> This is a prototype showing how to submit form, do ajax-post, and control sessions.
-=======
     (os.path.join(os.path.dirname(__file__), 'tmp').replace('\\', '/'),),
->>>>>>> Whole prototype for the project
 )
 
 INSTALLED_APPS = (
