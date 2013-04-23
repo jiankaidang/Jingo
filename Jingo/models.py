@@ -76,9 +76,6 @@ class Friend(models.Model):
     def getFriendsList(self, input_uid):
         return Friend.objects.filter(uid=input_uid, isfriendship=1).order_by('invitationid').values()
 
-<<<<<<< HEAD
-
-=======
     def addInvitation(self, data):
         newInvitationid      = self.getNewInvitationid()
         friend               = Friend()
@@ -88,7 +85,6 @@ class Friend(models.Model):
         friend.invitationid  = newInvitationid
         return Friend.objects.filter(invitationid=newInvitationid)
         
->>>>>>> model
 class Note(models.Model):
     note = models.CharField(max_length=140)
     n_timestamp = models.DateTimeField()
@@ -156,21 +152,14 @@ class Tag(models.Model):
 
     class Meta:
         db_table = 'tag'
-<<<<<<< HEAD
 
     def getSysTags(self):
         return Tag.objects.order_by('tagid').filter(tagid__gte=0, tagid__lte=10)
-
-
-=======
     
     def getNewTagid(self):
         tag = Tag.objects.all().order_by('tagid').latest('tagid')
         print tag.tagid
         return tag.tagid + 1
-    
-    def getSysTags(self):
-        return Tag.objects.order_by('tagid').filter(tagid__gte=0, tagid__lte=10)
     
     def addTag(self, data):
         newTagid      = self.getNewTagid()
@@ -182,7 +171,6 @@ class Tag(models.Model):
         tag.save()
         return Tag.objects.filter(tagid=newTagid, uid=int(data['uid'])).values()
     
->>>>>>> model
 class User(models.Model, HttpRequestResponser):
     uid = models.IntegerField(primary_key=True)
     u_name = models.CharField(max_length=45)
@@ -194,7 +182,6 @@ class User(models.Model, HttpRequestResponser):
         db_table = 'user'
 
     def getNewUid(self):
-<<<<<<< HEAD
         if len(User.objects.all().values()) == 0:
             return 1
         else:
@@ -202,12 +189,10 @@ class User(models.Model, HttpRequestResponser):
             print usr.uid
             return usr.uid + 1
 
-=======
         usr = User.objects.all().order_by('uid').latest('uid')
         #print usr.uid
         return usr.uid + 1
     
->>>>>>> model
     def addUser(self, data):
         usr = User()
         usr.uid = self.getNewUid()
