@@ -8,7 +8,7 @@ class HttpRequestResponser:
         elif request.method == 'POST':
             data = request.POST.dict()
         return data
-    
+
     def response(self, page, data, dataType='json'):
         if dataType == 'json':
             result = {'result' : json.dumps(data),}

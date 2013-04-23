@@ -13,12 +13,12 @@ def index(request):
 
 # redirect to specific pages
 def pages(request, mode):
-    if mode == 'signupform':
+    if mode == 'signup':
         page = 'signup.html'
+        
     elif mode == 'login':
         page = 'login.html'
     return render(request, page, {})
-    #return render(request, page, {})
 
 # deal with AJAX request and database access
 def tasks(request, mode):
@@ -34,6 +34,9 @@ def tasks(request, mode):
         page = 'login.html'
         data = User().logout(request)
     
+    if mode == 'getProfile':
+        page == ''
+        
     if mode == 'getSysTags':
         page = 'response.html'
         data = Tag().getSysTags(request)
