@@ -3,7 +3,6 @@ from Jingo.models import *
 
 http_res = HttpRequestResponser()
 
-
 def index(request):
     #dataverify = DataVerifier()
     #dataverify.setRulesBase()
@@ -24,19 +23,15 @@ def pages(request, mode):
 # deal with AJAX request and database access
 def tasks(request, mode):
     if mode == 'signup':
-        page = 'response.html'
+        page = 'profile.html'
         data = User().signup(request)
-        
-    if mode == 'setState':
-        page = 'response.html'
-        data = User().login(request)
 
     if mode == 'login':
-        page = 'response.html'
+        page = 'index.html'
         data = User().login(request)
 
     if mode == 'logout':
-        page = 'logout.html'
+        page = 'login.html'
         data = User().logout(request)
     
     if mode == 'getSysTags':

@@ -154,7 +154,7 @@ class Tag(models.Model):
         db_table = 'tag'
 
     def getSysTags(self):
-        return Tag.objects.order_by('tagid').filter(tagid__gte=0, tagid__lte=10)
+        return Tag.objects.order_by('tagid').filter(tagid__gte=0, tagid__lte=10).values()
     
     def getNewTagid(self):
         tag = Tag.objects.all().order_by('tagid').latest('tagid')
@@ -221,7 +221,10 @@ class User(models.Model, HttpRequestResponser):
         usr = formatter.simplifyObjToData(self.addUser(data))
         usr['state_name'] = 'myState'
         state = State().addState(usr)
-        data = dict([('usr', usr), ('state', state), ])
+        
+        tag = Tag.getSysTags()
+        
+        data = dict([('user', usr), ('state', state), ('tag', tag)])
 
         #print data
         return dict([('result', result), ('data', data), ('message', message), ])
