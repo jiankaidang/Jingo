@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Profile{% endblock title %}
+{% block content %}
+    <div class="container">
+
+        <form action="{% url 'tasks' mode='setState' %}" method="post">
+            {% csrf_token %}
+            <h2>Profile</h2>
+            <button class="btn btn-large btn-primary" type="submit">Save</button>
+        </form>
+        <a class="btn btn-link" href="{% url 'index' %}">Skip</a>
+    </div>
+{% endblock content %}

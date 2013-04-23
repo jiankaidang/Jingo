@@ -11,6 +11,9 @@
 </head>
 <body>
 {% block content %}{% endblock content %}
+{% if request.session.uid %}
+    <a class="btn-link btn" href="{% url 'tasks' mode='logout' %}">Logout</a>
+{% endif %}
 <script src="{% static "js/jquery-2.0.0.min.js" %}"></script>
 <script src="{% static "js/bootstrap.min.js" %}"></script>
 {% block js %}{% endblock js %}
