@@ -18,8 +18,8 @@ def pages(request, mode):
         page = 'signup.html'
     elif mode == 'login':
         page = 'login.html'
-
     return render(request, page, {})
+    #return render(request, page, {})
 
 # deal with AJAX request and database access
 def tasks(request, mode):
