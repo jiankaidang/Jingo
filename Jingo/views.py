@@ -6,6 +6,9 @@ http_res = HttpRequestResponser()
 def index(request):
     #dataverify = DataVerifier()
     #dataverify.setRulesBase()
+    data = {}
+    data['uid'] = 1
+    State().getUserStatesAndFiltersList(data)
     test = {
         'test': 'This is Jingo Homepage.',
     }

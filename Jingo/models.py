@@ -13,7 +13,9 @@ from django.db import models
 
 from Jingo.lib.HttpRequestTasks import HttpRequestResponser
 from Jingo.lib.DataVerification import Formatter, DataVerifier
-
+from django.core import serializers
+from django.utils import simplejson
+import json
 
 class Comments(models.Model):
     commentid = models.IntegerField(primary_key=True)
@@ -29,32 +31,50 @@ class Comments(models.Model):
 
 
 class Filter(models.Model):
-    stateid = models.ForeignKey('State', db_column='stateid', primary_key=True)
-    tagid = models.ForeignKey('Tag', db_column='tagid', primary_key=True)
+    stateid      = models.ForeignKey('State', db_column='stateid', primary_key=True)
+    tagid        = models.ForeignKey('Tag', db_column='tagid', primary_key=True)
     f_start_time = models.DateTimeField(null=True, blank=True)
-    f_stop_time = models.DateTimeField(null=True, blank=True)
-    f_repeat = models.IntegerField(null=True, blank=True)
+    f_stop_time  = models.DateTimeField(null=True, blank=True)
+    f_repeat     = models.IntegerField(null=True, blank=True)
     f_visibility = models.IntegerField()
-    uid = models.ForeignKey('State', db_column='uid', primary_key=True)
+    uid          = models.ForeignKey('State', db_column='uid', primary_key=True)
 
     class Meta:
         db_table = 'filter'
     
-    def getUserFilters(self, input_id):
-        return Filter.objects.filter(uid=input_id).order_by('uid', 'stateid', 'tagid').values()
+    def getUserStateFilters(self, data):
+        fmr       = Formatter()
+        filterset = Filter.objects.filter(uid=data['uid_id'], stateid=data['stateid']).order_by('uid', 'stateid', 'tagid').values()
+        filterset = fmr.simplifyObjToDateString(filterset)  # datetime to iso format
+        return filterset
     
-    def addFilter(self, data):
-        filters = Filter()
-        filters.stateid      = State(stateid=data['stateid'])
-        filters.tagid        = Tag(tagid=data['tagid'])
-        filters.f_start_time = data['f_start_time']
-        filters.f_stop_time  = data['f_stop_time']
-        filters.f_repeat     = data['f_repeat']
-        filters.f_visibility = data['f_visibility']
-        filters.uid          = User(uid=data['uid'])
+    def addFilter(self, data, mode='user-defined'):
+        filters       = Filter()
+        filters.tagid = Tag(tagid=data['tagid'])
+        filters.uid   = State(uid=User(uid=int(data['uid_id'])))
+        
+        if mode == 'default':
+            filters.stateid      = State(stateid=0)
+            filters.f_start_time = None
+            filters.f_stop_time  = None
+            filters.f_repeat     = None
+            filters.f_visibility = 0
+        else:
+            filters.stateid      = State(stateid=data['stateid'])
+            filters.f_start_time = data['f_start_time']
+            filters.f_stop_time  = data['f_stop_time']
+            filters.f_repeat     = data['f_repeat']
+            filters.f_visibility = data['f_visibility']
+ 
         filters.save()
-        return data
-
+    
+    def addDefaultFilter(self, data):
+        print
+        for i in range(0,11):
+            data['tagid'] = i
+            print data
+            self.addFilter(data, 'default')
+        return i
 
 class Friend(models.Model):
     uid = models.ForeignKey('User', db_column='uid')
@@ -66,9 +86,12 @@ class Friend(models.Model):
         db_table = 'friend'
     
     def getNewInvitationid(self):
-        friend = Friend.objects.all().order_by('invitationid').latest('invitationid')
-        print friend.invitationid
-        return friend.invitationid + 1
+        if len(Friend.objects.all().values()) == 0:
+            return 1
+        else:
+            friend = Friend.objects.all().order_by('invitationid').latest('invitationid')
+            print friend.invitationid
+            return friend.invitationid + 1
     
     def getFriendsInvitations(self, input_uid):
         return Friend.objects.filter(uid=input_uid, isfriendship=2).order_by('invitationid').values()
@@ -101,14 +124,12 @@ class Note(models.Model):
     class Meta:
         db_table = 'note'
 
-
 class Note_Tag(models.Model):
     noteid = models.ForeignKey('Note', db_column='noteid', primary_key=True)
     tagid = models.ForeignKey('Tag', db_column='tagid', primary_key=True)
 
     class Meta:
         db_table = 'note_tag'
-
 
 class Note_Time(models.Model):
     timeid = models.IntegerField(primary_key=True)
@@ -120,33 +141,57 @@ class Note_Time(models.Model):
     class Meta:
         db_table = 'note_time'
 
-
 class State(models.Model):
-    stateid = models.IntegerField(primary_key=True)
+    stateid    = models.IntegerField(primary_key=True)
     state_name = models.CharField(max_length=45)
-    uid = models.ForeignKey('User', db_column='uid', primary_key=True)
+    uid        = models.ForeignKey('User', db_column='uid', primary_key=True)
     is_current = models.IntegerField()
 
     class Meta:
         db_table = 'state'
 
     def getNewStateid(self):
-        ustate = State.objects.all().order_by('uid, stateid').latest('stateid')
+        if len(State.objects.all().values()) == 0:
+            return 1
+        else:
+            ustate = State.objects.all().order_by('uid', 'stateid').latest('stateid')
         return ustate.stateid + 1
 
-    def addState(self, data):
-        state = State()
-        state.stateid = 0
+    def getUserStatesList(self, data):
+        return State.objects.all().filter(uid=data['uid']).order_by('is_current', 'stateid').reverse().values()
+    
+    def getUserStatesAndFiltersList(self, data):
+        filt     = Filter()
+        fmr      = Formatter()
+        datalist = []
+        print data
+        uslist   = self.getUserStatesList(data)  # get user's all states
+        for row in uslist:
+            filterset      = filt.getUserStateFilters(row)
+            row['filters'] = filterset
+            datalist.append(row)
+        return fmr.jsonEncoder(datalist)
+    
+    def addState(self, data, mode='user-defined'):
+        state            = State()
         state.state_name = data['state_name']
-        state.uid = User(uid=int(data['uid']))
-        state.is_current = 1
-        state.save();
-        return State.objects.filter(stateid=0, uid=data['uid']).values()[0]
+        state.uid        = User(uid=int(data['uid']))
+        if mode == 'default':
+            state.is_current = 1
+            state.stateid    = 0
+            state.save();
+            return State.objects.filter(stateid=0, uid=data['uid']).values()
+        else:
+            newStateid       = self.getNewStateid()
+            state.is_current = 0
+            state.stateid    = self.getNewStateid()
+            state.save();
+            return State.objects.filter(stateid=newStateid, uid=data['uid']).values()
 
 class Tag(models.Model):
-    tagid = models.IntegerField(primary_key=True)
-    tag_name = models.CharField(max_length=45)
-    uid = models.ForeignKey('User', null=True, db_column='uid', blank=True)
+    tagid     = models.IntegerField(primary_key=True)
+    tag_name  = models.CharField(max_length=45)
+    uid       = models.ForeignKey('User', null=True, db_column='uid', blank=True)
     sys_tagid = models.IntegerField(null=True, blank=True)
 
     class Meta:
@@ -156,9 +201,12 @@ class Tag(models.Model):
         return Tag.objects.order_by('tagid').filter(tagid__gte=0, tagid__lte=10).values()
     
     def getNewTagid(self):
-        tag = Tag.objects.all().order_by('tagid').latest('tagid')
-        print tag.tagid
-        return tag.tagid + 1
+        if len(Tag.objects.all().values()) == 0:
+            return 1
+        else:
+            tag = Tag.objects.all().order_by('tagid').latest('tagid')
+            print tag.tagid
+            return tag.tagid + 1
     
     def addTag(self, data):
         newTagid      = self.getNewTagid()
@@ -193,19 +241,19 @@ class User(models.Model, HttpRequestResponser):
         return usr.uid + 1
     
     def addUser(self, data):
-        usr = User()
-        usr.uid = self.getNewUid()
-        usr.u_name = data['u_name']
-        usr.email = data['email']
-        usr.password = data['password']
+        usr             = User()
+        usr.uid         = self.getNewUid()
+        usr.u_name      = data['u_name']
+        usr.email       = data['email']
+        usr.password    = data['password']
         usr.u_timestamp = timezone.now()
         usr.save()
-        return User.objects.filter(email=data['email']).values()[0]
+        return User.objects.filter(email=data['email']).values()
 
     def signup(self, request):
-        result = 'success'
-        message = []
-        verifier = DataVerifier()
+        result    = 'success'
+        message   = []
+        verifier  = DataVerifier()
         formatter = Formatter()
         data = self.readData(request)
 
@@ -217,13 +265,13 @@ class User(models.Model, HttpRequestResponser):
             message.append('The email address is already taken.')
             result = 'fail'
 
-        usr = formatter.simplifyObjToData(self.addUser(data))
-        usr['state_name'] = 'myState'
-        state = State().addState(usr)
+        usr               = formatter.simplifyObjToDateString(self.addUser(data))[0]
+        usr['state_name'] = 'myState'  # this will be defined as a constant
+        state             = State().addState(usr, 'default')[0]
+        #ufilter           = Filter().addDefaultFilter(state)
+        stateslist        = State().getUserStatesAndFiltersList(usr)
         
-        tag = Tag.getSysTags()
-        
-        data = dict([('user', usr), ('state', state), ('tag', tag)])
+        data              = dict([('user', usr), ('stateslist', stateslist)])
 
         #print data
         return dict([('result', result), ('data', data), ('message', message), ])

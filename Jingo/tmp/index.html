@@ -10,6 +10,7 @@
 <a href="{% url 'pages' mode='login' %}">login</a> | 
 <a href="{% url 'pages' mode='profile' %}">profile</a> | 
 <a href="{% url 'tasks' mode='logout' %}">logout</a>
+{{ request.session.uid }}
 {% endblock content %}
 {% block js %}
     <script type="text/javascript" src="{% static 'js/index.js' %}"></script>

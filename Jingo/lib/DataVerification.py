@@ -1,5 +1,6 @@
+from django.core import serializers
 from Jingo.models import *
-import re, types, datetime
+import re, types, datetime, json
 
 class DataVerifier:
     
@@ -24,7 +25,36 @@ class DataVerifier:
 
 class Formatter:
     
-    def simplifyObjToData(self, args):
+    def __init__(self):
+        self.re = {}
+        self.setRulesBase()
+    
+    def setRulesBase(self):
+        self.re['int'] = re.compile("[.]+id$")
+        
+    def simplifyLongToInt(self, data):
+        if self.re['int'].search(data) is None:
+            return data
+        else:
+            return int(data)
+    
+    # deal with datetime object like datetime.datetime(2013, 4, 13, 9, 0)
+    # we need to transfer it in the form of "2013-04-13T21:38:01"
+    def simplifyObjToDateString(self, data):
+        result = []
+        for row in data:
+            for k, v in enumerate(row.values()):
+                if type(v) is datetime.datetime:
+                    key      = row.keys()[k]
+                    row[key] = row[key].isoformat()
+                result.append(row)
+        return result # list with several valuequerysets
+    
+    def jsonEncoder(self, queryset):
+        return json.JSONEncoder().encode(queryset)
+    
+    '''
+    def simplifyObjToData(self, args): # when some of fields in a queryset
         
         for k, v in enumerate(args.values()):
             if type(v) is datetime.datetime:
@@ -32,8 +62,7 @@ class Formatter:
                 args[key] = args[key].isoformat()
         
         return args
-    
-        '''
+        
         if not args:
             pass
        
