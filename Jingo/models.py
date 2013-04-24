@@ -143,7 +143,6 @@ class State(models.Model):
         state.save();
         return State.objects.filter(stateid=0, uid=data['uid']).values()[0]
 
-
 class Tag(models.Model):
     tagid = models.IntegerField(primary_key=True)
     tag_name = models.CharField(max_length=45)

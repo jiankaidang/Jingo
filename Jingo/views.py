@@ -16,8 +16,12 @@ def pages(request, mode):
     if mode == 'signup':
         page = 'signup.html'
         
-    elif mode == 'login':
+    if mode == 'login':
         page = 'login.html'
+        
+    if mode == 'profile':
+        page = 'profile.html'
+        
     return render(request, page, {})
 
 # deal with AJAX request and database access
