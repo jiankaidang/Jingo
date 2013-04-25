@@ -43,10 +43,18 @@ class Filter(models.Model):
     class Meta:
         db_table = 'filter'
     
+    def extendFilterWithTagName(self, filterset):
+        result = []
+        for row in filterset:
+            tag             = Tag.objects.get(tagid=row['tagid_id'])
+            row['tag_name'] = tag.tag_name
+            result.append(row)
+        return result
+    
     def getUserStateFilters(self, data):
         fmr       = Formatter()
-        print Filter.objects.all().values()
         filterset = Filter.objects.filter(uid_id=data['uid_id'], stateid=data['stateid']).values()
+        filterset = self.extendFilterWithTagName(filterset)
         if len(filterset) == 0:
             return []
         else:
@@ -177,15 +185,14 @@ class State(models.Model):
     
     def getUserStatesAndFiltersList(self, data):
         filt     = Filter()
-        fmr      = Formatter()
         datalist = []
-        print data
+        #print data
         uslist   = self.getUserStatesList(data)  # get user's all states
         for row in uslist:
             filterset      = filt.getUserStateFilters(row)
             row['filters'] = filterset
             datalist.append(row)
-        return fmr.jsonEncoder(datalist)
+        return datalist
     
     def addState(self, data, mode='user-defined'):
         state            = State()
@@ -248,7 +255,7 @@ class User(models.Model, HttpRequestResponser):
             return 1
         else:
             usr = User.objects.all().order_by('uid').latest('uid')
-            print usr.uid
+            #print usr.uid
             return usr.uid + 1
 
         usr = User.objects.all().order_by('uid').latest('uid')
@@ -288,7 +295,6 @@ class User(models.Model, HttpRequestResponser):
         
         data              = dict([('user', usr), ('stateslist', stateslist)])
 
-        #print data
         return dict([('result', result), ('data', data), ('message', message), ])
 
     def login(self, request):

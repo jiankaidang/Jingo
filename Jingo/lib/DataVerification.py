@@ -47,7 +47,7 @@ class Formatter:
                 if type(v) is datetime.datetime:
                     key      = row.keys()[k]
                     row[key] = row[key].isoformat()
-                result.append(row)
+            result.append(row)
         return result # list with several valuequerysets
     
     def jsonEncoder(self, queryset):

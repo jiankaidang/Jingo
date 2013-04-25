@@ -5,17 +5,11 @@ from Jingo.models import *
 http_res = HttpRequestResponser()
 
 def index(request):
-    #dataverify = DataVerifier()
-    #dataverify.setRulesBase()
-    #db = SQLExecuter()
-    #db.doInsertData([])
-    #data = {}
-    #data['uid'] = 1
-    #State().getUserStatesAndFiltersList(data)
     test = {
-        'test': 'This is Jingo Homepage.',
+        'test': 'This is Jingo Homepage',
     }
-    return render(request, 'index.html', test)
+    return http_res.response('index.html', test)
+    #return render(request, 'index.html', test)
 
 # redirect to specific pages
 def pages(request, mode):
@@ -28,7 +22,7 @@ def pages(request, mode):
     if mode == 'profile':
         page = 'profile.html'
         
-    return render(request, page, {})
+    return render(request, page)
 
 # deal with AJAX request and database access
 def tasks(request, mode):
@@ -43,9 +37,6 @@ def tasks(request, mode):
     if mode == 'logout':
         page = 'login.html'
         data = User().logout(request)
-    
-    if mode == 'getProfile':
-        page == ''
         
     if mode == 'getSysTags':
         page = 'response.html'

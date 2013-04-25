@@ -6,6 +6,20 @@
         <form action="{% url 'tasks' mode='setState' %}" method="post">
             {% csrf_token %}
             <h2>Profile</h2>
+            <div>
+            <ul>
+            {% for state in result.data.stateslist %}
+            <li>
+            {{ state.state_name }}
+            <ul>
+            	{% for filter in state.filters %}
+            	<li> {{ filter.tag_name }}</li>
+            	{% endfor %}
+            	</ul>
+            </li>
+            {% endfor %}
+            </ul>
+            </div>
             <button class="btn btn-large btn-primary" type="submit">Save</button>
         </form>
         <a class="btn btn-link" href="{% url 'index' %}">Skip</a>
