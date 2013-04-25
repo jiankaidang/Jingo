@@ -13,6 +13,7 @@ from django.db import models
 
 from Jingo.lib.HttpRequestTasks import HttpRequestResponser
 from Jingo.lib.DataVerification import Formatter, DataVerifier
+from Jingo.lib.SQLExecution import SQLExecuter
 from django.core import serializers
 from django.utils import simplejson
 import json
@@ -44,36 +45,50 @@ class Filter(models.Model):
     
     def getUserStateFilters(self, data):
         fmr       = Formatter()
-        filterset = Filter.objects.filter(uid=data['uid_id'], stateid=data['stateid']).order_by('uid', 'stateid', 'tagid').values()
-        filterset = fmr.simplifyObjToDateString(filterset)  # datetime to iso format
-        return filterset
+        print Filter.objects.all().values()
+        filterset = Filter.objects.filter(uid_id=data['uid_id'], stateid=data['stateid']).values()
+        if len(filterset) == 0:
+            return []
+        else:
+            filterset = fmr.simplifyObjToDateString(filterset)  # datetime to iso format
+            return filterset
     
-    def addFilter(self, data, mode='user-defined'):
-        filters       = Filter()
-        filters.tagid = Tag(tagid=data['tagid'])
-        filters.uid   = State(uid=User(uid=int(data['uid_id'])))
+    # arguments 'data' need to be a list including values that will be stored into filter 
+    def addFilter(self, data):
+        db   = SQLExecuter()
+        args = dict([('table', 'filter'),('values', data)])
+        db.doInsertData(args)
         
+        '''
+        filters         = Filter()
+        filters.tagid   = Tag(tagid=data['tagid'])
+        filters.uid     = State(stateid=int(data['stateid']), uid=User(uid=int(data['uid_id'])))
+        filters.stateid = State(stateid=int(data['stateid']), uid=User(uid=int(data['uid_id'])))
         if mode == 'default':
-            filters.stateid      = State(stateid=0)
             filters.f_start_time = None
             filters.f_stop_time  = None
             filters.f_repeat     = None
             filters.f_visibility = 0
         else:
-            filters.stateid      = State(stateid=data['stateid'])
             filters.f_start_time = data['f_start_time']
             filters.f_stop_time  = data['f_stop_time']
             filters.f_repeat     = data['f_repeat']
             filters.f_visibility = data['f_visibility']
- 
         filters.save()
+        '''
     
     def addDefaultFilter(self, data):
-        print
+        values = []
         for i in range(0,11):
-            data['tagid'] = i
-            print data
-            self.addFilter(data, 'default')
+            values.append(data['stateid'])
+            values.append(i)
+            values.append(None)
+            values.append(None)
+            values.append(0)
+            values.append(0)
+            values.append(data['uid_id'])
+            self.addFilter(values)
+            values= []
         return i
 
 class Friend(models.Model):
@@ -219,11 +234,11 @@ class Tag(models.Model):
         return Tag.objects.filter(tagid=newTagid, uid=int(data['uid'])).values()
     
 class User(models.Model, HttpRequestResponser):
-    uid = models.IntegerField(primary_key=True)
-    u_name = models.CharField(max_length=45)
-    email = models.CharField(max_length=45)
+    uid         = models.IntegerField(primary_key=True)
+    u_name      = models.CharField(max_length=45)
+    email       = models.CharField(max_length=45)
     u_timestamp = models.DateTimeField()
-    password = models.CharField(max_length=15)
+    password    = models.CharField(max_length=15)
 
     class Meta:
         db_table = 'user'
@@ -268,7 +283,7 @@ class User(models.Model, HttpRequestResponser):
         usr               = formatter.simplifyObjToDateString(self.addUser(data))[0]
         usr['state_name'] = 'myState'  # this will be defined as a constant
         state             = State().addState(usr, 'default')[0]
-        #ufilter           = Filter().addDefaultFilter(state)
+        ufilter           = Filter().addDefaultFilter(state)
         stateslist        = State().getUserStatesAndFiltersList(usr)
         
         data              = dict([('user', usr), ('stateslist', stateslist)])

@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from Jingo.lib.SQLExecution import SQLExecuter
 from Jingo.models import *
 
 http_res = HttpRequestResponser()
@@ -6,9 +7,11 @@ http_res = HttpRequestResponser()
 def index(request):
     #dataverify = DataVerifier()
     #dataverify.setRulesBase()
-    data = {}
-    data['uid'] = 1
-    State().getUserStatesAndFiltersList(data)
+    #db = SQLExecuter()
+    #db.doInsertData([])
+    #data = {}
+    #data['uid'] = 1
+    #State().getUserStatesAndFiltersList(data)
     test = {
         'test': 'This is Jingo Homepage.',
     }
