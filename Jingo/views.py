@@ -81,7 +81,7 @@ def tasks(request, mode):
         
     if mode == 'updateState':
         page = 'response.html'
-        data = State().updateState(data)
+        data = State().updateState(request)
         
     return http_res.response(request, page, data)
     
