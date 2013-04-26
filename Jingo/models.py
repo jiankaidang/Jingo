@@ -201,6 +201,10 @@ class State(models.Model):
             state.save();
             return State.objects.filter(stateid=newStateid, uid=data['uid']).values()
 
+    def updateState(self, data):
+        print data
+        return State.objects.filter(stateid=data['stateid'], uid=data['uid']).update(state_name=data['state_name'])
+        
 class Tag(models.Model):
     tagid     = models.IntegerField(primary_key=True)
     tag_name  = models.CharField(max_length=45)
