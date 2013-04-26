@@ -1,15 +1,12 @@
 {% extends "base.html" %}
 {% block title %}Login{% endblock title %}
 {% block content %}
-    <div class="container">
-
-        <form action="{% url 'tasks' mode='login' %}" method="post">
-            {% csrf_token %}
-            <h2>Please login</h2>
-            <input type="text" class="input-block-level" placeholder="Email address" name="email">
-            <input type="password" class="input-block-level" placeholder="Password" name="password">
-            <button class="btn btn-large btn-primary" type="submit">Login</button>
-            <a class="btn btn-large" href="{% url 'pages' mode='signup' %}">Sign up</a>
-        </form>
-    </div>
+    <form action="{% url 'tasks' mode='login' %}" method="post">
+        {% csrf_token %}
+        <h2>Please login</h2>
+        <input type="text" class="input-block-level" placeholder="Email address" name="email">
+        <input type="password" class="input-block-level" placeholder="Password" name="password">
+        <button class="btn btn-large btn-primary" type="submit">Login</button>
+        <a class="btn btn-large" href="{% url 'pages' mode='signup' %}">Sign up</a>
+    </form>
 {% endblock content %}
