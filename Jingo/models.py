@@ -204,7 +204,7 @@ class State(models.Model, HttpRequestResponser, Formatter):
     def updateState(self, request):
         data = self.readData(request)
         data = State.objects.filter(stateid=data['stateid'], uid=data['uid']).update(state_name=data['state_name'])
-        return self.createResultSet(data)
+        return self.createResultSet(data, 'json')
         
         
 class Tag(models.Model):

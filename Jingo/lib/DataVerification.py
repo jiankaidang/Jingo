@@ -51,14 +51,17 @@ class Formatter:
             result.append(row)
         return result # list with several valuequerysets
     
-    def jsonEncoder(self, queryset):
-        return json.JSONEncoder().encode(queryset)
+    def jsonEncoder(self, resultset):
+        return json.JSONEncoder().encode(resultset)
     
     
-    def createResultSet(self, data={}, result=RESULT_SUCCESS, message={}, args={}):
+    def createResultSet(self, data={}, outputType='html', result=RESULT_SUCCESS, message={}, args={}):
         resultset = dict([('result', result), ('data', data), ('message', message), ])
-        
-        return resultset
+        if outputType == 'json':
+            print 'json'
+            return self.jsonEncoder(resultset)
+        else:
+            return resultset
     
     '''
     def simplifyObjToData(self, args): # when some of fields in a queryset
