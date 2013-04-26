@@ -5,11 +5,17 @@
     <link rel="stylesheet" type="text/css" href="{% static 'css/index.css' %}"/>
 {% endblock css %}
 {% block content %}
-{{ test }}
+<div>
 <a href="{% url 'pages' mode='signup' %}">signup</a> | 
 <a href="{% url 'pages' mode='login' %}">login</a> | 
 <a href="{% url 'pages' mode='profile' %}">profile</a> | 
 <a href="{% url 'tasks' mode='logout' %}">logout</a>
+</div>
+<div>
+    {% if request.session.uid %}
+    hi, {{ request.session.usrdata.u_name }}
+    {% endif%}
+</div>
 {{ request.session.uid }}
 {% endblock content %}
 {% block js %}
