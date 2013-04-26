@@ -1,24 +1,13 @@
-# This is an auto-generated Django model module.
-# You'll have to do the following manually to clean this up:
-#     * Rearrange models' order
-#     * Make sure each model has one field with primary_key=True
-# Feel free to rename the models, but don't rename db_table values or field names.
-#
-# Also note: You'll have to insert the output of 'django-admin.py sqlcustom [appname]'
-# into your database.
 from __future__ import unicode_literals
-
 from django.utils import timezone
 from django.db import models
+from Jingo.lib.config import *
 
-from Jingo.lib.HttpRequestTasks import HttpRequestResponser
-from Jingo.lib.DataVerification import Formatter, DataVerifier
-from Jingo.lib.SQLExecution import SQLExecuter
-from django.core import serializers
-from django.utils import simplejson
-import json
+from Jingo.lib.HttpRequestTasks import *
+from Jingo.lib.DataVerification import *
+from Jingo.lib.SQLExecution import *
 
-class Comments(models.Model):
+class Comments(models.Model, Formatter):
     commentid = models.IntegerField(primary_key=True)
     noteid = models.ForeignKey('Note', db_column='noteid')
     c_timestamp = models.DateTimeField()
@@ -29,7 +18,6 @@ class Comments(models.Model):
 
     class Meta:
         db_table = 'comments'
-
 
 class Filter(models.Model):
     stateid      = models.ForeignKey('State', db_column='stateid', primary_key=True)
@@ -98,7 +86,10 @@ class Filter(models.Model):
             self.addFilter(values)
             values= []
         return i
-
+    
+    def deleteFilter(self, data):
+        return Filter.objects.filter(uid=data['uid'], stateid=data['stateid'], tagid=data['tagid']).delete()
+    
 class Friend(models.Model):
     uid = models.ForeignKey('User', db_column='uid')
     f_uid = models.ForeignKey('User', db_column='f_uid')
@@ -227,8 +218,11 @@ class Tag(models.Model):
             return 1
         else:
             tag = Tag.objects.all().order_by('tagid').latest('tagid')
-            print tag.tagid
+            #print tag.tagid
             return tag.tagid + 1
+    
+    def getUserTags(self, input_uid):
+        return Tag.objects.filter(uid=User(uid=input_uid)).order_by('tagid').values()
     
     def addTag(self, data):
         newTagid      = self.getNewTagid()
@@ -240,7 +234,10 @@ class Tag(models.Model):
         tag.save()
         return Tag.objects.filter(tagid=newTagid, uid=int(data['uid'])).values()
     
-class User(models.Model, HttpRequestResponser):
+    def deleteTag(self, data):
+        return Tag.objects.filter(tagid=data['tagid']).delete()
+    
+class User(models.Model, HttpRequestResponser, Formatter):
     uid         = models.IntegerField(primary_key=True)
     u_name      = models.CharField(max_length=45)
     email       = models.CharField(max_length=45)
@@ -262,6 +259,10 @@ class User(models.Model, HttpRequestResponser):
         #print usr.uid
         return usr.uid + 1
     
+    def getUserData(self, input_uid):
+        print "usr_id=" + str(input_uid)
+        return User.objects.filter(uid=input_uid).values()[0]
+    
     def addUser(self, data):
         usr             = User()
         usr.uid         = self.getNewUid()
@@ -273,10 +274,9 @@ class User(models.Model, HttpRequestResponser):
         return User.objects.filter(email=data['email']).values()
 
     def signup(self, request):
-        result    = 'success'
+        result    = RESULT_SUCCESS
         message   = []
         verifier  = DataVerifier()
-        formatter = Formatter()
         data = self.readData(request)
 
         if not verifier.isValidFormat(data['email'], 'email'):
@@ -287,28 +287,29 @@ class User(models.Model, HttpRequestResponser):
             message.append('The email address is already taken.')
             result = 'fail'
 
-        usr               = formatter.simplifyObjToDateString(self.addUser(data))[0]
-        usr['state_name'] = 'myState'  # this will be defined as a constant
+        usr               = self.simplifyObjToDateString(self.addUser(data))[0]
+        usr['state_name'] = STATE_NAME_DEFAULT
         state             = State().addState(usr, 'default')[0]
         ufilter           = Filter().addDefaultFilter(state)
         stateslist        = State().getUserStatesAndFiltersList(usr)
         
         data              = dict([('user', usr), ('stateslist', stateslist)])
 
-        return dict([('result', result), ('data', data), ('message', message), ])
-
+        #return dict([('result', result), ('data', data), ('message', message), ])
+        return self.createResultSet(data, result, message)
+        
     def login(self, request):
         if request.method != 'POST':
             pass
             # raise Http404('Only POSTs are allowed')
-        print request.session.get('uid', False)
+        #print request.session.get('uid', False)
         if request.session.get('uid', False):
             print 'you already logged in!'
             return dict([('result', 'fail'), ('data', '')])
         else:
             try:
                 data = self.readData(request)
-                print data
+                #print data
                 usr = User.objects.get(email=data['email']).__dict__
 
                 if usr['password'] == data['password']:
@@ -316,6 +317,7 @@ class User(models.Model, HttpRequestResponser):
                     request.session['uid'] = usr['uid']
                     usr['u_timestamp'] = usr['u_timestamp'].isoformat()
                     #print usr
+                    request.session['usrdata'] = usr
                     return dict([('result', 'success'), ('data', usr)])
 
             except User.DoesNotExist:
@@ -328,3 +330,11 @@ class User(models.Model, HttpRequestResponser):
         except KeyError:
             pass
         return dict([('result', 'success'), ('message', 'You\'re logged out.')])
+
+    def getUserProfile(self, request):
+        uid    = request.session['uid']
+        usr    = self.getUserData(uid)
+        data   = dict([('user', usr), ('stateslist', State().getUserStatesAndFiltersList(usr))])
+        return self.createResultSet(data)
+    
+    

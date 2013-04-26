@@ -1,9 +1,10 @@
 from django.shortcuts import render, render_to_response
 from django.core.context_processors import csrf
+from django.template import RequestContext
 from Jingo.lib.DataVerification import Formatter
 import json
 
-class HttpRequestResponser:
+class HttpRequestResponser(Formatter):
     def readData(self, request):
         if request.method == 'GET':
             data = request.GET.dict()
@@ -11,12 +12,20 @@ class HttpRequestResponser:
             data = request.POST.dict()
         return data
 
-    def response(self, page, data={}, dataType='default'):
-        fmr      = Formatter()
+    def response(self, request, page, data={}, dataType='default'):
+        '''
+        c = {}
+        test = csrf(request)
+        print test
+        c.update(test)
+        '''
+        resultset               = {}
         if dataType == 'json':
-            #result = {'result' : json.dumps(data),}
-            result = {'result' : fmr.jsonEncoder(data),}
+            #resultset['result'] = json.dumps(data)
+            resultset['result'] = self.jsonEncoder(data)
         if dataType == 'default':
-            result = {'result' : data,}
-        return render_to_response(page, result)
+            resultset['result'] = data
+        
+        #return render_to_response(page, resultset)
+        return render_to_response(page, resultset,context_instance=RequestContext(request))
         

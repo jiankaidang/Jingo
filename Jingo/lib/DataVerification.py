@@ -1,3 +1,4 @@
+from Jingo.lib.config import *
 from django.core import serializers
 from Jingo.models import *
 import re, types, datetime, json
@@ -52,6 +53,12 @@ class Formatter:
     
     def jsonEncoder(self, queryset):
         return json.JSONEncoder().encode(queryset)
+    
+    
+    def createResultSet(self, data={}, result=RESULT_SUCCESS, message={}, args={}):
+        resultset = dict([('result', result), ('data', data), ('message', message), ])
+        
+        return resultset
     
     '''
     def simplifyObjToData(self, args): # when some of fields in a queryset

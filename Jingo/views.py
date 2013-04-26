@@ -1,3 +1,4 @@
+from django.core.context_processors import csrf
 from django.shortcuts import render
 from Jingo.lib.SQLExecution import SQLExecuter
 from Jingo.models import *
@@ -5,14 +6,21 @@ from Jingo.models import *
 http_res = HttpRequestResponser()
 
 def index(request):
+    data = {}
+    data['uid'] = 1
+    data['stateid'] = 0
+    data['tagid'] = 0
+    print Filter().addFilter(data)
+    #print Filter().addFilter([0, 0, None, None, 0, 0, 1])
     test = {
         'test': 'This is Jingo Homepage',
     }
-    return http_res.response('index.html', test)
+    return http_res.response(request, 'index.html', test)
     #return render(request, 'index.html', test)
 
 # redirect to specific pages
 def pages(request, mode):
+    data = {}
     if mode == 'signup':
         page = 'signup.html'
         
@@ -21,8 +29,12 @@ def pages(request, mode):
         
     if mode == 'profile':
         page = 'profile.html'
-        
-    return render(request, page)
+        #if request.session['uid']:
+        if request.session.get('uid', False):
+            data = User().getUserProfile(request)
+        else:
+            page = 'login.html'
+    return http_res.response(request, page, data)
 
 # deal with AJAX request and database access
 def tasks(request, mode):
@@ -70,5 +82,5 @@ def tasks(request, mode):
         page = 'response.html'
         data = Friend().getFriendsList(data)
         
-    return http_res.response(page, data)
+    return http_res.response(request, page, data)
     
