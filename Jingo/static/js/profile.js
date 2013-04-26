@@ -12,18 +12,18 @@ $(function () {
     }).on("blur", "input", function () {
             var heading = $(this).closest(headingClass);
             heading.find("a").show();
-            var stateNameInput = heading.find("input").hide();
+            var stateNameInput = heading.find("input:text").hide(), stateName = stateNameInput.val();
             new CsrfAuth().ajaxRequest("/tasks/updateState/", {
                 data: {
                     uid: heading.attr("data-uid"),
                     stateid: heading.attr("data-state-id"),
-                    state_name: stateNameInput.val()
+                    state_name: stateName
                 },
                 'success': function (response) {
                     if (response.result) {
-                        alert("the user name is '" + response.data + "'");
+                        heading.find("span").html(stateName);
                     } else
-                        alert('can\'t find this user!');
+                        alert('error');
                 },
                 'error': function (xhr, textStatus, thrownError) {
                     alert(xhr.statusText);

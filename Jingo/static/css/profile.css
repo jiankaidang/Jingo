@@ -1,19 +1,16 @@
 .accordion-heading .accordion-toggle {
-    display: inline-block;
-    width: 70%;
+  display: inline-block;
+  width: 70%;
 }
-
 .accordion-heading .pull-right {
-    margin-top: 8px;
-    margin-right: 8px;
-    visibility: hidden;
+  margin-top: 8px;
+  margin-right: 8px;
+  visibility: hidden;
 }
-
-.accordion-heading input {
-    display: none;
-    margin: 3px 8px;
+.accordion-heading > input {
+  display: none;
+  margin: 3px 8px;
 }
-
 .accordion-heading:hover .pull-right {
-    visibility: visible;
+  visibility: visible;
 }

@@ -1,0 +1,20 @@
+<div class="accordion-heading" data-state-id="{{ state.stateid }}" data-uid="{{ state.uid_id }}">
+    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2"
+       href="#collapseOne">
+        <label class="radio">
+            <input type="radio" name="currentState" value="{{ state.stateid }}"{% if forloop.first %}
+                   checked{% endif %}>
+            <span>{{ state.state_name }}</span>
+        </label>
+    </a>
+    <a href="#" class="pull-right"><i class="icon-trash"></i></a>
+    <a href="#" class="pull-right"><i class="icon-pencil"></i></a>
+    <input type="text" value="{{ state.state_name }}">
+</div>
+<div id="collapseOne" class="accordion-body in collapse" style="height: auto;">
+    <div class="accordion-inner">
+        {% for filter in state.filters %}
+            {{ filter.tag_name }}
+        {% endfor %}
+    </div>
+</div>
