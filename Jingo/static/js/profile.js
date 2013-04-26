@@ -4,7 +4,8 @@
  * Time: 11:49 PM
  */
 $(function () {
-    var headingClass = ".accordion-heading", profileContainer = $("#accordion2").on("click", ".icon-pencil",function () {
+    var headingClass = ".accordion-heading";
+    $("#accordion2").on("click", ".icon-pencil",function () {
         var heading = $(this).closest(headingClass);
         heading.find("a").hide();
         heading.find("input").show().focus();
@@ -14,7 +15,7 @@ $(function () {
             var stateNameInput = heading.find("input").hide();
             new CsrfAuth().ajaxRequest("/tasks/updateState/", {
                 data: {
-                    uid: profileContainer.attr("data-uid"),
+                    uid: heading.attr("data-uid"),
                     stateid: heading.attr("data-state-id"),
                     state_name: stateNameInput.val()
                 },

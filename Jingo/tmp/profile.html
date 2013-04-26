@@ -7,10 +7,10 @@
 {% block content %}
     <h2>Profile</h2>
 
-    <div class="accordion" id="accordion2" data-uid="{{ state.uid }}">
+    <div class="accordion" id="accordion2">
         {% for state in result.data.stateslist %}
             <div class="accordion-group">
-                <div class="accordion-heading" data-state-id="{{ state.stateid }}">
+                <div class="accordion-heading" data-state-id="{{ state.stateid }}" data-uid="{{ state.uid_id }}">
                     <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2"
                        href="#collapseOne">
                         {{ state.state_name }}
