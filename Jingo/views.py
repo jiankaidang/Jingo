@@ -80,7 +80,7 @@ def tasks(request, mode):
         data = Friend().getFriendsList(data)
         
     if mode == 'updateState':
-        page = 'response'
+        page = 'response.html'
         data = State().updateState(data)
         
     return http_res.response(request, page, data)
