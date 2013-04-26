@@ -8,7 +8,7 @@ $(function () {
     $(headingClass).on("click", ".icon-pencil",function () {
         var heading = $(this).closest(headingClass);
         heading.find("a").hide();
-        heading.find("input").show();
+        heading.find("input").show().focus();
     }).on("blur", "input", function () {
             var heading = $(this).closest(headingClass);
             heading.find("a").show();
