@@ -155,7 +155,7 @@ class Note_Time(models.Model):
     class Meta:
         db_table = 'note_time'
 
-class State(models.Model):
+class State(models.Model, HttpRequestResponser):
     stateid    = models.IntegerField(primary_key=True)
     state_name = models.CharField(max_length=45)
     uid        = models.ForeignKey('User', db_column='uid', primary_key=True)
