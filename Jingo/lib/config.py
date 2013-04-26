@@ -2,8 +2,8 @@
 STATE_NAME_DEFAULT = 'myState'
 
 # return dataset
-RESULT_SUCCESS = 'success'
-RESULT_FAIL = 'fail'
+RESULT_SUCCESS = 1
+RESULT_FAIL = 0
 
 # include Project library 
 from Jingo.lib.HttpRequestTasks import *
