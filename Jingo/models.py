@@ -201,7 +201,8 @@ class State(models.Model):
             state.save();
             return State.objects.filter(stateid=newStateid, uid=data['uid']).values()
 
-    def updateState(self, data):
+    def updateState(self, request):
+        data = self.readData(request)
         print data
         return State.objects.filter(stateid=data['stateid'], uid=data['uid']).update(state_name=data['state_name'])
         
@@ -296,7 +297,7 @@ class User(models.Model, HttpRequestResponser, Formatter):
         state             = State().addState(usr, 'default')[0]
         ufilter           = Filter().addDefaultFilter(state)
         stateslist        = State().getUserStatesAndFiltersList(usr)
-        
+        print stateslist
         data              = dict([('user', usr), ('stateslist', stateslist)])
 
         #return dict([('result', result), ('data', data), ('message', message), ])
@@ -339,6 +340,7 @@ class User(models.Model, HttpRequestResponser, Formatter):
         uid    = request.session['uid']
         usr    = self.getUserData(uid)
         data   = dict([('user', usr), ('stateslist', State().getUserStatesAndFiltersList(usr))])
+        print data
         return self.createResultSet(data)
     
     
