@@ -155,7 +155,7 @@ class Note_Time(models.Model):
     class Meta:
         db_table = 'note_time'
 
-class State(models.Model, HttpRequestResponser):
+class State(models.Model, HttpRequestResponser, Formatter):
     stateid    = models.IntegerField(primary_key=True)
     state_name = models.CharField(max_length=45)
     uid        = models.ForeignKey('User', db_column='uid', primary_key=True)
@@ -203,8 +203,9 @@ class State(models.Model, HttpRequestResponser):
 
     def updateState(self, request):
         data = self.readData(request)
-        print data
-        return State.objects.filter(stateid=data['stateid'], uid=data['uid']).update(state_name=data['state_name'])
+        data = State.objects.filter(stateid=data['stateid'], uid=data['uid']).update(state_name=data['state_name'])
+        return self.createResultSet(data)
+        
         
 class Tag(models.Model):
     tagid     = models.IntegerField(primary_key=True)
