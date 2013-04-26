@@ -46,38 +46,19 @@ def tasks(request, mode):
     if mode == 'logout':
         page = 'login.html'
         data = User().logout(request)
-
-    if mode == 'getSysTags':
+    
+    # API for profile settings
+    if mode == 'setDefaultState':
         page = 'response.html'
-        data = Tag().getSysTags(request)
-
-    if mode == 'getUserTags':
+        data = State().setDefaultState(request)
+        
+    if mode == 'addState':
         page = 'response.html'
-        data = Tag().getUserTags(request)
-
-    if mode == 'addTag':
+        data = State().addState(request)
+    
+    if mode == 'deleteState':
         page = 'response.html'
-        data = Tag().addTag(request)
-
-    if mode == 'addFilter':
-        page = 'response.html'
-        data = Filter().addFilter(request)
-
-    if mode == 'getUserFilters':
-        page = 'response.html'
-        data = Filter().getUserFilters(request)
-
-    if mode == 'addInivitation':
-        page = 'response.html'
-        data = Friend().addInvitation(data)
-
-    if mode == 'getFriendInivitations':
-        page = 'response.html'
-        data = Friend().getFriendsInvitations(data)
-
-    if mode == 'getFriendsList':
-        page = 'response.html'
-        data = Friend().getFriendsList(data)
+        data = State().deleteState(request)
         
     if mode == 'updateState':
         page = 'response.html'

@@ -185,6 +185,11 @@ class State(models.Model, HttpRequestResponser, Formatter):
             datalist.append(row)
         return datalist
     
+    def setDefaultState(self, request):
+        data = self.readData(request)
+        data = State.objects.all().update(is_current=0).filter(stateid=data['stateid'], uid=data['uid']).update(is_current=1)
+        return self.createResultSet(data, 'json')
+    
     def addState(self, data, mode='user-defined'):
         state            = State()
         state.state_name = data['state_name']
@@ -193,14 +198,21 @@ class State(models.Model, HttpRequestResponser, Formatter):
             state.is_current = 1
             state.stateid    = 0
             state.save();
-            return State.objects.filter(stateid=0, uid=data['uid']).values()
+            data = State.objects.filter(stateid=0, uid=data['uid']).values()
+            return data
         else:
             newStateid       = self.getNewStateid()
             state.is_current = 0
             state.stateid    = self.getNewStateid()
             state.save();
-            return State.objects.filter(stateid=newStateid, uid=data['uid']).values()
+            data = State.objects.filter(stateid=newStateid, uid=data['uid']).values()
+            return self.createResultSet(data, 'json')
 
+    def deleteState(self, request):
+        data = self.readData(request)
+        data = State.objects.filter(stateid=data['stateid'], uid=data['uid']).delete()
+        return self.createResultSet(data, 'json')
+    
     def updateState(self, request):
         data = self.readData(request)
         data = State.objects.filter(stateid=data['stateid'], uid=data['uid']).update(state_name=data['state_name'])
