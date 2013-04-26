@@ -4,22 +4,11 @@ http_res = HttpRequestResponser()
 
 
 def index(request):
-<<<<<<< HEAD
     # data = {}
     # data['uid'] = 1
     # data['stateid'] = 0
     # data['tagid'] = 0
     # print Filter().addFilter(data)
-=======
-    '''
-    data = {}
-    data['uid'] = 1
-    data['stateid'] = 0
-    data['tagid'] = 0
-    print Filter().addFilter(data)
->>>>>>> submit all modification
-    #print Filter().addFilter([0, 0, None, None, 0, 0, 1])
-    '''
     test = {
         'test': 'This is Jingo Homepage',
     }
