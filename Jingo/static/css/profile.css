@@ -1,16 +1,32 @@
-.accordion-heading .accordion-toggle {
-  display: inline-block;
-  width: 70%;
+.accordion-group .accordion-heading .accordion-toggle {
+    display: inline-block;
+    width: 64%;
 }
-.accordion-heading .pull-right {
-  margin-top: 8px;
-  margin-right: 8px;
-  visibility: hidden;
+
+.accordion-group .accordion-heading .pull-right {
+    margin-top: 8px;
+    margin-right: 8px;
+    visibility: hidden;
 }
-.accordion-heading > input {
-  display: none;
-  margin: 3px 8px;
+
+.accordion-group .accordion-heading > input {
+    display: none;
+    margin: 3px 8px;
 }
-.accordion-heading:hover .pull-right {
-  visibility: visible;
+
+.accordion-group .accordion-heading:hover .pull-right {
+    visibility: visible;
+}
+
+.accordion-group .current-state {
+    background-color: #dff0d8;
+}
+
+.accordion-group .current-state:hover .remove-state {
+    visibility: hidden;
+}
+
+.accordion-group > input {
+    float: left;
+    margin: 11px 0 11px 8px;
 }
