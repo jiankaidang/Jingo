@@ -21,6 +21,7 @@ def pages(request, mode):
 
     if mode == 'profile':
         page = 'profile.html'
+        #page = 'response.html'
         if request.session.get('uid', False):
             data = User().getUserProfile(request)
         else:
