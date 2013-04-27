@@ -34,7 +34,8 @@ class Filter(models.Model, Formatter):
     def categorizeFiltersIntoSystags(self, data, filterset):
         result      = []
         tmp_sysTags = []
-        sysTags    = Tag().getUserSysTags(data)
+        #sysTags    = Tag().getUserSysTags(data)
+        sysTags     = Tag().getSysTags()
         #print "Here ==========>"
         #print sysTags
         for sys in sysTags:
@@ -236,7 +237,8 @@ class State(models.Model, HttpRequestResponser, Formatter):
             newStateid       = self.getNewStateid()
             self.insertState(request['uid'], 0, newStateid)
             newState            = State.objects.filter(stateid=newStateid).values()[0]
-            newState['filters'] = Filter().getUserStateFilters(newState)
+            #newState['filters'] = Filter().getUserStateFilters(newState)
+            newState['filters'] = Tag().getSysTags()
             data                = dict([('state', newState)])
             print data
             return self.createResultSet(data)
