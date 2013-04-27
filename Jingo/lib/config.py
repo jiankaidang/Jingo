@@ -1,5 +1,5 @@
 # default state name
-STATE_NAME_DEFAULT = 'myState'
+STATE_NAME_DEFAULT     = 'myState'
 
 # return dataset
 RESULT_SUCCESS         = 1

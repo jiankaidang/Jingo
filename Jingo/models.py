@@ -99,8 +99,14 @@ class Filter(models.Model, Formatter):
             values= []
         return i
     
-    def deleteFilter(self, data):
-        return Filter.objects.filter(uid=data['uid'], stateid=data['stateid'], tagid=data['tagid']).delete()
+    def deleteFilter(self, request):
+        data               = self.readData(request)
+        args               = {}
+        args['table']      = 'Filter'
+        args['attributes'] = [{'field':'tagid', 'logic': 'And'}, {'field':'uid', 'logic': 'And'}, {'field':'stateid', 'logic': 'And'}]
+        args['values']     = [data['tagid'], data['uid'], data['stateid']]
+        SQLExecuter().doDeleteData(args)
+        return self.createResultSet(data, 'json')
     
 class Friend(models.Model):
     uid = models.ForeignKey('User', db_column='uid')
@@ -135,20 +141,23 @@ class Friend(models.Model):
         return Friend.objects.filter(invitationid=newInvitationid)
         
 class Note(models.Model):
-    note = models.CharField(max_length=140)
-    n_timestamp = models.DateTimeField()
-    link = models.TextField(blank=True)
-    noteid = models.IntegerField(primary_key=True)
-    uid = models.ForeignKey('User', db_column='uid')
-    radius = models.DecimalField(null=True, max_digits=10, decimal_places=2, blank=True)
+    note         = models.CharField(max_length=140)
+    n_timestamp  = models.DateTimeField()
+    link         = models.TextField(blank=True)
+    noteid       = models.IntegerField(primary_key=True)
+    uid          = models.ForeignKey('User', db_column='uid')
+    radius       = models.DecimalField(null=True, max_digits=10, decimal_places=2, blank=True)
     n_visibility = models.IntegerField()
-    n_latitude = models.DecimalField(max_digits=9, decimal_places=6)
-    n_longitude = models.DecimalField(max_digits=9, decimal_places=6)
-    is_comment = models.IntegerField()
-    n_like = models.IntegerField()
+    n_latitude   = models.DecimalField(max_digits=9, decimal_places=6)
+    n_longitude  = models.DecimalField(max_digits=9, decimal_places=6)
+    is_comment   = models.IntegerField()
+    n_like       = models.IntegerField()
 
     class Meta:
         db_table = 'note'
+    
+    def addNote(self, request):
+        return 0
 
 class Note_Tag(models.Model):
     noteid = models.ForeignKey('Note', db_column='noteid', primary_key=True)
@@ -397,5 +406,4 @@ class User(models.Model, HttpRequestResponser, Formatter):
         data   = dict([('user', usr), ('stateslist', State().getUserStatesAndFiltersList(usr))])
         #print data
         return self.createResultSet(data)
-    
     

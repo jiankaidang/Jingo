@@ -49,7 +49,7 @@ def tasks(request, mode):
         data = State().setDefaultState(request)
         
     if mode == 'addState':
-        page = 'response.html'
+        page = 'state.html'
         data = State().addState(request)
     
     if mode == 'deleteState':
@@ -72,6 +72,19 @@ def tasks(request, mode):
     if mode == 'updateTag':
         page = 'response.html'
         data = Tag().updateTag(request)
+    
+    # API for filter settings
+    if mode == 'addFilter':
+        page = 'response.html'
+        data = Tag().addFilter(request)
+    
+    if mode == 'deleteFilter':
+        page = 'response.html'
+        data = Tag().deleteFilter(request)
+    
+    if mode == 'updateFilter':
+        page = 'response.html'
+        data = Tag().updateFilter(request)
     
     return http_res.response(request, page, data)
     
