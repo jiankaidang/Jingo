@@ -14,7 +14,7 @@
     <div class="accordion" id="accordion2" data-uid="{{ request.session.uid }}">
         {% for state in result.data.stateslist %}
             <div class="accordion-group">
-                {% include "state.html" %}
+                {% include "state.html" with is_first=forloop.first %}
             </div>
         {% endfor %}
     </div>

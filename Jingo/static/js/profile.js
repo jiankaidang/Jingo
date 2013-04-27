@@ -34,10 +34,12 @@ $(function () {
         }).on("click", ".accordion-group>input",function () {
             profileContainer.find(".current-state").removeClass("current-state").next(".collapse").collapse("hide");
             $(this).next(".accordion-heading").addClass("current-state").next(".collapse").collapse("show");
-        }).on("click", ".checkbox", function () {
+        }).on("click", ".checkbox",function () {
             $.post("/tasks//", {
 
             })
+        }).on("click", ".add-tag", function () {
+
         });
     $("#addState").click(function () {
         $('<div class="accordion-group"></div>').prependTo(profileContainer).load("/tasks/addState/", {
