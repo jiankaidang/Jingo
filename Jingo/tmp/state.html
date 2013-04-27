@@ -12,11 +12,24 @@
 </div>
 <div id="collapse{{ forloop.counter }}" class="accordion-body{% if forloop.first %} in{% endif %} collapse">
     <div class="accordion-inner">
-        {% for filter in state.filters %}
-            <label class="checkbox">
-                <input type="checkbox" value="{{ filter.tagid }}">
-                {{ filter.tag_name }}
-            </label>
-        {% endfor %}
+        <ul class="unstyled">
+            {% for filter in state.filters %}
+                <li>
+                    <label class="checkbox">
+                        <input type="checkbox" value="{{ filter.tagid }}">
+                        {{ filter.tag_name }}
+                        <a href="#" class="pull-right"><i class="icon-plus"></i></a>
+                    </label>
+                    <ul>
+                        <li>
+                            <label class="checkbox">
+                                <input type="checkbox" value="">
+                                filter.tag_name
+                            </label>
+                        </li>
+                    </ul>
+                </li>
+            {% endfor %}
+        </ul>
     </div>
 </div>
