@@ -12,7 +12,7 @@
         <button class="btn btn-mini pull-right" id="addState" type="button"><i class="icon-plus"></i></button>
     </div>
     <div class="accordion" id="accordion2" data-uid="{{ request.session.uid }}">
-        {% for state in result.data.stateslist %}
+        {% for state in stateslist %}
             <div class="accordion-group">
                 {% include "state.html" with is_first=forloop.first %}
             </div>

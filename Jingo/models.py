@@ -35,8 +35,8 @@ class Filter(models.Model, Formatter):
         result      = []
         tmp_sysTags = []
         sysTags    = Tag().getUserSysTags(data)
-        print "Here ==========>"
-        print sysTags
+        #print "Here ==========>"
+        #print sysTags
         for sys in sysTags:
             sys['tags']       = []
             sys['is_checked'] = 0
@@ -52,8 +52,8 @@ class Filter(models.Model, Formatter):
                 if tagid_id > 10 and sys['tagid'] == row['sys_tagid']:
                     sys['is_checked'] = 1
                     sys['tags'].append(row)
-            print "result row ================"
-            print sys
+            #print "result row ================"
+            #print sys
             result.append(sys)
         return result
     
@@ -65,7 +65,7 @@ class Filter(models.Model, Formatter):
             row['tag_name']   = tag.tag_name
             row['sys_tagid']  = tag.sys_tagid
             row['is_checked'] = 1
-            print row
+            #print row
             result.append(row)
         return result
     
@@ -88,13 +88,13 @@ class Filter(models.Model, Formatter):
     def addDefaultFilter(self, data):
         values = []
         for i in range(0,11):
-            values.append(data['stateid'])
+            values.append(int(data['stateid']))
             values.append(i)
             values.append(None)
             values.append(None)
             values.append(0)
             values.append(0)
-            values.append(data['uid_id'])
+            values.append(int(data['uid_id']))
             self.addFilter(values)
             values= []
         return i
@@ -200,7 +200,7 @@ class State(models.Model, HttpRequestResponser, Formatter):
         datalist = []
         #print data
         uslist   = self.getUserStatesList(data)  # get user's all states
-        print uslist
+        #print uslist
         for row in uslist:
             filterset      = filt.getUserStateFilters(row)
             row['filters'] = filterset
@@ -212,23 +212,34 @@ class State(models.Model, HttpRequestResponser, Formatter):
         data = State.objects.all().update(is_current=0).filter(stateid=data['stateid'], uid=data['uid']).update(is_current=1)
         return self.createResultSet(data, 'json')
     
-    def addState(self, data, mode='user-defined'):
+    def insertState(self, uid, is_current, stateid):
+        data = [stateid, STATE_NAME_DEFAULT, uid, is_current]
+        args = dict([('table', 'State'),('values', data)])
+        SQLExecuter().doInsertData(args)
+        '''
         state            = State()
         state.state_name = STATE_NAME_DEFAULT
-        state.uid        = User(uid=int(data['uid']))
+        state.uid        = User(uid=input_uid)
+        state.is_current = is_current
+        state.stateid    = stateid
+        state.save();
+        '''
+        
+    def addState(self, request, mode='user-defined'):
+        
         if mode == 'default':
-            state.is_current = 1
-            state.stateid    = 0
-            state.save();
-            data = State.objects.filter(stateid=0, uid=data['uid']).values()
+            self.insertState(request['uid'], 1, 0)
+            data = State.objects.filter(stateid=0, uid=request['uid']).values()
             return data
         else:
+            request          = self.readData(request)
             newStateid       = self.getNewStateid()
-            state.is_current = 0
-            state.stateid    = self.getNewStateid()
-            state.save();
-            data = State.objects.filter(stateid=newStateid, uid=data['uid']).values()
-            return self.createResultSet(data, 'json')
+            self.insertState(request['uid'], 0, newStateid)
+            newState            = State.objects.filter(stateid=newStateid).values()[0]
+            newState['filters'] = Filter().getUserStateFilters(newState)
+            data                = dict([('state', newState)])
+            print data
+            return self.createResultSet(data)
 
     def deleteState(self, request):
         data               = self.readData(request)
@@ -241,7 +252,7 @@ class State(models.Model, HttpRequestResponser, Formatter):
     
     def updateState(self, request):
         data = self.readData(request)
-        data = State.objects.filter(stateid=data['stateid'], uid=data['uid']).update(state_name=data['state_name'])
+        State.objects.filter(stateid=data['stateid'], uid=data['uid']).update(state_name=data['state_name'])
         return self.createResultSet(data, 'json')
              
 class Tag(models.Model):
@@ -265,7 +276,6 @@ class Tag(models.Model):
             return tag.tagid + 1
         
     def getUserSysTags(self, data):
-        print data
         result             = []
         args               = {}
         args['columns']    = ['b.*, a.tag_name, a.sys_tagid']
@@ -333,7 +343,6 @@ class User(models.Model, HttpRequestResponser, Formatter):
         return usr.uid + 1
     
     def getUserData(self, input_uid):
-        print "usr_id=" + str(input_uid)
         return User.objects.filter(uid=input_uid).values()[0]
     
     def addUser(self, data):
@@ -396,9 +405,9 @@ class User(models.Model, HttpRequestResponser, Formatter):
             request.session.clear()
         except KeyError:
             message = LOGOUT_FAIL
-            return self.createResultSet([], 'html', RESULT_FAIL, message)
+            return self.createResultSet({}, 'html', RESULT_FAIL, message)
         message = LOGOUT_SUCCESS
-        return self.createResultSet([], 'html', RESULT_SUCCESS, message)
+        return self.createResultSet({}, 'html', RESULT_SUCCESS, message)
 
     def getUserProfile(self, request):
         uid    = request.session['uid']

@@ -19,13 +19,12 @@ class HttpRequestResponser(Formatter):
         print test
         c.update(test)
         '''
-        resultset               = {}
+        
         if dataType == 'json':
             #resultset['result'] = json.dumps(data)
-            resultset['result'] = self.jsonEncoder(data)
+            resultset = self.jsonEncoder(data)
         if dataType == 'default':
-            resultset['result'] = data
-        
-        #return render_to_response(page, resultset)
-        return render_to_response(page, resultset,context_instance=RequestContext(request))
+            resultset = data
+
+        return render_to_response(page, resultset, context_instance=RequestContext(request))
         

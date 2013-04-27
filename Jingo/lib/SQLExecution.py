@@ -57,7 +57,8 @@ class SQLExecuter:
 
 	def doInsertData(self, args):
 		strValues = self.getInsertString(args)
-		self.cursor.execute("Insert Into " + args['table'] + " Values (" + strValues + ")", args['values'])
+		strSQL    = "Insert Into " + args['table'] + " Values (" + strValues + ")"
+		self.cursor.execute(strSQL, args['values'])
 		transaction.commit_unless_managed()
 
 	def doDeleteData(self, args):
@@ -71,7 +72,7 @@ class SQLExecuter:
 		strValues = self.getSQLString(args)
 		strSQL    = "Select " + strValues['columns'] + " From " + strValues['tables'] + " "
 		strSQL   += "Where " + strValues['joins'] + strValues['conditions']
-		print strSQL
+		#print strSQL
 		self.cursor.execute(strSQL, args['values'])
 		return self.dictfetchall(self.cursor)
 		

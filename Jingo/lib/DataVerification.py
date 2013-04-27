@@ -54,35 +54,14 @@ class Formatter:
     def jsonEncoder(self, resultset):
         return json.JSONEncoder().encode(resultset)
     
-    
-    def createResultSet(self, data={}, outputType='html', result=RESULT_SUCCESS, message={}, args={}):
-        resultset = dict([('result', result), ('data', data), ('message', message), ])
+    def createResultSet(self, data={}, outputType='html', result=RESULT_SUCCESS, message={}):
+        resultset = dict([('result', result), ('message', message), ])
+        
+        for k, v in enumerate(data.values()):
+            key            = data.keys()[k]
+            resultset[key] = v
+        
         if outputType == 'json':
-            print 'json'
             return self.jsonEncoder(resultset)
         else:
             return resultset
-    
-    '''
-    def simplifyObjToData(self, args): # when some of fields in a queryset
-        
-        for k, v in enumerate(args.values()):
-            if type(v) is datetime.datetime:
-                key = args.keys()[k]
-                args[key] = args[key].isoformat()
-        
-        return args
-        
-        if not args:
-            pass
-       
-        # check if everything in args is a Int
-        elif all( isinstance(s, types.) for s in args):
-            do_some_ather_thing()
-       
-        # as before with strings
-        elif all( isinstance(s, types.StringTypes) for s in args):
-            do_totally_different_thing()
-        
-        elif all( isinstance(s, datetime.datetime) for s in args):
-'''
