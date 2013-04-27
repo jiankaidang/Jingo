@@ -4,7 +4,7 @@
  * Time: 11:49 PM
  */
 $(function () {
-    var headingClass = ".accordion-heading", profileContainer = $("#accordion2").on("click", ".icon-pencil",function () {
+    var headingClass = ".accordion-heading", profileContainer = $("#accordion2").on("click", ".update-state",function () {
         var heading = $(this).closest(headingClass);
         heading.find("a").hide();
         heading.find("input").show().focus();
@@ -21,15 +21,13 @@ $(function () {
                     heading.find("span").html(stateName);
                 }
             }, "json");
-        }).on("click", ".icon-trash",function () {
+        }).on("click", ".remove-state",function () {
             var heading = $(this).closest(headingClass);
             $.post("/tasks/deleteState/", {
                 uid: heading.attr("data-uid"),
                 stateid: heading.attr("data-state-id")
-            }, function (response) {
-                if (response.result) {
-                    heading.closest(".accordion-group").remove();
-                }
+            }, function () {
+                heading.closest(".accordion-group").remove();
             }, "json");
         }).on("click", ".accordion-group>input",function () {
             profileContainer.find(".current-state").removeClass("current-state").next(".collapse").collapse("hide");
