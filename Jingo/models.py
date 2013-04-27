@@ -19,7 +19,7 @@ class Comments(models.Model, Formatter):
     class Meta:
         db_table = 'comments'
 
-class Filter(models.Model):
+class Filter(models.Model, Formatter):
     stateid      = models.ForeignKey('State', db_column='stateid', primary_key=True)
     tagid        = models.ForeignKey('Tag', db_column='tagid', primary_key=True)
     f_start_time = models.DateTimeField(null=True, blank=True)
@@ -31,22 +31,52 @@ class Filter(models.Model):
     class Meta:
         db_table = 'filter'
     
-    def extendFilterWithTagName(self, filterset):
+    def categorizeFiltersIntoSystags(self, data, filterset):
+        result      = []
+        tmp_sysTags = []
+        sysTags    = Tag().getUserSysTags(data)
+        print "Here ==========>"
+        print sysTags
+        for sys in sysTags:
+            sys['tags']       = []
+            sys['is_checked'] = 0
+            tmp_sysTags.append(sys)
+            
+        for sys in tmp_sysTags:
+            for row in filterset:
+                tagid_id = row['tagid_id']
+            
+                if sys['tagid'] == tagid_id and (tagid_id >= 0 and tagid_id <= 10):
+                    sys['is_checked'] = 1
+                
+                if tagid_id > 10 and sys['tagid'] == row['sys_tagid']:
+                    sys['is_checked'] = 1
+                    sys['tags'].append(row)
+            print "result row ================"
+            print sys
+            result.append(sys)
+        return result
+    
+    def extendFilterWithTagInfo(self, data, filterset):
         result = []
         for row in filterset:
-            tag             = Tag.objects.get(tagid=row['tagid_id'])
-            row['tag_name'] = tag.tag_name
+            tagid_id          = row['tagid_id']
+            tag               = Tag.objects.get(tagid=tagid_id)
+            row['tag_name']   = tag.tag_name
+            row['sys_tagid']  = tag.sys_tagid
+            row['is_checked'] = 1
+            print row
             result.append(row)
         return result
     
     def getUserStateFilters(self, data):
-        fmr       = Formatter()
         filterset = Filter.objects.filter(uid_id=data['uid_id'], stateid=data['stateid']).values()
-        filterset = self.extendFilterWithTagName(filterset)
+        filterset = self.extendFilterWithTagInfo(data, filterset)
+        filterset = self.categorizeFiltersIntoSystags(data, filterset)
         if len(filterset) == 0:
             return []
         else:
-            filterset = fmr.simplifyObjToDateString(filterset)  # datetime to iso format
+            filterset = self.simplifyObjToDateString(filterset)  # datetime to iso format
             return filterset
     
     # arguments 'data' need to be a list including values that will be stored into filter 
@@ -54,24 +84,6 @@ class Filter(models.Model):
         db   = SQLExecuter()
         args = dict([('table', 'filter'),('values', data)])
         db.doInsertData(args)
-        
-        '''
-        filters         = Filter()
-        filters.tagid   = Tag(tagid=data['tagid'])
-        filters.uid     = State(stateid=int(data['stateid']), uid=User(uid=int(data['uid_id'])))
-        filters.stateid = State(stateid=int(data['stateid']), uid=User(uid=int(data['uid_id'])))
-        if mode == 'default':
-            filters.f_start_time = None
-            filters.f_stop_time  = None
-            filters.f_repeat     = None
-            filters.f_visibility = 0
-        else:
-            filters.f_start_time = data['f_start_time']
-            filters.f_stop_time  = data['f_stop_time']
-            filters.f_repeat     = data['f_repeat']
-            filters.f_visibility = data['f_visibility']
-        filters.save()
-        '''
     
     def addDefaultFilter(self, data):
         values = []
@@ -179,6 +191,7 @@ class State(models.Model, HttpRequestResponser, Formatter):
         datalist = []
         #print data
         uslist   = self.getUserStatesList(data)  # get user's all states
+        print uslist
         for row in uslist:
             filterset      = filt.getUserStateFilters(row)
             row['filters'] = filterset
@@ -214,7 +227,7 @@ class State(models.Model, HttpRequestResponser, Formatter):
         args['table']      = 'State'
         args['attributes'] = ['stateid', 'uid']
         args['values']     = [data['stateid'], data['uid']]
-        SQLExecuter().doSelectData(args)
+        SQLExecuter().doDeleteData(args)
         return self.createResultSet(data, 'json')
     
     def updateState(self, request):
@@ -241,6 +254,21 @@ class Tag(models.Model):
             tag = Tag.objects.all().order_by('tagid').latest('tagid')
             #print tag.tagid
             return tag.tagid + 1
+        
+    def getUserSysTags(self, data):
+        print data
+        result             = []
+        args               = {}
+        args['columns']    = ['b.*, a.tag_name, a.sys_tagid']
+        args['tables']     = ['tag as a', 'filter as b']
+        args['joins']      = ['a.tagid = b.tagid', 'a.tagid>=%s And a.tagid<=%s']
+        args['conditions'] = [{'criteria': 'b.uid=', 'logic': 'And'}, {'criteria': 'b.stateid=', 'logic': 'And'}]
+        args['values']     = [0, 10, data['uid_id'], data['stateid']]
+        slist              = SQLExecuter().doSelectData(args)
+        for sys in slist:
+            sys['is_checked'] = 0
+            result.append(sys)
+        return result
     
     def getUserTags(self, input_uid):
         return Tag.objects.filter(uid=User(uid=input_uid)).order_by('tagid').values()
@@ -318,21 +346,7 @@ class User(models.Model, HttpRequestResponser, Formatter):
         ufilter           = Filter().addDefaultFilter(state)
         
         self.setUserSession(request, usr)
-        
-        '''
-        usr               = self.simplifyObjToDateString(self.addUser(data))[0]
-        usr['state_name'] = STATE_NAME_DEFAULT
-        state             = State().addState(usr, 'default')[0]
-        ufilter           = Filter().addDefaultFilter(state)
-        stateslist        = State().getUserStatesAndFiltersList(usr)
-        print stateslist
-        data              = dict([('user', usr), ('stateslist', stateslist)])
-
-        #return dict([('result', result), ('data', data), ('message', message), ])
-        return self.createResultSet(data, result, message)
-        '''
-        
-        
+      
     def login(self, request):
         if request.method != 'POST':
             pass

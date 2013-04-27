@@ -16,17 +16,19 @@
             {% for filter in state.filters %}
                 <li>
                     <label class="checkbox">
-                        <input type="checkbox" value="{{ filter.tagid }}">
+                    	<input type="checkbox" value="{{ filter.tagid }}" {% if filter.is_checked %} checked="true" {% endif %}>
                         {{ filter.tag_name }}
                         <a href="#" class="pull-right"><i class="icon-plus"></i></a>
                     </label>
                     <ul>
+                    	{% for tag in filter.tags %}
                         <li>
                             <label class="checkbox">
-                                <input type="checkbox" value="">
-                                filter.tag_name
+                                <input type="checkbox" value="{{ tag.tagid_id}}" {% if tag.is_checked %} checked="true" {% endif %}>
+                                {{ tag.tag_name }}
                             </label>
                         </li>
+                        {% endfor %}
                     </ul>
                 </li>
             {% endfor %}
