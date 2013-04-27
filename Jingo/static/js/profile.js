@@ -31,13 +31,27 @@ $(function () {
                     heading.closest(".accordion-group").remove();
                 }
             }, "json");
-        }).on("click", ".accordion-group>input", function () {
+        }).on("click", ".accordion-group>input",function () {
             profileContainer.find(".current-state").removeClass("current-state").next(".collapse").collapse("hide");
             $(this).next(".accordion-heading").addClass("current-state").next(".collapse").collapse("show");
+        }).on("click", ".checkbox", function () {
+            $.post("/tasks//", {
+
+            })
         });
     $("#addState").click(function () {
-        $('<div class="accordion-group"></div>').prependTo(profileContainer).load("/tasks/addState/", function () {
+        $('<div class="accordion-group"></div>').prependTo(profileContainer).load("/tasks/addState/", {
+            uid: profileContainer.attr("data-uid")
+        }, function () {
             $(this).find(".icon-pencil").click();
         });
+    });
+    $("#editState").click(function () {
+        $(this).closest(".btn-toolbar").addClass("edit-state");
+        profileContainer.addClass("edit-state");
+    });
+    $("#doneState").click(function () {
+        $(this).closest(".btn-toolbar").removeClass("edit-state");
+        profileContainer.removeClass("edit-state");
     });
 });

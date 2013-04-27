@@ -14,18 +14,8 @@
       margin: 3px 8px;
     }
   }
-  .accordion-heading:hover {
-    .pull-right {
-      visibility: visible;
-    }
-  }
   .current-state {
     background-color: #dff0d8;
-  }
-  .current-state:hover {
-    .remove-state {
-      visibility: hidden;
-    }
   }
   >input {
     float: left;
@@ -41,10 +31,34 @@
       list-style: none;
     }
   }
-  .accordion-inner .checkbox:hover {
-    background-color: #f9f9f9;
-    .pull-right {
-      visibility: visible;
+}
+
+#accordion2.edit-state {
+  .pull-right {
+    visibility: visible;
+  }
+  .current-state {
+    .remove-state {
+      visibility: hidden;
     }
+  }
+}
+
+.btn-toolbar.edit-state {
+  #editState {
+    display: none;
+  }
+  #doneState {
+    display: inline-block;
+    margin-left: 0;
+  }
+}
+
+.btn-toolbar {
+  #editState {
+    display: inline-block;
+  }
+  #doneState {
+    display: none;
   }
 }

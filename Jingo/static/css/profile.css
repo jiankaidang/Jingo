@@ -14,16 +14,8 @@
     margin: 3px 8px;
 }
 
-.accordion-group .accordion-heading:hover .pull-right {
-    visibility: visible;
-}
-
 .accordion-group .current-state {
     background-color: #dff0d8;
-}
-
-.accordion-group .current-state:hover .remove-state {
-    visibility: hidden;
 }
 
 .accordion-group > input {
@@ -39,10 +31,27 @@
     list-style: none;
 }
 
-.accordion-group .accordion-inner .checkbox:hover {
-    background-color: #f9f9f9;
+#accordion2.edit-state .pull-right {
+    visibility: visible;
 }
 
-.accordion-group .accordion-inner .checkbox:hover .pull-right {
-    visibility: visible;
+#accordion2.edit-state .current-state .remove-state {
+    visibility: hidden;
+}
+
+.btn-toolbar.edit-state #editState {
+    display: none;
+}
+
+.btn-toolbar.edit-state #doneState {
+    display: inline-block;
+    margin-left: 0;
+}
+
+.btn-toolbar #editState {
+    display: inline-block;
+}
+
+.btn-toolbar #doneState {
+    display: none;
 }
