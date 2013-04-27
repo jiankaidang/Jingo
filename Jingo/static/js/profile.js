@@ -69,7 +69,7 @@ $(function () {
         $('<div class="accordion-group"></div>').prependTo(profileContainer).load("/tasks/addState/", {
             uid: uid
         }, function () {
-            $(this).find(".icon-pencil").click();
+            $(this).find(".update-state").click();
         });
     });
     $("#editState").click(function () {
