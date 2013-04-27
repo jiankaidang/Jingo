@@ -172,7 +172,7 @@ class State(models.Model, HttpRequestResponser, Formatter):
         return ustate.stateid + 1
 
     def getUserStatesList(self, data):
-        return State.objects.all().filter(uid=data['uid']).order_by('is_current', 'stateid').reverse().values()
+        return State.objects.all().filter(uid=data['uid']).order_by('is_current').reverse().values()
     
     def getUserStatesAndFiltersList(self, data):
         filt     = Filter()
@@ -209,16 +209,19 @@ class State(models.Model, HttpRequestResponser, Formatter):
             return self.createResultSet(data, 'json')
 
     def deleteState(self, request):
-        data = self.readData(request)
-        data = State.objects.filter(stateid=data['stateid'], uid=data['uid']).delete()
+        data               = self.readData(request)
+        args               = {}
+        args['table']      = 'State'
+        args['attributes'] = ['stateid', 'uid']
+        args['values']     = [data['stateid'], data['uid']]
+        SQLExecuter().doSelectData(args)
         return self.createResultSet(data, 'json')
     
     def updateState(self, request):
         data = self.readData(request)
         data = State.objects.filter(stateid=data['stateid'], uid=data['uid']).update(state_name=data['state_name'])
         return self.createResultSet(data, 'json')
-        
-        
+             
 class Tag(models.Model):
     tagid     = models.IntegerField(primary_key=True)
     tag_name  = models.CharField(max_length=45)
@@ -265,6 +268,10 @@ class User(models.Model, HttpRequestResponser, Formatter):
     class Meta:
         db_table = 'user'
 
+    def setUserSession(self, request, usr):
+        request.session['uid']     = usr['uid']
+        request.session['usrdata'] = usr
+    
     def getNewUid(self):
         if len(User.objects.all().values()) == 0:
             return 1
@@ -304,7 +311,15 @@ class User(models.Model, HttpRequestResponser, Formatter):
         if not verifier.isEmailUnique(User.objects, data['email']):
             message.append('The email address is already taken.')
             result = 'fail'
-
+        
+        usr               = self.simplifyObjToDateString(self.addUser(data))[0]
+        usr['state_name'] = STATE_NAME_DEFAULT
+        state             = State().addState(usr, 'default')[0]
+        ufilter           = Filter().addDefaultFilter(state)
+        
+        self.setUserSession(request, usr)
+        
+        '''
         usr               = self.simplifyObjToDateString(self.addUser(data))[0]
         usr['state_name'] = STATE_NAME_DEFAULT
         state             = State().addState(usr, 'default')[0]
@@ -315,6 +330,8 @@ class User(models.Model, HttpRequestResponser, Formatter):
 
         #return dict([('result', result), ('data', data), ('message', message), ])
         return self.createResultSet(data, result, message)
+        '''
+        
         
     def login(self, request):
         if request.method != 'POST':
@@ -325,35 +342,35 @@ class User(models.Model, HttpRequestResponser, Formatter):
             print 'you already logged in!'
             return dict([('result', 'fail'), ('data', '')])
         else:
-            try:
-                data = self.readData(request)
-                #print data
-                usr = User.objects.get(email=data['email']).__dict__
-
+            data = self.readData(request)
+            check = User.objects.filter(email=data['email']).values()
+            if len(check) == 0:
+                message = MESSAGE_EMAIL_ERROR
+                return self.createResultSet(data, 'html', RESULT_FAIL, message) 
+            else:
+                usr = self.simplifyObjToDateString(check)[0]
                 if usr['password'] == data['password']:
-                    del usr['_state']
-                    request.session['uid'] = usr['uid']
-                    usr['u_timestamp'] = usr['u_timestamp'].isoformat()
-                    #print usr
-                    request.session['usrdata'] = usr
-                    return dict([('result', 'success'), ('data', usr)])
-
-            except User.DoesNotExist:
-                return dict([('result', 'fail'), ('data', 0)])
+                    self.setUserSession(request, usr)
+                    self.createResultSet(usr)
+                else:
+                    message = MESSAGE_PASSWORD_ERROR
+                    return self.createResultSet(data, 'html', RESULT_FAIL, message) 
 
     def logout(self, request):
         try:
             del request.session['uid']
             request.session.clear()
         except KeyError:
-            pass
-        return dict([('result', 'success'), ('message', 'You\'re logged out.')])
+            message = LOGOUT_FAIL
+            return self.createResultSet([], 'html', RESULT_FAIL, message)
+        message = LOGOUT_SUCCESS
+        return self.createResultSet([], 'html', RESULT_SUCCESS, message)
 
     def getUserProfile(self, request):
         uid    = request.session['uid']
         usr    = self.getUserData(uid)
         data   = dict([('user', usr), ('stateslist', State().getUserStatesAndFiltersList(usr))])
-        print data
+        #print data
         return self.createResultSet(data)
     
     

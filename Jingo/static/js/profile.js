@@ -31,7 +31,7 @@ $(function () {
                 }
             });
         }).on("click", ".icon-trash", function () {
-            var heading = $(this).closest(headingClass);
+        	var heading = $(this).closest(headingClass);
             new CsrfAuth().ajaxRequest("/tasks/deleteState/", {
                 data: {
                     uid: heading.attr("data-uid"),

@@ -1,18 +1,14 @@
+from django.shortcuts import redirect
 from Jingo.models import *
 
 http_res = HttpRequestResponser()
 
 
 def index(request):
-    # data = {}
-    # data['uid'] = 1
-    # data['stateid'] = 0
-    # data['tagid'] = 0
-    # print Filter().addFilter(data)
-    test = {
-        'test': 'This is Jingo Homepage',
-    }
-    return http_res.response(request, 'index.html', test)
+    page = 'login.html'
+    if request.session.get('uid', False):
+        page = 'index.html'
+    return http_res.response(request, page)
     #return render(request, 'index.html', test)
 
 # redirect to specific pages
@@ -26,7 +22,6 @@ def pages(request, mode):
 
     if mode == 'profile':
         page = 'profile.html'
-        #if request.session['uid']:
         if request.session.get('uid', False):
             data = User().getUserProfile(request)
         else:
@@ -35,18 +30,19 @@ def pages(request, mode):
 
 # deal with AJAX request and database access
 def tasks(request, mode):
+    if mode == 'logout':
+        data = User().logout(request)
+        return redirect('http://localhost:8000')
+    
     if mode == 'signup':
         page = 'profile.html'
         data = User().signup(request)
+        return redirect('/pages/profile/')
 
     if mode == 'login':
         page = 'index.html'
         data = User().login(request)
 
-    if mode == 'logout':
-        page = 'login.html'
-        data = User().logout(request)
-    
     # API for profile settings
     if mode == 'setDefaultState':
         page = 'response.html'

@@ -11,12 +11,19 @@ class SQLExecuter:
 			strValues += '%s, '
 		return strValues[:len(strValues)-2]
 
+	def getDeleteString(self, args):
+		strValues = ''
+		for attr in args['attributes']:
+			strValues += attr + '=%s And '
+		return strValues[:len(strValues)-4]
+
 	def doInsertData(self, args):
 		strValues = self.getInsertString(args)
 		self.cursor.execute("Insert Into " + args['table'] + " Values (" + strValues + ")", args['values'])
 		transaction.commit_unless_managed()
 
 	def doSelectData(self, args):
-		# Data retrieval operation - no commit required
-		self.cursor.execute("SELECT foo FROM bar WHERE baz = %s", [self.baz])
-		row = self.cursor.fetchone()
+		strValues = self.getDeleteString(args)
+		#print "Delete From " + args['table'] + " Where " + strValues
+		self.cursor.execute("Delete From " + args['table'] + " Where " + strValues, args['values'])
+		transaction.commit_unless_managed()
