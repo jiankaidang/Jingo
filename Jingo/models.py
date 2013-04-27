@@ -214,7 +214,7 @@ class State(models.Model, HttpRequestResponser, Formatter):
     
     def addState(self, data, mode='user-defined'):
         state            = State()
-        state.state_name = data['state_name']
+        state.state_name = STATE_NAME_DEFAULT
         state.uid        = User(uid=int(data['uid']))
         if mode == 'default':
             state.is_current = 1
