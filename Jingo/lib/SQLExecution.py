@@ -48,10 +48,12 @@ class SQLExecuter:
 		return strValues[:len(strValues)-2]
 
 	def getDeleteString(self, args):
-		strValues = ''
+		strValues  = ''
+		last_logic = 0
 		for attr in args['attributes']:
-			strValues += attr + '=%s And '
-		return strValues[:len(strValues)-4]
+			strValues += attr['field'] + '=%s ' + attr['logic'] + ' '
+			last_logic = len(attr['logic']) + 1
+		return strValues[:len(strValues)-last_logic]
 
 	def doInsertData(self, args):
 		strValues = self.getInsertString(args)
@@ -59,8 +61,9 @@ class SQLExecuter:
 		transaction.commit_unless_managed()
 
 	def doDeleteData(self, args):
-		strValues = self.getInsertString(args)
+		strValues = self.getDeleteString(args)
 		strSQL    = "Delete From " + args['table'] + " Where " + strValues
+		print strSQL
 		self.cursor.execute(strSQL, args['values'])
 		transaction.commit_unless_managed()
 		

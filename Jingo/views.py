@@ -3,7 +3,6 @@ from Jingo.models import *
 
 http_res = HttpRequestResponser()
 
-
 def index(request):
     page = 'login.html'
     if request.session.get('uid', False):
@@ -30,6 +29,7 @@ def pages(request, mode):
 
 # deal with AJAX request and database access
 def tasks(request, mode):
+    # API for user behaviors
     if mode == 'logout':
         data = User().logout(request)
         return redirect('http://localhost:8000')
@@ -59,6 +59,19 @@ def tasks(request, mode):
     if mode == 'updateState':
         page = 'response.html'
         data = State().updateState(request)
-        
+    
+    # API for tag settings
+    if mode == 'addTag':
+        page = 'response.html'
+        data = Tag().addTag(request)
+    
+    if mode == 'deleteTag':
+        page = 'response.html'
+        data = Tag().deleteTag(request)
+    
+    if mode == 'updateTag':
+        page = 'response.html'
+        data = Tag().updateTag(request)
+    
     return http_res.response(request, page, data)
     

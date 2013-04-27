@@ -225,7 +225,7 @@ class State(models.Model, HttpRequestResponser, Formatter):
         data               = self.readData(request)
         args               = {}
         args['table']      = 'State'
-        args['attributes'] = ['stateid', 'uid']
+        args['attributes'] = [{'field':'stateid', 'logic': 'And'}, {'field':'uid', 'logic': 'And'}]
         args['values']     = [data['stateid'], data['uid']]
         SQLExecuter().doDeleteData(args)
         return self.createResultSet(data, 'json')
@@ -283,8 +283,19 @@ class Tag(models.Model):
         tag.save()
         return Tag.objects.filter(tagid=newTagid, uid=int(data['uid'])).values()
     
-    def deleteTag(self, data):
-        return Tag.objects.filter(tagid=data['tagid']).delete()
+    def deleteTag(self, request):
+        data               = self.readData(request)
+        args               = {}
+        args['table']      = 'Tag'
+        args['attributes'] = [{'field':'stateid', 'logic': 'And'}, {'field':'uid', 'logic': 'And'}]
+        args['values']     = [data['tagid'], data['uid']]
+        SQLExecuter().doDeleteData(args)
+        return self.createResultSet(data, 'json')
+    
+    def updateTag(self, request):
+        data = self.readData(request)
+        data = Tag.objects.filter(tagid=data['tagid'], uid=data['uid']).update(state_name=data['tag_name'])
+        return self.createResultSet(data, 'json')
     
 class User(models.Model, HttpRequestResponser, Formatter):
     uid         = models.IntegerField(primary_key=True)
