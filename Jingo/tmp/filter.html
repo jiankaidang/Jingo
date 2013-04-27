@@ -1,0 +1,42 @@
+<form class="form-horizontal" action="{% url 'tasks' mode='updateFilter' %}" id="filterForm">
+    <fieldset>
+        <legend>Schedule</legend>
+        <div class="control-group">
+            <label class="control-label" for="f_start_time">From</label>
+
+            <div class="controls">
+                <input type="datetime-local" id="f_start_time" name="f_start_time">
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label" for="f_stop_time">To</label>
+
+            <div class="controls">
+                <input type="datetime-local" id="f_stop_time" name="f_stop_time">
+            </div>
+        </div>
+        <div class="control-group">
+            <div class="controls">
+                <label class="checkbox">
+                    <input type="checkbox" name="f_repeat">Repeat
+                </label>
+            </div>
+        </div>
+        <div class="control-group">
+            <div class="controls">
+                <label class="radio">
+                    <input type="radio" name="f_visibility" value="0" checked>
+                    Public
+                </label>
+                <label class="radio">
+                    <input type="radio" name="f_visibility" value="1">
+                    Friends
+                </label>
+                <label class="radio">
+                    <input type="radio" name="f_visibility" value="2">
+                    Only Me
+                </label>
+            </div>
+        </div>
+    </fieldset>
+</form>

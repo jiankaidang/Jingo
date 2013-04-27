@@ -38,12 +38,36 @@ $(function () {
             $.post("/tasks//", {
 
             })
-        }).on("click", ".add-tag", function () {
+        }).on("click", ".add-tag",function () {
+            var sysTagLi = $(this).closest("li"), newTagLi = $('<li><input type="text" required></li>').prependTo(sysTagLi.find("ul"));
+            newTagLi.find("input").blur(function () {
+                var tagName = $(this).val(), stateid = $(this).closest(".accordion-group").attr("data-stateid"), tagid = sysTagLi.attr("data-tagid");
+                $.post("/tasks/addTag/", {
+                    uid: uid,
+                    sys_tagid: tagid,
+                    tag_name: tagName
+                }, function () {
+                    var tagid = response.tagid;
+                    newTagLi.html('<label class="checkbox"><input type="checkbox" value="' + tagid + '">' + tagName +
+                        '<a class="pull-right update-filter" data-toggle="modal" href="/tasks/getFilter/?uid=' + uid +
+                        '&stateid=' + stateid + '&tagid=' + tagid +
+                        '" data-target="#myModal"><i class="icon-pencil"></i></a></label>').attr("data-tagid", tagid);
+                })
+            });
+        }).on("click", ".remove-tag",function () {
+            var tagLi = $(this).closest("li");
+            $.post("/tasks/deleteTag/", {
+                uid: uid,
+                tagid: tagLi.attr("data-tagid")
+            }, function () {
+                tagLi.remove();
+            })
+        }).on("click", ".update-filter", function () {
 
-        });
+        }), uid = profileContainer.attr("data-uid");
     $("#addState").click(function () {
         $('<div class="accordion-group"></div>').prependTo(profileContainer).load("/tasks/addState/", {
-            uid: profileContainer.attr("data-uid")
+            uid: uid
         }, function () {
             $(this).find(".icon-pencil").click();
         });
@@ -56,4 +80,8 @@ $(function () {
         $(this).closest(".btn-toolbar").removeClass("edit-state");
         profileContainer.removeClass("edit-state");
     });
-});
+    $("#updateFilter").click(function () {
+        $.post("/tasks/updateFilter/", $("#filterForm").serialize())
+    });
+})
+;

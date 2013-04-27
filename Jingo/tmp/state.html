@@ -8,26 +8,33 @@
     </a>
     <a href="#" class="pull-right remove-state"><i class="icon-trash"></i></a>
     <a href="#" class="pull-right update-state"><i class="icon-pencil"></i></a>
-    <input type="text" value="{{ state.state_name }}">
+    <input type="text" value="{{ state.state_name }}" required="">
 </div>
 <div id="collapse{{ state.stateid }}" class="accordion-body{% if is_first %} in{% endif %} collapse">
     <div class="accordion-inner">
         <ul class="unstyled">
             {% for filter in state.filters %}
-                <li>
+                <li data-tagid="{{ filter.tagid }}">
                     <label class="checkbox">
                         <input type="checkbox" value="{{ filter.tagid }}" {% if filter.is_checked %}
                                checked="true" {% endif %}>
                         {{ filter.tag_name }}
                         <a href="#" class="pull-right add-tag"><i class="icon-plus"></i></a>
+                        <a class="pull-right update-filter" data-toggle="modal"
+                           href="{% url 'tasks' mode='getFilter' %}?uid={{ state.uid_id }}&stateid={{ state.stateid }}&tagid={{ filter.tagid }}"
+                           data-target="#myModal"><i class="icon-pencil"></i></a>
                     </label>
                     <ul>
                         {% for tag in filter.tags %}
-                            <li>
+                            <li data-tagid="{{ tag.tagid_id }}">
                                 <label class="checkbox">
                                     <input type="checkbox" value="{{ tag.tagid_id }}" {% if tag.is_checked %}
                                            checked="true" {% endif %}>
                                     {{ tag.tag_name }}
+                                    <a href="#" class="pull-right remove-tag"><i class="icon-trash"></i></a>
+                                    <a class="pull-right update-filter" data-toggle="modal"
+                                       href="{% url 'tasks' mode='getFilter' %}?uid={{ state.uid_id }}&stateid={{ state.stateid }}&tagid={{ tag.tagid_id }}"
+                                       data-target="#myModal"><i class="icon-pencil"></i></a>
                                 </label>
                             </li>
                         {% endfor %}

@@ -12,13 +12,27 @@
         <button class="btn btn-mini pull-right" id="addState" type="button"><i class="icon-plus"></i></button>
     </div>
     <div class="accordion" id="accordion2" data-uid="{{ request.session.uid }}">
-        {% for state in result.data.stateslist %}
-            <div class="accordion-group">
+        {% for state in stateslist %}
+            <div class="accordion-group" data-stateid="{{ state.stateid }}">
                 {% include "state.html" with is_first=forloop.first %}
             </div>
         {% endfor %}
     </div>
     <a class="btn btn-link" href="{% url 'index' %}">Skip</a>
+    <!-- Modal -->
+    <div id="myModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+         aria-hidden="true">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            <h3 id="myModalLabel">Filter</h3>
+        </div>
+        <div class="modal-body">
+        </div>
+        <div class="modal-footer">
+            <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+            <button class="btn btn-primary" id="updateFilter" data-dismiss="modal">Save changes</button>
+        </div>
+    </div>
 {% endblock content %}
 {% block js %}
     <script src="{% static "js/profile.js" %}"></script>
