@@ -8,10 +8,14 @@ $(function () {
         var heading = $(this).closest(headingClass);
         heading.find("a").hide();
         heading.find("input").show().focus();
-    }).on("blur", "input",function () {
+    }).on("change", ".updateStateName",function () {
             var heading = $(this).closest(headingClass);
+            var stateNameInput = heading.find("input:text"), stateName = stateNameInput.val();
+            if (!stateName) {
+                return;
+            }
             heading.find("a").show();
-            var stateNameInput = heading.find("input:text").hide(), stateName = stateNameInput.val();
+            stateNameInput.hide();
             $.post("/tasks/updateState/", {
                 uid: heading.attr("data-uid"),
                 stateid: heading.attr("data-state-id"),
@@ -38,20 +42,33 @@ $(function () {
                 stateid: $(this).val()
             })
         }).on("click", ".add-tag",function () {
-            var sysTagLi = $(this).closest("li"), newTagLi = $('<li><input type="text" required></li>').prependTo(sysTagLi.find("ul"));
-            newTagLi.find("input").blur(function () {
-                var tagName = $(this).val(), stateid = $(this).closest(".accordion-group").attr("data-stateid"), tagid = sysTagLi.attr("data-tagid");
-                $.post("/tasks/addTag/", {
-                    uid: uid,
-                    sys_tagid: tagid,
-                    tag_name: tagName
-                }, function (response) {
-                    var tagid = response.tagid;
-                    newTagLi.html('<label class="checkbox"><input type="checkbox" value="' + tagid + '" class="check-filter">' + tagName +
-                        '<a class="pull-right update-filter" data-toggle="modal" href="/tasks/getFilter/?uid=' + uid +
-                        '&stateid=' + stateid + '&tagid=' + tagid +
-                        '" data-target="#myModal"><i class="icon-pencil"></i></a></label>').attr("data-tagid", tagid);
-                })
+            var sysTagLi = $(this).closest("li"), tagid = sysTagLi.attr("data-tagid");
+            $.post("/tasks/getUserTags/", {
+                uid: uid,
+                sys_tagid: tagid
+            }, function (response) {
+                var newTagLi = $('<li><input type="text" required autocomplete="off"></li>').prependTo(sysTagLi.find("ul"));
+                newTagLi.find("input").typeahead({
+                    source: response.tags
+                }).blur(function () {
+                        var tagName = $(this).val();
+                        if (!tagName) {
+                            newTagLi.remove();
+                            return;
+                        }
+                        var stateid = $(this).closest(".accordion-group").attr("data-stateid");
+                        $.post("/tasks/addTag/", {
+                            uid: uid,
+                            sys_tagid: tagid,
+                            tag_name: tagName
+                        }, function (response) {
+                            var tagid = response.tagid;
+                            newTagLi.html('<label class="checkbox"><input type="checkbox" value="' + tagid + '" class="check-filter">' + tagName +
+                                '<a class="pull-right update-filter" data-toggle="modal" href="/tasks/getFilter/?uid=' + uid +
+                                '&stateid=' + stateid + '&tagid=' + tagid +
+                                '" data-target="#myModal"><i class="icon-pencil"></i></a></label>').attr("data-tagid", tagid);
+                        })
+                    }).focus();
             });
         }).on("click", ".remove-tag",function () {
             var tagLi = $(this).closest("li");
