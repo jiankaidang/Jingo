@@ -3,6 +3,7 @@ from Jingo.models import *
 
 http_res = HttpRequestResponser()
 
+
 def index(request):
     page = 'login.html'
     if request.session.get('uid', False):
@@ -34,7 +35,7 @@ def tasks(request, mode):
     if mode == 'logout':
         data = User().logout(request)
         return redirect('http://localhost:8000')
-    
+
     if mode == 'signup':
         page = 'profile.html'
         data = User().signup(request)
@@ -48,47 +49,48 @@ def tasks(request, mode):
     if mode == 'setDefaultState':
         page = 'response.html'
         data = State().setDefaultState(request)
-        
+        return http_res.response(request, page, data, 'json')
+
     if mode == 'addState':
         page = 'state.html'
         data = State().addState(request)
         return http_res.response(request, page, data)
-    
+
     if mode == 'deleteState':
         page = 'response.html'
         data = State().deleteState(request)
         return http_res.response(request, page, data, 'json')
-    
+
     if mode == 'updateState':
         page = 'response.html'
         data = State().updateState(request)
         return http_res.response(request, page, data, 'json')
-    
+
     # API for tag settings
     if mode == 'addTag':
         page = 'response.html'
         data = Tag().addTag(request)
-    
+
     if mode == 'deleteTag':
         page = 'response.html'
         data = Tag().deleteTag(request)
-    
+
     if mode == 'updateTag':
         page = 'response.html'
         data = Tag().updateTag(request)
-    
+
     # API for filter settings
     if mode == 'addFilter':
         page = 'response.html'
         data = Tag().addFilter(request)
-    
+
     if mode == 'deleteFilter':
         page = 'response.html'
         data = Tag().deleteFilter(request)
-    
+
     if mode == 'updateFilter':
         page = 'response.html'
         data = Tag().updateFilter(request)
-    
+
     return http_res.response(request, page, data)
     
