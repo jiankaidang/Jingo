@@ -9,7 +9,6 @@ def index(request):
     if request.session.get('uid', False):
         page = 'index.html'
     return http_res.response(request, page)
-    #return render(request, 'index.html', test)
 
 # redirect to specific pages
 def pages(request, mode):
@@ -44,7 +43,8 @@ def tasks(request, mode):
     if mode == 'login':
         page = 'index.html'
         data = User().login(request)
-
+        return http_res.response(request, page, data)
+    
     # API for profile settings
     if mode == 'setDefaultState':
         page = 'response.html'
@@ -66,48 +66,24 @@ def tasks(request, mode):
         data = State().updateState(request)
         return http_res.response(request, page, data, 'json')
 
-    # API for tag settings
-    '''
-    if mode == 'getUserTags':
-        page = 'response.html'
-        data = Tag().getUserTags(request)
-        return http_res.response(request, page, data, 'json')
-    '''
-    
-    if mode == 'addTag':
-        page = 'response.html'
-        data = Tag().addTag(request)
-
-    if mode == 'deleteTag':
-        page = 'response.html'
-        data = Tag().deleteTag(request)
-
-    if mode == 'updateTag':
-        page = 'response.html'
-        data = Tag().updateTag(request)
-
     # API for filter settings
     if mode == 'activateFilter':
         page = 'response.html'
         data = Filter().activateFilter(request)
         return http_res.response(request, page, data, 'json')
 
-    if mode == 'deactivateFilter':
-        page = 'response.html'
-        data = Filter().addFilter(request)
-        return http_res.response(request, page, data, 'json')
-
     if mode == 'addFilter':
         page = 'response.html'
-        data = Filter().addFilter(request)
-
+        data = Filter().addFilterAndTag(request)
+        return http_res.response(request, page, data, 'json')
+    
     if mode == 'deleteFilter':
         page = 'response.html'
         data = Filter().deleteFilter(request)
-
+        return http_res.response(request, page, data, 'json')
+    
     if mode == 'updateFilter':
         page = 'response.html'
         data = Filter().updateFilter(request)
-
-    return http_res.response(request, page, data)
+        return http_res.response(request, page, data, 'json')
     

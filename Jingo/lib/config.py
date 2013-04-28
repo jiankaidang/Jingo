@@ -9,8 +9,9 @@ MESSAGE_PASSWORD_ERROR = 'Your password is not correct!'
 LOGOUT_FAIL            = 'Unknown reason causes you can\'t logout right now'
 LOGOUT_SUCCESS         = 'You\'re logged out.'
 
-# system tags
+# filter and system tags
 N_SYSTEM_TAGS          = 11
+IS_CHECKED_DEFAULT     = 1
 
 # include Project library 
 from Jingo.lib.HttpRequestTasks import *

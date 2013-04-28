@@ -2,7 +2,7 @@ from __future__ import unicode_literals
 from django.utils import timezone
 from django.db import models
 from Jingo.lib.config import *
-
+import urllib, urlparse
 
 class Comments(models.Model, HttpRequestResponser, Formatter):
     commentid = models.IntegerField(primary_key=True)
@@ -52,7 +52,7 @@ class Filter(models.Model, HttpRequestResponser, Formatter):
                     sys['is_checked'] = 1
                     sys['tags'].append(row)
                 #print "result row ================"
-            print sys
+            #print sys
             result.append(sys)
         return result
 
@@ -78,11 +78,17 @@ class Filter(models.Model, HttpRequestResponser, Formatter):
             return filterset
 
     def getDefaultFilterDataArray(self, data):
-        return [int(data['stateid']), data['tagid'], None, None, 0, 0, int(data['uid']), 1]
+        return [int(data['stateid']), data['tagid'], None, None, 0, 0, int(data['uid']), IS_CHECKED_DEFAULT]
     
     def addFilterAndTag(self, request):
-        data = self.readData(request)
-        return 0
+        data          = self.readData(request)
+        data['tagid'] = Tag().addTag(data)
+        if 'f_start_time' in data:
+            values = [int(data['stateid']), data['tagid'], data['f_start_time'], data['f_stop_time'], data['f_repeat'], data['f_visibility'], int(data['uid']), IS_CHECKED_DEFAULT]
+        else:
+            values = [int(data['stateid']), data['tagid'], None, None, 0, 0, int(data['uid']), IS_CHECKED_DEFAULT]
+        self.addFilter(values)
+        return self.createResultSet({'tagid': data['tagid']}, 'json')
     
     # arguments 'data' need to be a list including values that will be stored into filter 
     def addFilter(self, data):
@@ -107,8 +113,10 @@ class Filter(models.Model, HttpRequestResponser, Formatter):
         return self.createResultSet(data, 'json')
     
     def updateFilter(self, request):
+        #request = 'stateid=0&tagid=1&f_start_time=2013-04-14 04:49:44&f_stop_time=2013-04-14 04:49:44&f_repeat=1&f_visibility=1&uid'
+        #data = urlparse.parse_qsl(request)
         data = self.readData(request)
-        Filter.objects.filter(stateid=data['stateid'],uid=data['uid'],tagid=data['tagid']).update(data)
+        Filter.objects.filter(stateid=data['stateid'],uid=data['uid'],tagid=data['tagid']).update(f_start_time=data['f_start_time'],f_stop_time=data['f_stop_time'],f_repeat=data['f_repeat'],f_visibility=data['f_visibility'])
         return self.createResultSet(data, 'json')
     
     def activateFilter(self, request):
@@ -318,7 +326,7 @@ class Tag(models.Model, HttpRequestResponser, Formatter):
         tag.uid       = User(uid=int(data['uid']))
         tag.sys_tagid = data['sys_tagid']
         tag.save()
-        return self.createResultSet(data, 'json')
+        return newTagid
 
     def deleteTag(self, request):
         data = self.readData(request)
