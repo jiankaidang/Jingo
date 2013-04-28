@@ -52,7 +52,7 @@ def tasks(request, mode):
     if mode == 'addState':
         page = 'state.html'
         data = State().addState(request)
-        return http_res.response(request, page, data, 'json')
+        return http_res.response(request, page, data)
     
     if mode == 'deleteState':
         page = 'response.html'
