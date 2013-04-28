@@ -16,16 +16,16 @@ class Comments(models.Model, Formatter):
     class Meta:
         db_table = 'comments'
 
-
 class Filter(models.Model, Formatter):
-    stateid = models.ForeignKey('State', db_column='stateid', primary_key=True)
-    tagid = models.ForeignKey('Tag', db_column='tagid', primary_key=True)
+    stateid      = models.ForeignKey('State', db_column='stateid', primary_key=True)
+    tagid        = models.ForeignKey('Tag', db_column='tagid', primary_key=True)
     f_start_time = models.DateTimeField(null=True, blank=True)
-    f_stop_time = models.DateTimeField(null=True, blank=True)
-    f_repeat = models.IntegerField(null=True, blank=True)
+    f_stop_time  = models.DateTimeField(null=True, blank=True)
+    f_repeat     = models.IntegerField(null=True, blank=True)
     f_visibility = models.IntegerField()
-    uid = models.ForeignKey('State', db_column='uid', primary_key=True)
-
+    uid          = models.ForeignKey('State', db_column='uid', primary_key=True)
+    is_checked   = models.IntegerField(null=True, blank=True)
+    
     class Meta:
         db_table = 'filter'
 
@@ -108,6 +108,19 @@ class Filter(models.Model, Formatter):
         args['values'] = [data['tagid'], data['uid'], data['stateid']]
         SQLExecuter().doDeleteData(args)
         return self.createResultSet(data, 'json')
+    
+    def updateFilter(self, request):
+        data = self.readData(request)
+        Filter.objects.filter(stateid=data['stateid'],uid=data['uid'],tagid=data['tagid']).update(data)
+        return self.createResultSet(data, 'json')
+    
+    def activateFilter(self, request, act=1):
+        data = self.readData(request)
+        Filter.objects.filter(stateid=data['stateid'],uid=data['uid'],tagid=data['tagid']).update(is_checked=act)
+        return self.createResultSet(data, 'json')
+    
+    def deactivateFilter(self, request):
+        return self.activateFilter(request, 0)
 
 class Friend(models.Model):
     uid = models.ForeignKey('User', db_column='uid')
@@ -141,7 +154,6 @@ class Friend(models.Model):
         friend.invitationid = newInvitationid
         return Friend.objects.filter(invitationid=newInvitationid)
 
-
 class Note(models.Model):
     note = models.CharField(max_length=140)
     n_timestamp = models.DateTimeField()
@@ -168,7 +180,6 @@ class Note_Tag(models.Model):
 
     class Meta:
         db_table = 'note_tag'
-
 
 class Note_Time(models.Model):
     timeid = models.IntegerField(primary_key=True)
@@ -297,8 +308,11 @@ class Tag(models.Model):
             result.append(sys)
         return result
 
-    def getUserTags(self, input_uid):
-        return Tag.objects.filter(uid=User(uid=input_uid)).order_by('tagid').values()
+    def getUserTags(self, request):
+        data    = self.readData(request)
+        taglist = Tag.objects.filter(uid=data['uid'], sys_tagid=data['sys_tagid']).order_by('tagid').values('tag_name')
+        data    = dict([('tags', taglist)])
+        return self.createResultSet(data, 'json')
 
     def addTag(self, data):
         newTagid = self.getNewTagid()
