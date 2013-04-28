@@ -274,7 +274,7 @@ class State(models.Model, HttpRequestResponser, Formatter):
         return self.createResultSet(data, 'json')
 
 
-class Tag(models.Model):
+class Tag(models.Model, HttpRequestResponser):
     tagid = models.IntegerField(primary_key=True)
     tag_name = models.CharField(max_length=45)
     uid = models.ForeignKey('User', null=True, db_column='uid', blank=True)
@@ -337,7 +337,6 @@ class Tag(models.Model):
         data = self.readData(request)
         data = Tag.objects.filter(tagid=data['tagid'], uid=data['uid']).update(state_name=data['tag_name'])
         return self.createResultSet(data, 'json')
-
 
 class User(models.Model, HttpRequestResponser, Formatter):
     uid = models.IntegerField(primary_key=True)
