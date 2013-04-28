@@ -47,7 +47,7 @@ $(function () {
                     tag_name: tagName
                 }, function (response) {
                     var tagid = response.tagid;
-                    newTagLi.html('<label class="checkbox"><input type="checkbox" value="' + tagid + '">' + tagName +
+                    newTagLi.html('<label class="checkbox"><input type="checkbox" value="' + tagid + '" class="check-filter">' + tagName +
                         '<a class="pull-right update-filter" data-toggle="modal" href="/tasks/getFilter/?uid=' + uid +
                         '&stateid=' + stateid + '&tagid=' + tagid +
                         '" data-target="#myModal"><i class="icon-pencil"></i></a></label>').attr("data-tagid", tagid);
@@ -61,8 +61,13 @@ $(function () {
             }, function () {
                 tagLi.remove();
             })
-        }).on("click", ".update-filter", function () {
-
+        }).on("click", ".check-filter", function () {
+            $.post("/tasks/activateFilter/", {
+                uid: uid,
+                stateid: $(this).closest(".accordion-group").attr("data-stateid"),
+                tagid: $(this).closest("li").attr("data-tagid"),
+                is_checked: $(this).is(":checked") ? 1 : 0
+            })
         }), uid = profileContainer.attr("data-uid");
     $("#addState").click(function () {
         $('<div class="accordion-group"></div>').prependTo(profileContainer).load("/tasks/addState/", {
@@ -82,7 +87,7 @@ $(function () {
         profileContainer.removeClass("edit-state");
     });
     $("#updateFilter").click(function () {
-        $.post("/tasks/updateFilter/", $("#filterForm").serialize())
+        $.post("/tasks/updateFilter/", $("#filterForm").serialize());
     });
 })
 ;

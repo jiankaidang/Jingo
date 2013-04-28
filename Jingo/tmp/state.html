@@ -17,7 +17,7 @@
                 <li data-tagid="{{ filter.tagid }}">
                     <label class="checkbox">
                         <input type="checkbox" value="{{ filter.tagid }}" {% if filter.is_checked %}
-                               checked="true" {% endif %}>
+                               checked="true" {% endif %} class="check-filter">
                         {{ filter.tag_name }}
                         <a href="#" class="pull-right add-tag"><i class="icon-plus"></i></a>
                         <a class="pull-right update-filter" data-toggle="modal"
@@ -29,7 +29,7 @@
                             <li data-tagid="{{ tag.tagid_id }}">
                                 <label class="checkbox">
                                     <input type="checkbox" value="{{ tag.tagid_id }}" {% if tag.is_checked %}
-                                           checked="true" {% endif %}>
+                                           checked="true" {% endif %} class="check-filter">
                                     {{ tag.tag_name }}
                                     <a href="#" class="pull-right remove-tag"><i class="icon-trash"></i></a>
                                     <a class="pull-right update-filter" data-toggle="modal"
