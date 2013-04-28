@@ -52,6 +52,7 @@ def tasks(request, mode):
     if mode == 'addState':
         page = 'state.html'
         data = State().addState(request)
+        return http_res.response(request, page, data, 'json')
     
     if mode == 'deleteState':
         page = 'response.html'
@@ -61,6 +62,7 @@ def tasks(request, mode):
     if mode == 'updateState':
         page = 'response.html'
         data = State().updateState(request)
+        return http_res.response(request, page, data, 'json')
     
     # API for tag settings
     if mode == 'addTag':
