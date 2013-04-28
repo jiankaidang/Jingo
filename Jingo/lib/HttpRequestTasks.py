@@ -13,16 +13,11 @@ class HttpRequestResponser(Formatter):
         return data
 
     def response(self, request, page, data={}, dataType='default'):
-        '''
-        c = {}
-        test = csrf(request)
-        print test
-        c.update(test)
-        '''
-        
         if dataType == 'json':
             #resultset['result'] = json.dumps(data)
-            resultset = self.jsonEncoder(data)
+            #resultset = dict([('result', self.jsonEncoder(data))])
+            resultset = dict([('result', data)])
+            print resultset
         if dataType == 'default':
             resultset = data
 
