@@ -4,7 +4,7 @@ from django.db import models
 from Jingo.lib.config import *
 
 
-class Comments(models.Model, Formatter):
+class Comments(models.Model, HttpRequestResponser, Formatter):
     commentid = models.IntegerField(primary_key=True)
     noteid = models.ForeignKey('Note', db_column='noteid')
     c_timestamp = models.DateTimeField()
@@ -16,7 +16,7 @@ class Comments(models.Model, Formatter):
     class Meta:
         db_table = 'comments'
 
-class Filter(models.Model, Formatter):
+class Filter(models.Model, HttpRequestResponser, Formatter):
     stateid      = models.ForeignKey('State', db_column='stateid', primary_key=True)
     tagid        = models.ForeignKey('Tag', db_column='tagid', primary_key=True)
     f_start_time = models.DateTimeField(null=True, blank=True)
@@ -30,7 +30,7 @@ class Filter(models.Model, Formatter):
         db_table = 'filter'
 
     def categorizeFiltersIntoSystags(self, data, filterset):
-        result = []
+        result      = []
         tmp_sysTags = []
         #sysTags    = Tag().getUserSysTags(data)
         sysTags = Tag().getSysTags()
@@ -46,24 +46,23 @@ class Filter(models.Model, Formatter):
                 tagid_id = row['tagid_id']
 
                 if sys['tagid'] == tagid_id and (tagid_id >= 0 and tagid_id <= 10):
-                    sys['is_checked'] = 1
+                    sys['is_checked'] = row['is_checked']
 
                 if tagid_id > 10 and sys['tagid'] == row['sys_tagid']:
                     sys['is_checked'] = 1
                     sys['tags'].append(row)
                 #print "result row ================"
-            #print sys
+            print sys
             result.append(sys)
         return result
 
     def extendFilterWithTagInfo(self, data, filterset):
         result = []
         for row in filterset:
-            tagid_id = row['tagid_id']
-            tag = Tag.objects.get(tagid=tagid_id)
-            row['tag_name'] = tag.tag_name
+            tagid_id         = row['tagid_id']
+            tag              = Tag.objects.get(tagid=tagid_id)
+            row['tag_name']  = tag.tag_name
             row['sys_tagid'] = tag.sys_tagid
-            #row['is_checked'] = 1
             #print row
             result.append(row)
         return result
@@ -78,25 +77,23 @@ class Filter(models.Model, Formatter):
             filterset = self.simplifyObjToDateString(filterset)  # datetime to iso format
             return filterset
 
+    def getDefaultFilterDataArray(self, data):
+        return [int(data['stateid']), data['tagid'], None, None, 0, 0, int(data['uid']), 1]
+    
+    def addFilterAndTag(self, request):
+        data = self.readData(request)
+        return 0
+    
     # arguments 'data' need to be a list including values that will be stored into filter 
     def addFilter(self, data):
-        db = SQLExecuter()
         args = dict([('table', 'filter'), ('values', data)])
-        db.doInsertData(args)
+        SQLExecuter().doInsertData(args)
 
     def addDefaultFilter(self, data):
-        values = []
-        for i in range(0, 11):
-            values.append(int(data['stateid']))
-            values.append(i)
-            values.append(None)
-            values.append(None)
-            values.append(0)
-            values.append(0)
-            values.append(int(data['uid_id']))
-            values.append(1)
+        for i in range(0, N_SYSTEM_TAGS):
+            data['tagid'] = i
+            values        = self.getDefaultFilterDataArray(data)
             self.addFilter(values)
-            values = []
         return i
 
     def deleteFilter(self, request):
@@ -114,15 +111,17 @@ class Filter(models.Model, Formatter):
         Filter.objects.filter(stateid=data['stateid'],uid=data['uid'],tagid=data['tagid']).update(data)
         return self.createResultSet(data, 'json')
     
-    def activateFilter(self, request, act=1):
+    def activateFilter(self, request):
         data = self.readData(request)
-        Filter.objects.filter(stateid=data['stateid'],uid=data['uid'],tagid=data['tagid']).update(is_checked=act)
+        objFilter = Filter.objects.filter(tagid=data['tagid'], stateid=data['stateid'], uid=data['uid'])
+        if objFilter.count() == 0 and int(data['tagid']) < N_SYSTEM_TAGS:
+            values = self.getDefaultFilterDataArray(data)
+            self.addFilter(values)
+        else:
+            objFilter.update(is_checked=data['is_checked'])
         return self.createResultSet(data, 'json')
-    
-    def deactivateFilter(self, request):
-        return self.activateFilter(request, 0)
 
-class Friend(models.Model):
+class Friend(models.Model, HttpRequestResponser, Formatter):
     uid = models.ForeignKey('User', db_column='uid')
     f_uid = models.ForeignKey('User', db_column='f_uid')
     is_friendship = models.IntegerField()
@@ -154,7 +153,7 @@ class Friend(models.Model):
         friend.invitationid = newInvitationid
         return Friend.objects.filter(invitationid=newInvitationid)
 
-class Note(models.Model):
+class Note(models.Model, HttpRequestResponser, Formatter):
     note = models.CharField(max_length=140)
     n_timestamp = models.DateTimeField()
     link = models.TextField(blank=True)
@@ -173,15 +172,14 @@ class Note(models.Model):
     def addNote(self, request):
         return 0
 
-
-class Note_Tag(models.Model):
+class Note_Tag(models.Model, HttpRequestResponser, Formatter):
     noteid = models.ForeignKey('Note', db_column='noteid', primary_key=True)
     tagid = models.ForeignKey('Tag', db_column='tagid', primary_key=True)
 
     class Meta:
         db_table = 'note_tag'
 
-class Note_Time(models.Model):
+class Note_Time(models.Model, HttpRequestResponser, Formatter):
     timeid = models.IntegerField(primary_key=True)
     noteid = models.ForeignKey('Note', db_column='noteid')
     n_start_time = models.DateTimeField()
@@ -190,7 +188,6 @@ class Note_Time(models.Model):
 
     class Meta:
         db_table = 'note_time'
-
 
 class State(models.Model, HttpRequestResponser, Formatter):
     stateid = models.IntegerField(primary_key=True)
@@ -273,8 +270,7 @@ class State(models.Model, HttpRequestResponser, Formatter):
         State.objects.filter(stateid=data['stateid'], uid=data['uid']).update(state_name=data['state_name'])
         return self.createResultSet(data, 'json')
 
-
-class Tag(models.Model, HttpRequestResponser):
+class Tag(models.Model, HttpRequestResponser, Formatter):
     tagid = models.IntegerField(primary_key=True)
     tag_name = models.CharField(max_length=45)
     uid = models.ForeignKey('User', null=True, db_column='uid', blank=True)
@@ -315,14 +311,14 @@ class Tag(models.Model, HttpRequestResponser):
         return self.createResultSet(data, 'json')
 
     def addTag(self, data):
-        newTagid = self.getNewTagid()
-        tag = Tag()
-        tag.tagid = newTagid
-        tag.tag_name = data['tag_name']
-        tag.uid = User(uid=int(data['uid']))
+        newTagid      = self.getNewTagid()
+        tag           = Tag()
+        tag.tagid     = newTagid
+        tag.tag_name  = data['tag_name']
+        tag.uid       = User(uid=int(data['uid']))
         tag.sys_tagid = data['sys_tagid']
         tag.save()
-        return Tag.objects.filter(tagid=newTagid, uid=int(data['uid'])).values()
+        return self.createResultSet(data, 'json')
 
     def deleteTag(self, request):
         data = self.readData(request)
@@ -391,9 +387,10 @@ class User(models.Model, HttpRequestResponser, Formatter):
             message.append('The email address is already taken.')
             result = 'fail'
 
-        usr = self.simplifyObjToDateString(self.addUser(data))[0]
+        usr               = self.simplifyObjToDateString(self.addUser(data))[0]
         usr['state_name'] = STATE_NAME_DEFAULT
-        state = State().addState(usr, 'default')[0]
+        state             = State().addState(usr, 'default')[0]
+        state['uid']      = state['uid_id']
         ufilter = Filter().addDefaultFilter(state)
 
         self.setUserSession(request, usr)

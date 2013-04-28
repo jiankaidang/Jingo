@@ -67,11 +67,13 @@ def tasks(request, mode):
         return http_res.response(request, page, data, 'json')
 
     # API for tag settings
+    '''
     if mode == 'getUserTags':
         page = 'response.html'
         data = Tag().getUserTags(request)
         return http_res.response(request, page, data, 'json')
-
+    '''
+    
     if mode == 'addTag':
         page = 'response.html'
         data = Tag().addTag(request)
@@ -87,7 +89,7 @@ def tasks(request, mode):
     # API for filter settings
     if mode == 'activateFilter':
         page = 'response.html'
-        data = Filter().addFilter(request)
+        data = Filter().activateFilter(request)
         return http_res.response(request, page, data, 'json')
 
     if mode == 'deactivateFilter':
