@@ -1,6 +1,6 @@
 .accordion-group .accordion-heading .accordion-toggle {
     display: inline-block;
-    width: 64%;
+    width: 59%;
 }
 
 .accordion-group .accordion-heading .pull-right {
@@ -38,6 +38,10 @@
 
 #accordion2.edit-state .current-state .remove-state {
     visibility: hidden;
+}
+
+#accordion2.edit-state .remove-state {
+    margin-right: 23px;
 }
 
 .btn-toolbar.edit-state #editState {

@@ -44,7 +44,7 @@ $(function () {
                     uid: uid,
                     sys_tagid: tagid,
                     tag_name: tagName
-                }, function () {
+                }, function (response) {
                     var tagid = response.tagid;
                     newTagLi.html('<label class="checkbox"><input type="checkbox" value="' + tagid + '">' + tagName +
                         '<a class="pull-right update-filter" data-toggle="modal" href="/tasks/getFilter/?uid=' + uid +
@@ -68,6 +68,8 @@ $(function () {
             uid: uid
         }, function () {
             $(this).find(".update-state").click();
+            profileContainer.find(".collapse.in").collapse("hide");
+            $(this).find(".collapse").collapse("show");
         });
     });
     $("#editState").click(function () {
