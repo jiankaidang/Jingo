@@ -37,7 +37,7 @@ class Filter(models.Model, Formatter):
         #print "Here ==========>"
         #print sysTags
         for sys in sysTags:
-            sys['tags'] = []
+            sys['tags']       = []
             sys['is_checked'] = 0
             tmp_sysTags.append(sys)
 
@@ -63,7 +63,7 @@ class Filter(models.Model, Formatter):
             tag = Tag.objects.get(tagid=tagid_id)
             row['tag_name'] = tag.tag_name
             row['sys_tagid'] = tag.sys_tagid
-            row['is_checked'] = 1
+            #row['is_checked'] = 1
             #print row
             result.append(row)
         return result
@@ -94,6 +94,7 @@ class Filter(models.Model, Formatter):
             values.append(0)
             values.append(0)
             values.append(int(data['uid_id']))
+            values.append(1)
             self.addFilter(values)
             values = []
         return i
@@ -107,7 +108,6 @@ class Filter(models.Model, Formatter):
         args['values'] = [data['tagid'], data['uid'], data['stateid']]
         SQLExecuter().doDeleteData(args)
         return self.createResultSet(data, 'json')
-
 
 class Friend(models.Model):
     uid = models.ForeignKey('User', db_column='uid')
