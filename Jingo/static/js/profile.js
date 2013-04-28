@@ -51,13 +51,14 @@ $(function () {
                     return;
                 }
                 var stateid = $(this).closest(".accordion-group").attr("data-stateid");
-                $.post("/tasks/addTag/", {
+                $.post("/tasks/addFilter/", {
                     uid: uid,
                     sys_tagid: tagid,
-                    tag_name: tagName
+                    tag_name: tagName,
+                    stateid: stateid
                 }, function (response) {
                     var tagid = response.tagid;
-                    newTagLi.html('<label class="checkbox"><input type="checkbox" value="' + tagid + '" class="check-filter">' + tagName +
+                    newTagLi.html('<label class="checkbox"><input type="checkbox" value="' + tagid + '" class="check-filter" checked>' + tagName +
                         '<a class="pull-right update-filter" data-toggle="modal" href="/tasks/getFilter/?uid=' + uid +
                         '&stateid=' + stateid + '&tagid=' + tagid +
                         '" data-target="#myModal"><i class="icon-pencil"></i></a></label>').attr("data-tagid", tagid);
