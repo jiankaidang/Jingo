@@ -1,4 +1,4 @@
-<input type="radio" name="currentState" value="{{ state.stateid }}"{% if is_first %}
+<input type="radio" class="set-current-state" value="{{ state.stateid }}"{% if is_first %}
        checked{% endif %}>
 <div class="accordion-heading{% if is_first %} current-state{% endif %}" data-state-id="{{ state.stateid }}"
      data-uid="{{ state.uid_id }}">

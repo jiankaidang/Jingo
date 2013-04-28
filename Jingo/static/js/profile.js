@@ -32,9 +32,10 @@ $(function () {
         }).on("click", ".accordion-group>input",function () {
             profileContainer.find(".current-state").removeClass("current-state").next(".collapse").collapse("hide");
             $(this).next(".accordion-heading").addClass("current-state").next(".collapse").collapse("show");
-        }).on("click", ".checkbox",function () {
-            $.post("/tasks//", {
-
+        }).on("click", ".set-current-state",function () {
+            $.post("/tasks/setDefaultState/", {
+                uid: uid,
+                stateid: $(this).val()
             })
         }).on("click", ".add-tag",function () {
             var sysTagLi = $(this).closest("li"), newTagLi = $('<li><input type="text" required></li>').prependTo(sysTagLi.find("ul"));
