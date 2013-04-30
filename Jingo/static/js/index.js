@@ -69,10 +69,10 @@ $("#setToCurrentLocation").click(function () {
     return false;
 });
 $("#publishNote").click(function () {
-    var noteInput = $("#note");
+    var noteInput = $("#note"), publishNoteButton = $(this);
     navigator.geolocation.getCurrentPosition(function (position) {
         $.post("/tasks/postNote/", {
-            uid: $(this).attr("data-uid"),
+            uid: publishNoteButton.attr("data-uid"),
             note: noteInput.val(),
             n_latitude: position.coords.latitude,
             n_longitude: position.coords.longitude
