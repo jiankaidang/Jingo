@@ -5,16 +5,36 @@ from Jingo.lib.config import *
 import urllib, urlparse
 
 class Comments(models.Model, HttpRequestResponser, Formatter):
-    commentid = models.IntegerField(primary_key=True)
-    noteid = models.ForeignKey('Note', db_column='noteid')
+    commentid   = models.IntegerField(primary_key=True)
+    noteid      = models.ForeignKey('Note', db_column='noteid')
     c_timestamp = models.DateTimeField()
-    uid = models.ForeignKey('User', db_column='uid')
-    c_latitude = models.DecimalField(max_digits=9, decimal_places=6)
+    uid         = models.ForeignKey('User', db_column='uid')
+    c_latitude  = models.DecimalField(max_digits=9, decimal_places=6)
     c_longitude = models.DecimalField(max_digits=9, decimal_places=6)
-    comment = models.CharField(max_length=140)
+    comment     = models.CharField(max_length=140)
 
     class Meta:
         db_table = 'comments'
+
+    def getNewCommentid(self):
+        if len(Comments.objects.all().values()) == 0:
+            return 1
+        else:
+            nComments = Comments.objects.all().order_by('commentid').latest('commentid')
+            #print tag.tagid
+            return nComments.commentid + 1
+
+    def addComment(self, data):
+        newCommentid         = self.getNewCommentid()
+        nComment             = Comments()
+        nComment.commentid   = newCommentid
+        nComment.noteid      = Note(noteid=data['noteid'])
+        nComment.c_timestamp = timezone.now()
+        nComment.uid         = User(uid=data['uid'])
+        nComment.c_latitude  = data['c_latitude']
+        nComment.c_longitude = data['c_longtitude']
+        nComment.comment     = data['comment']
+        return newCommentid
 
 class Filter(models.Model, HttpRequestResponser, Formatter):
     stateid      = models.ForeignKey('State', db_column='stateid', primary_key=True)
@@ -162,41 +182,105 @@ class Friend(models.Model, HttpRequestResponser, Formatter):
         return Friend.objects.filter(invitationid=newInvitationid)
 
 class Note(models.Model, HttpRequestResponser, Formatter):
-    note = models.CharField(max_length=140)
-    n_timestamp = models.DateTimeField()
-    link = models.TextField(blank=True)
-    noteid = models.IntegerField(primary_key=True)
-    uid = models.ForeignKey('User', db_column='uid')
-    radius = models.DecimalField(null=True, max_digits=10, decimal_places=2, blank=True)
+    note         = models.CharField(max_length=140)
+    n_timestamp  = models.DateTimeField()
+    link         = models.TextField(blank=True)
+    noteid       = models.IntegerField(primary_key=True)
+    uid          = models.ForeignKey('User', db_column='uid')
+    radius       = models.DecimalField(null=True, max_digits=10, decimal_places=2, blank=True)
     n_visibility = models.IntegerField()
-    n_latitude = models.DecimalField(max_digits=9, decimal_places=6)
-    n_longitude = models.DecimalField(max_digits=9, decimal_places=6)
-    is_comment = models.IntegerField()
-    n_like = models.IntegerField()
+    n_latitude   = models.DecimalField(max_digits=9, decimal_places=6)
+    n_longitude  = models.DecimalField(max_digits=9, decimal_places=6)
+    is_comment   = models.IntegerField()
+    n_like       = models.IntegerField()
 
     class Meta:
         db_table = 'note'
 
-    def addNote(self, request):
-        return 0
+    def getNewNoteid(self):
+        if len(Note.objects.all().values()) == 0:
+            return 1
+        else:
+            notetuple = Note.objects.all().order_by('noteid').latest('noteid')
+            #print tag.tagid
+            return notetuple.noteid + 1
 
+    def addNote(self, data):
+        newNoteid          = self.getNewNoteid()
+        notetime              = Note()
+        notetime.note         = data['note']
+        notetime.n_timestamp  = timezone.now()
+        notetime.link         = ''
+        notetime.noteid       = newNoteid
+        notetime.uid          = User(uid=data['uid'])
+        notetime.radius       = data['radius']
+        notetime.n_visibility = data['n_visibility']
+        notetime.n_latitude   = data['n_latitude']
+        notetime.n_longitude  = data['n_latitude']
+        notetime.is_comment   = data['is_comment']
+        notetime.n_like       = 0
+        notetime.save()
+        data['noteid']        = newNoteid
+        return data
+
+    def plusLike(self, data):
+        data['n_like'] = int(Note.objects.get(noteid=data['noteid']).n_like) + 1
+        Note.objects.filter(noteid=data['noteid']).update(n_like=data['n_like'])
+        return data
+
+    def getNoteList(self, data):
+        nowtime = timezone.now()
+        Note_Time.objects.filter(n_repeat=0, n_start_time__lte=nowtime, n_stop_time__gte=nowtime)
+        Note.objects.filter(n_visibility__in=[0,1], )
+        return data
+    
 class Note_Tag(models.Model, HttpRequestResponser, Formatter):
     noteid = models.ForeignKey('Note', db_column='noteid', primary_key=True)
-    tagid = models.ForeignKey('Tag', db_column='tagid', primary_key=True)
+    tagid  = models.ForeignKey('Tag', db_column='tagid', primary_key=True)
 
     class Meta:
         db_table = 'note_tag'
+    
+    def addNoteTag(self, data):
+        notetag        = Note_Tag()
+        notetag.noteid = Note(noteid=data['noteid'])
+        notetag.tagid  = data['tagid']
+        return data
 
+    def deleteNoteTag(self, request):
+        data = self.readData(request)
+        Note_Tag.objects.filter(tagid=data['tagid'], noteid=data['noteid']).delete()
+        return 0
+    
 class Note_Time(models.Model, HttpRequestResponser, Formatter):
-    timeid = models.IntegerField(primary_key=True)
-    noteid = models.ForeignKey('Note', db_column='noteid')
+    timeid       = models.IntegerField(primary_key=True)
+    noteid       = models.ForeignKey('Note', db_column='noteid')
     n_start_time = models.DateTimeField()
-    n_stop_time = models.DateTimeField(null=True, blank=True)
-    n_repeat = models.IntegerField(null=True, blank=True)
+    n_stop_time  = models.DateTimeField(null=True, blank=True)
+    n_repeat     = models.IntegerField(null=True, blank=True)
 
     class Meta:
         db_table = 'note_time'
 
+    def getNewNoteTimeid(self):
+        if len(Note_Time.objects.all().values()) == 0:
+            return 1
+        else:
+            notetime = Note_Time.objects.all().order_by('timeid',).latest('timeid')
+            #print tag.tagid
+            return notetime.timeid + 1
+
+    def addNoteTime(self, data):
+        newNoteTimeid         = self.getNewNoteTimeid()
+        notetime              = Note_Time()
+        notetime.timeid       = newNoteTimeid
+        notetime.noteid       = Note(noteid=data['noteid'])
+        notetime.n_start_time = data['n_start_time']
+        notetime.n_stop_time  = data['n_stop_time']
+        notetime.n_repeat     = data['n_repeat']
+        notetime.save()
+        return data
+    
 class State(models.Model, HttpRequestResponser, Formatter):
     stateid = models.IntegerField(primary_key=True)
     state_name = models.CharField(max_length=45)
@@ -343,11 +427,11 @@ class Tag(models.Model, HttpRequestResponser, Formatter):
         return self.createResultSet(data, 'json')
 
 class User(models.Model, HttpRequestResponser, Formatter):
-    uid = models.IntegerField(primary_key=True)
-    u_name = models.CharField(max_length=45)
-    email = models.CharField(max_length=45)
+    uid         = models.IntegerField(primary_key=True)
+    u_name      = models.CharField(max_length=45)
+    email       = models.CharField(max_length=45)
     u_timestamp = models.DateTimeField()
-    password = models.CharField(max_length=15)
+    password    = models.CharField(max_length=15)
 
     class Meta:
         db_table = 'user'
@@ -372,11 +456,11 @@ class User(models.Model, HttpRequestResponser, Formatter):
         return User.objects.filter(uid=input_uid).values()[0]
 
     def addUser(self, data):
-        usr = User()
-        usr.uid = self.getNewUid()
-        usr.u_name = data['u_name']
-        usr.email = data['email']
-        usr.password = data['password']
+        usr             = User()
+        usr.uid         = self.getNewUid()
+        usr.u_name      = data['u_name']
+        usr.email       = data['email']
+        usr.password    = data['password']
         usr.u_timestamp = timezone.now()
         usr.save()
         return User.objects.filter(email=data['email']).values()
@@ -441,5 +525,42 @@ class User(models.Model, HttpRequestResponser, Formatter):
         usr = self.getUserData(uid)
         data = dict([('user', usr), ('stateslist', State().getUserStatesAndFiltersList(usr))])
         #print data
+        return self.createResultSet(data)
+    
+    def postNote(self, request):
+        data       = self.readData(request)
+        data       = Note().addNote(data)
+        start_time = data['n_start_time']
+        stop_time  = data['n_start_time']
+        for notetime in start_time:
+            data['n_start_time'] = notetime
+            data['n_stop_time']  = notetime
+            Note_Time().addNoteTime(data)
+        
+        tags       = data['tagid']
+        for tagid in tags:
+            data['tagid'] = tagid
+            Note_Tag().addNoteTags(data)
+            
+        return self.createResultSet(data)
+
+    def addExtraNoteTag(self, request):
+        data = self.readData(request)
+        Note_Tag().addNoteTags(data)
+        return self.createResultSet(data)
+    
+    def clickLike(self, request):
+        data = self.readData(request)
+        data = Note().plusLike(data)
+        return self.createResultSet(data)
+    
+    def postComment(self, request):
+        data              = self.readData(request)
+        data['commentid'] = Comments().addComment(data)
+        return self.createResultSet(data)
+
+    def searchNotes(self, request):
+        data              = self.readData(request)
+        
         return self.createResultSet(data)
     

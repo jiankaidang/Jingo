@@ -10,6 +10,10 @@ def index(request):
         page = 'index.html'
     return http_res.response(request, page)
 
+def admin(request):
+    page = 'admin.html'
+    return http_res.response(request, page)
+
 # redirect to specific pages
 def pages(request, mode):
     data = {}
@@ -87,3 +91,33 @@ def tasks(request, mode):
         data = Filter().updateFilter(request)
         return http_res.response(request, page, data, 'json')
     
+    # API for note settings
+    if mode == 'postNote':
+        page = 'response.html'
+        data = User().postNote(request)
+        return http_res.response(request, page, data, 'json')
+    
+    if mode == 'searchNote':
+        page = 'response.html'
+        data = User().searchNote(request)
+        return http_res.response(request, page, data, 'json')
+    
+    if mode == 'postComment':
+        page = 'response.html'
+        data = User().postComment(request)
+        return http_res.response(request, page, data, 'json')
+    
+    if mode == 'deleteNoteTag':
+        page = 'response.html'
+        data = User().deleteNoteTag(request)
+        return http_res.response(request, page, data, 'json')
+    
+    if mode == 'addExtraNoteTag':
+        page = 'response.html'
+        data = User().addExtraNoteTag(request)
+        return http_res.response(request, page, data, 'json')
+    
+    if mode == 'clickLike':
+        page = 'response.html'
+        data = User().clickLike(request)
+        return http_res.response(request, page, data, 'json')
