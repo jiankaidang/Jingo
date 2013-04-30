@@ -224,11 +224,18 @@ class Note(models.Model, HttpRequestResponser, Formatter):
         notetime.link         = ''
         notetime.noteid       = newNoteid
         notetime.uid          = User(uid=data['uid'])
-        notetime.radius       = data['radius']
-        notetime.n_visibility = data['n_visibility']
+        
+        if 'radius' in data:
+            notetime.radius       = data['radius']
+            notetime.n_visibility = data['n_visibility']
+            notetime.is_comment   = data['is_comment']
+        else:
+            notetime.radius       = 200                  # default 200 yards
+            notetime.n_visibility = 0                    # default 0: public
+            notetime.is_comment   = 1
+        
         notetime.n_latitude   = data['n_latitude']
         notetime.n_longitude  = data['n_latitude']
-        notetime.is_comment   = data['is_comment']
         notetime.n_like       = 0
         notetime.save()
         data['noteid']        = newNoteid
@@ -258,6 +265,13 @@ class Note_Tag(models.Model, HttpRequestResponser, Formatter):
         notetag.tagid  = data['tagid']
         return data
 
+    def addMultipleNoteTags(self, data):
+        tags       = data['tagid']
+        for index in tags:
+            data['tagid'] = tags[index]
+            Note_Tag().addNoteTags(data)
+        return data
+    
     def deleteNoteTag(self, request):
         data = self.readData(request)
         Note_Tag.objects.filter(tagid=data['tagid'], noteid=data['noteid']).delete()
@@ -291,6 +305,19 @@ class Note_Time(models.Model, HttpRequestResponser, Formatter):
         notetime.n_repeat     = data['n_repeat']
         notetime.save()
         return data
+    
+    def addNoteTimeRange(self, data):
+        if 'n_start_time' in data:
+            start_time = data['n_start_time']
+            stop_time  = data['n_stop_time']
+            for index in start_time:
+                data['n_start_time'] = start_time[index]
+                data['n_stop_time']  = stop_time[index]
+                Note_Time().addNoteTime(data)
+        else:
+            data['n_start_time'] = timezone.now()
+            data['n_stop_time']  = timezone.now()
+            Note_Time().addNoteTime(data)
     
 class State(models.Model, HttpRequestResponser, Formatter):
     stateid    = models.IntegerField(primary_key=True)
@@ -541,17 +568,11 @@ class User(models.Model, HttpRequestResponser, Formatter):
     def postNote(self, request):
         data       = self.readData(request)
         data       = Note().addNote(data)
-        start_time = data['n_start_time']
-        stop_time  = data['n_start_time']
-        for notetime in start_time:
-            data['n_start_time'] = notetime
-            data['n_stop_time']  = notetime
-            Note_Time().addNoteTime(data)
         
-        tags       = data['tagid']
-        for tagid in tags:
-            data['tagid'] = tagid
-            Note_Tag().addNoteTags(data)
+        Note_Time().addNoteTimeRange(data)
+        
+        if 'tagid' in data:
+            Note_Tag().addMultipleNoteTags(data)
             
         return self.createResultSet(data)
 
