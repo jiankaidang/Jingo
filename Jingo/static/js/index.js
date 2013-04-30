@@ -67,3 +67,13 @@ function handleNoGeolocation(errorFlag) {
 }
 
 google.maps.event.addDomListener(window, 'load', initialize);
+$("#setToCurrentLocation").click(function () {
+    navigator.geolocation.getCurrentPosition(function (position) {
+        var pos = new google.maps.LatLng(position.coords.latitude,
+            position.coords.longitude);
+        map.setCenter(pos);
+    }, function () {
+        handleNoGeolocation(true);
+    });
+    return false;
+});
