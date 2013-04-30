@@ -310,13 +310,16 @@ class Note_Time(models.Model, HttpRequestResponser, Formatter):
         if 'n_start_time' in data:
             start_time = data['n_start_time']
             stop_time  = data['n_stop_time']
+            repeat     = data['n_repeat']
             for index in start_time:
                 data['n_start_time'] = start_time[index]
                 data['n_stop_time']  = stop_time[index]
+                data['n_repeat']     = repeat[index]
                 Note_Time().addNoteTime(data)
         else:
             data['n_start_time'] = timezone.now()
             data['n_stop_time']  = timezone.now()
+            data['n_repeat']     = 0
             Note_Time().addNoteTime(data)
     
 class State(models.Model, HttpRequestResponser, Formatter):
