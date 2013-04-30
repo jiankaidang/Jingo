@@ -1,9 +1,17 @@
-body {
-	font-size: 200%;
-	color: #FF0000;
+html {
+    height: 100%
 }
 
-h3 {
-	font-size: large;
-	color: #0000FF;
+body {
+    height: 100%;
+    margin: 0;
+    padding: 0
+}
+
+#map-canvas {
+    height: 100%
+}
+
+#map-canvas img {
+    max-width: none;
 }

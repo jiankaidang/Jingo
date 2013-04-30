@@ -3,19 +3,14 @@
 <html>
 <head>
     <title>Jingo - {% block title %}{% endblock title %}</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <!-- Bootstrap -->
     <link href="{% static "css/bootstrap.min.css" %}" rel="stylesheet" media="screen">
     <link href="{% static "css/bootstrap-responsive.min.css" %}" rel="stylesheet">
     {% block css %}{% endblock css %}
 </head>
 <body>
-<div class="container">
-    {% block content %}{% endblock content %}
-</div>
-{% if request.session.uid %}
-    <a class="btn-link btn" href="{% url 'tasks' mode='logout' %}">Logout</a>
-{% endif %}
+{% block content %}{% endblock content %}
 <script src="{% static "js/jquery-2.0.0.min.js" %}"></script>
 <script src="{% static "js/bootstrap.min.js" %}"></script>
 <script src="{% static "js/base.js" %}"></script>

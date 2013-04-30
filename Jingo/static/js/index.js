@@ -1,30 +1,50 @@
-$(document).ready(function() {
-	$('a.logout').hide();
-	
-	$('form:eq(1) input[type="button"]').bind('click', function() {
-		var csrfObj = new csrfAuth();
-		var url = 'tasks/login/';
-		var data = $('form:eq(1)').serialize();
+var map;
 
-		csrfObj.ajaxRequest(url, {
-			'data' : data,
-			'success' : function(response) {
-				if (response.result == 'success') {
-					$('a.logout').show();
-					alert("the user name is '" + response.data.u_name + "'");
-				} else if (response.result == 'fail') {
-					$('a.logout').show();
-					alert("You already logged in, sir!");
-				} else
-					alert('can\'t find this user!');
-			},
-			'error' : function(xhr, textStatus, thrownError) {
-				alert(xhr.statusText);
-				alert(xhr.responseText);
-				//alert(xhr.status);
-				//alert(thrownError);
-			}
-		});
-		return false;
-	});
-}); 
+function initialize() {
+    var mapOptions = {
+        zoom: 6,
+        mapTypeId: google.maps.MapTypeId.ROADMAP
+    };
+    map = new google.maps.Map(document.getElementById('map-canvas'),
+        mapOptions);
+
+    // Try HTML5 geolocation
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function (position) {
+            var pos = new google.maps.LatLng(position.coords.latitude,
+                position.coords.longitude);
+
+            var infowindow = new google.maps.InfoWindow({
+                map: map,
+                position: pos,
+                content: 'Location found using HTML5.'
+            });
+
+            map.setCenter(pos);
+        }, function () {
+            handleNoGeolocation(true);
+        });
+    } else {
+        // Browser doesn't support Geolocation
+        handleNoGeolocation(false);
+    }
+}
+
+function handleNoGeolocation(errorFlag) {
+    if (errorFlag) {
+        var content = 'Error: The Geolocation service failed.';
+    } else {
+        var content = 'Error: Your browser doesn\'t support geolocation.';
+    }
+
+    var options = {
+        map: map,
+        position: new google.maps.LatLng(60, 105),
+        content: content
+    };
+
+    var infowindow = new google.maps.InfoWindow(options);
+    map.setCenter(options.position);
+}
+
+google.maps.event.addDomListener(window, 'load', initialize);
