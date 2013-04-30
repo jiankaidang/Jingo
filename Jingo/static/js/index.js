@@ -65,18 +65,20 @@ $("#setToCurrentLocation").click(function () {
         var pos = new google.maps.LatLng(position.coords.latitude,
             position.coords.longitude);
         map.setCenter(pos);
-    }, function () {
-        handleNoGeolocation(true);
     });
     return false;
 });
 $("#publishNote").click(function () {
     var noteInput = $("#note");
-    $.post("/tasks/postNote/", {
-        uid: $(this).attr("data-uid"),
-        note: noteInput.val()
-    }, function () {
-        noteInput.val("");
+    navigator.geolocation.getCurrentPosition(function (position) {
+        $.post("/tasks/postNote/", {
+            uid: $(this).attr("data-uid"),
+            note: noteInput.val(),
+            n_latitude: position.coords.latitude,
+            n_longitude: position.coords.longitude
+        }, function () {
+            noteInput.val("");
+        });
     });
     return false;
 });
