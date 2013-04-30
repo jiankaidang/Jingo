@@ -3,6 +3,8 @@ var map;
 function initialize() {
     var mapOptions = {
         zoom: 6,
+        streetViewControl: false,
+        mapTypeControl: false,
         mapTypeId: google.maps.MapTypeId.ROADMAP
     };
     map = new google.maps.Map(document.getElementById('map-canvas'),
