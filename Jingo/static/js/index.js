@@ -2,7 +2,7 @@ var map;
 
 function initialize() {
     var mapOptions = {
-        zoom: 6,
+        zoom: 13,
         streetViewControl: false,
         mapTypeControl: false,
         mapTypeId: google.maps.MapTypeId.ROADMAP

@@ -5,6 +5,15 @@
     <link rel="stylesheet" type="text/css" href="{% static 'css/index.css' %}"/>
 {% endblock css %}
 {% block content %}
+    <div class="control-group">
+        <div class="controls">
+            <div class="input-prepend input-append">
+                <span class="add-on"><i class="icon-search"></i></span>
+                <input class="span4" id="searchMaps" type="text">
+                <span class="add-on"><i class="icon-user"></i></span>
+            </div>
+        </div>
+    </div>
     <div id="map-canvas"></div>
 {% endblock content %}
 {% block js %}
