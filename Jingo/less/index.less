@@ -10,11 +10,11 @@ html {
         max-width: none;
       }
     }
-    .control-group {
+    .control-group.top-bar {
       position: absolute;
       z-index: 1;
       left: 50%;
-      margin: 5px 0 0 -151px;
+      margin: 5px 0 0 -150px;
       .controls {
         .input-prepend.input-append {
           #searchMaps {
@@ -23,11 +23,19 @@ html {
         }
       }
     }
-    .btn-toolbar {
+    .bottom-bar {
       position: absolute;
       z-index: 1;
-      bottom: 0%;
-      left: 3%;
+      left: 50%;
+      bottom: -1%;
+      margin: 0 0 5px -150px;
+      .controls {
+        .input-prepend.input-append {
+          #note {
+            width: 220px;
+          }
+        }
+      }
     }
   }
 }

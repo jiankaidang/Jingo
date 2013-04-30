@@ -15,13 +15,6 @@ function initialize() {
         navigator.geolocation.getCurrentPosition(function (position) {
             var pos = new google.maps.LatLng(position.coords.latitude,
                 position.coords.longitude);
-
-            var infowindow = new google.maps.InfoWindow({
-                map: map,
-                position: pos,
-                content: 'Location found using HTML5.'
-            });
-
             map.setCenter(pos);
         }, function () {
             handleNoGeolocation(true);
@@ -75,5 +68,19 @@ $("#setToCurrentLocation").click(function () {
     }, function () {
         handleNoGeolocation(true);
     });
+    return false;
+});
+$("#publishNote").click(function () {
+    var noteInput = $("#note");
+    $.post("/tasks/postNote/", {
+        uid: $(this).attr("data-uid"),
+        note: noteInput.val()
+    }, function () {
+        noteInput.val("");
+    });
+    return false;
+});
+$("#noteDetail").click(function () {
+    $(this).find("i").toggleClass("icon-chevron-up").toggleClass("icon-chevron-down");
     return false;
 });
