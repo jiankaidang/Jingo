@@ -8,6 +8,7 @@ class HttpRequestResponser(Formatter):
     def readData(self, request):
         if request.method == 'GET':
             data = request.GET.dict()
+            print request.GET
         elif request.method == 'POST':
             data = request.POST.dict()
         return data

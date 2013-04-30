@@ -91,6 +91,11 @@ def tasks(request, mode):
         data = Filter().updateFilter(request)
         return http_res.response(request, page, data, 'json')
     
+    if mode == 'retrieveFilter':
+        page = 'filter.html'
+        data = Filter().retrieveFilter(request)
+        return http_res.response(request, page, data)
+    
     # API for note settings
     if mode == 'postNote':
         page = 'response.html'

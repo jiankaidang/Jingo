@@ -57,7 +57,7 @@ $(function () {
                     var tagid = response.tagid;
                     newTagLi.html('<label class="checkbox"><input type="checkbox" value="' + tagid + '" class="check-filter" checked>' + tagName +
                         '<a href="javascript:void(0);" class="pull-right remove-tag"><i class="icon-trash"></i></a>' +
-                        '<a class="pull-right update-filter" data-toggle="modal" href="/tasks/getFilter/?uid=' + uid +
+                        '<a class="pull-right update-filter" data-toggle="modal" href="/tasks/retrieveFilter/?uid=' + uid +
                         '&stateid=' + stateid + '&tagid=' + tagid +
                         '" data-target="#myModal"><i class="icon-pencil"></i></a></label>').attr("data-tagid", tagid);
                 })

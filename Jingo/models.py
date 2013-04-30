@@ -136,6 +136,10 @@ class Filter(models.Model, HttpRequestResponser, Formatter):
         #request = 'stateid=0&tagid=1&f_start_time=2013-04-14 04:49:44&f_stop_time=2013-04-14 04:49:44&f_repeat=1&f_visibility=1&uid'
         #data = urlparse.parse_qsl(request)
         data = self.readData(request)
+        if data['f_repeat'] == 'on':
+            data['f_repeat'] = 1
+        else:
+            data['f_repeat'] = 0
         Filter.objects.filter(stateid=data['stateid'],uid=data['uid'],tagid=data['tagid']).update(f_start_time=data['f_start_time'],f_stop_time=data['f_stop_time'],f_repeat=data['f_repeat'],f_visibility=data['f_visibility'])
         return self.createResultSet(data, 'json')
     
@@ -148,6 +152,13 @@ class Filter(models.Model, HttpRequestResponser, Formatter):
         else:
             objFilter.update(is_checked=data['is_checked'])
         return self.createResultSet(data, 'json')
+
+    def retrieveFilter(self, request):
+        data                  = self.readData(request)
+        objFilter             = Filter.objects.filter(tagid=data['tagid'], stateid=data['stateid'], uid=data['uid']).values()[0]
+        objFilter['tag_name'] = Tag.objects.get(tagid=data['tagid']).tag_name
+        print objFilter
+        return self.createResultSet(objFilter)
 
 class Friend(models.Model, HttpRequestResponser, Formatter):
     uid = models.ForeignKey('User', db_column='uid')
@@ -282,9 +293,9 @@ class Note_Time(models.Model, HttpRequestResponser, Formatter):
         return data
     
 class State(models.Model, HttpRequestResponser, Formatter):
-    stateid = models.IntegerField(primary_key=True)
+    stateid    = models.IntegerField(primary_key=True)
     state_name = models.CharField(max_length=45)
-    uid = models.ForeignKey('User', db_column='uid', primary_key=True)
+    uid        = models.ForeignKey('User', db_column='uid', primary_key=True)
     is_current = models.IntegerField()
 
     class Meta:
