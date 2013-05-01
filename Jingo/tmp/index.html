@@ -14,17 +14,62 @@
             </div>
         </div>
     </div>
-    <div class="control-group bottom-bar">
-        <div class="controls">
-            <div class="input-prepend input-append">
-                <a class="add-on" href="javascript:void(0);" id="setToCurrentLocation"><i class="icon-home"></i></a>
-                <input class="span4" id="note" type="text" placeholder="What's on your mind?">
-                <a class="add-on" href="#" id="publishNote" data-uid="{{ request.session.uid }}"><i
-                        class="icon-share"></i></a>
-                <a class="add-on" href="#" id="noteDetail"><i class="icon-chevron-up"></i></a>
+    <form class="form-horizontal bottom-bar">
+        <div class="control-group" id="note-bar">
+            <div class="controls">
+                <div class="input-prepend input-append">
+                    <a class="add-on" href="javascript:void(0);" id="setToCurrentLocation"><i class="icon-home"></i></a>
+                    <textarea rows="1" placeholder="What's on your mind?" id="note"></textarea>
+                    <a class="add-on" href="#" id="publishNote" data-uid="{{ request.session.uid }}"><i
+                            class="icon-share"></i></a>
+                    <a class="add-on" href="#" id="noteDetail"><i class="icon-chevron-up"></i></a>
+                </div>
             </div>
         </div>
-    </div>
+        <div id="note-detail">
+            <div class="control-group">
+                <label class="control-label" for="link">Link</label>
+
+                <div class="controls">
+                    <input type="url" name="link" class="pull-right">
+                </div>
+            </div>
+            <div class="control-group">
+                <div class="controls">
+                    <label class="control-label">
+                        Radius
+                        <input type="number" name="radius" value="200" class="pull-right">
+                    </label>
+                </div>
+            </div>
+            <div class="control-group">
+                <div class="controls">
+                    <label class="checkbox">
+                        <input type="checkbox"> Remember me
+                    </label>
+                    <button type="submit" class="btn">Sign in</button>
+                </div>
+            </div>
+            <div class="control-group">
+                <div class="controls">
+                    <input type="text" name="link" placeholder="Link">
+                </div>
+            </div>
+            <div class="control-group">
+                <div class="controls">
+                    <input type="password" name="radius" placeholder="Radius">
+                </div>
+            </div>
+            <div class="control-group">
+                <div class="controls">
+                    <label class="checkbox">
+                        <input type="checkbox"> Remember me
+                    </label>
+                    <button type="submit" class="btn">Sign in</button>
+                </div>
+            </div>
+        </div>
+    </form>
     <div id="map-canvas"></div>
 {% endblock content %}
 {% block js %}

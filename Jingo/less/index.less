@@ -29,12 +29,29 @@ html {
       left: 50%;
       bottom: -1%;
       margin: 0 0 5px -150px;
-      .controls {
-        .input-prepend.input-append {
-          #note {
-            width: 220px;
+      background: #ffffff;
+      #note-bar {
+        margin-bottom: 0;
+        .controls {
+          .input-prepend.input-append {
+            #note {
+              width: 212px;
+            }
           }
         }
+      }
+      .control-label {
+        margin-left: 15px;
+        text-align: right;
+        input {
+          width: 210px;
+          margin-right: 20px;
+        }
+      }
+      #note-detail {
+        height: 200px;
+        overflow: auto;
+        padding-top: 20px;
       }
     }
   }

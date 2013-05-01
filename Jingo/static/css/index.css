@@ -33,8 +33,29 @@ html body .bottom-bar {
     left: 50%;
     bottom: -1%;
     margin: 0 0 5px -150px;
+    background: #ffffff;
 }
 
-html body .bottom-bar .controls .input-prepend.input-append #note {
-    width: 220px;
+html body .bottom-bar #note-bar {
+    margin-bottom: 0;
+}
+
+html body .bottom-bar #note-bar .controls .input-prepend.input-append #note {
+    width: 212px;
+}
+
+html body .bottom-bar .control-label {
+    margin-left: 15px;
+    text-align: right;
+}
+
+html body .bottom-bar .control-label input {
+    width: 210px;
+    margin-right: 20px;
+}
+
+html body .bottom-bar #note-detail {
+    height: 200px;
+    overflow: auto;
+    padding-top: 20px;
 }
