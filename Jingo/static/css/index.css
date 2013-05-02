@@ -45,17 +45,27 @@ html body .bottom-bar #note-bar .controls .input-prepend.input-append #note {
 }
 
 html body .bottom-bar .control-label {
-    margin-left: 15px;
+    margin-left: 7px;
     text-align: right;
 }
 
 html body .bottom-bar .control-label input {
-    width: 210px;
-    margin-right: 20px;
+    width: 195px;
+    margin-right: 25px;
+    margin-left: 10px;
 }
 
 html body .bottom-bar #note-detail {
     height: 200px;
     overflow: auto;
     padding-top: 20px;
+}
+
+html body .bottom-bar #note-detail #accordion2 {
+    width: 265px;
+    margin-left: 15px;
+}
+
+html body .bottom-bar #note-detail #accordion2 .customized-tags {
+    list-style: none;
 }

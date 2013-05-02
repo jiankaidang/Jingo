@@ -14,7 +14,7 @@
             </div>
         </div>
     </div>
-    <form class="form-horizontal bottom-bar">
+    <form class="form-horizontal bottom-bar" data-uid="{{ request.session.uid }}" id="note-form">
         <div class="control-group" id="note-bar">
             <div class="controls">
                 <div class="input-prepend input-append">
@@ -28,46 +28,22 @@
         </div>
         <div id="note-detail">
             <div class="control-group">
-                <label class="control-label" for="link">Link</label>
-
                 <div class="controls">
-                    <input type="url" name="link" class="pull-right">
+                    <label class="control-label">
+                        Link
+                        <input type="url" name="link" class="pull-right">
+                    </label>
                 </div>
             </div>
             <div class="control-group">
                 <div class="controls">
                     <label class="control-label">
                         Radius
-                        <input type="number" name="radius" value="200" class="pull-right">
+                        <input type="number" name="radius" value="200" class="pull-right" step="any">
                     </label>
                 </div>
             </div>
-            <div class="control-group">
-                <div class="controls">
-                    <label class="checkbox">
-                        <input type="checkbox"> Remember me
-                    </label>
-                    <button type="submit" class="btn">Sign in</button>
-                </div>
-            </div>
-            <div class="control-group">
-                <div class="controls">
-                    <input type="text" name="link" placeholder="Link">
-                </div>
-            </div>
-            <div class="control-group">
-                <div class="controls">
-                    <input type="password" name="radius" placeholder="Radius">
-                </div>
-            </div>
-            <div class="control-group">
-                <div class="controls">
-                    <label class="checkbox">
-                        <input type="checkbox"> Remember me
-                    </label>
-                    <button type="submit" class="btn">Sign in</button>
-                </div>
-            </div>
+            {% include "tag.html" %}
         </div>
     </form>
     <div id="map-canvas"></div>

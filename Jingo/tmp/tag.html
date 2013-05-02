@@ -1,0 +1,39 @@
+<div class="accordion" id="accordion2">
+    <div class="accordion-group">
+        <div class="accordion-heading">
+            <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2"
+               href="#collapse1">
+                <span>Tags</span>
+            </a>
+        </div>
+        <div id="collapse1" class="accordion-body collapse">
+            <div class="accordion-inner">
+                <ul class="unstyled">
+                    {#                    {% for filter in state.filters %}#}
+                    <li data-tagid="{% comment %}{{ filter.tagid }}{% endcomment %}">
+                        <label class="checkbox">
+                            <input type="checkbox" value="{% comment %}{{ filter.tagid }}{% endcomment %}">
+                            {% comment %}{{ filter.tag_name }}{% endcomment %}
+                            food
+                            <a href="javascript:void(0);" class="pull-right add-tag"><i class="icon-plus"></i></a>
+                        </label>
+                        <ul class="customized-tags">
+                            {#                            {% for tag in filter.tags %}#}
+                            <li data-tagid="{% comment %}{{ tag.tagid_id }}{% endcomment %}">
+                                <label class="checkbox">
+                                    <input type="checkbox" value="{% comment %}{{ tag.tagid_id }}{% endcomment %}">
+                                    {#                                    {{ tag.tag_name }}#}
+                                    chicken
+                                    <a href="javascript:void(0);" class="pull-right remove-tag"><i
+                                            class="icon-trash"></i></a>
+                                </label>
+                            </li>
+                            {#                            {% endfor %}#}
+                        </ul>
+                    </li>
+                    {#                    {% endfor %}#}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>

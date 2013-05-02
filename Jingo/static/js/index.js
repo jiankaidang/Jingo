@@ -86,3 +86,33 @@ $("#noteDetail").click(function () {
     $(this).find("i").toggleClass("icon-chevron-up").toggleClass("icon-chevron-down");
     return false;
 });
+var uid = $("#note-form").attr("data-uid");
+$("#accordion2").on("click", ".add-tag",function () {
+    var sysTagLi = $(this).closest("li"), tagid = sysTagLi.attr("data-tagid");
+    var newTagLi = $('<li><input type="text" required autocomplete="off"></li>').prependTo(sysTagLi.find("ul"));
+    newTagLi.find("input").blur(function () {
+        var tagName = $(this).val();
+        if (!tagName) {
+            newTagLi.remove();
+            return;
+        }
+        $.post("/tasks/addTag/", {
+            uid: uid,
+            sys_tagid: tagid,
+            tag_name: tagName
+        }, function (response) {
+            var tagid = response.tagid;
+            newTagLi.html('<label class="checkbox"><input type="checkbox" value="' + tagid + '" checked>' + tagName +
+                '<a href="javascript:void(0);" class="pull-right remove-tag"><i class="icon-trash"></i></a>' +
+                '</label>').attr("data-tagid", tagid);
+        })
+    }).focus();
+}).on("click", ".remove-tag", function () {
+        var tagLi = $(this).closest("li");
+        $.post("/tasks/deleteTag/", {
+            uid: uid,
+            tagid: tagLi.attr("data-tagid")
+        }, function () {
+            tagLi.remove();
+        })
+    });
