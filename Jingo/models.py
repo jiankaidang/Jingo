@@ -356,15 +356,14 @@ class Note_Time(models.Model, HttpRequestResponser, Formatter):
                 Note_Time().addNoteTime(data)
         '''
         
-        if 'n_start_time' in data:
-            if 'n_repeat' not in data:
-                data['n_repeat'] = 0
-            Note_Time().addNoteTime(data)
-        else:
+        if 'n_repeat' not in data:
+            data['n_repeat'] = 0
+         
+        if len(data['n_start_time']) == 0 or len(data['n_start_time']) == 0:
             data['n_start_time'] = datetime.datetime.now()
             data['n_stop_time']  = datetime.datetime.now() + datetime.timedelta(days=1)
-            data['n_repeat']     = 0
-            Note_Time().addNoteTime(data)
+        
+        Note_Time().addNoteTime(data)
     
 class State(models.Model, HttpRequestResponser, Formatter):
     stateid    = models.IntegerField(primary_key=True)
