@@ -1,12 +1,14 @@
 from __future__ import unicode_literals
+import datetime
+from math import radians, cos, sin, asin, sqrt
+
 from django.utils import timezone
 from django.db import models
+from django.utils import dateparse
+
 from Jingo.lib.config import *
-from Jingo.lib.NoteFilter import *
-import urllib, urlparse, datetime
-from django.utils import timezone, dateparse
-from math import radians, cos, sin, asin, sqrt
 from Jingo.lib.SQLExecution import SQLExecuter
+
 
 class Friend(models.Model, HttpRequestResponser, Formatter):
     uid = models.ForeignKey('User', db_column='uid')
@@ -40,14 +42,15 @@ class Friend(models.Model, HttpRequestResponser, Formatter):
         friend.invitationid = newInvitationid
         return Friend.objects.filter(invitationid=newInvitationid)
 
+
 class Comments(models.Model, HttpRequestResponser, Formatter):
-    commentid   = models.IntegerField(primary_key=True)
-    noteid      = models.ForeignKey('Note', db_column='noteid')
+    commentid = models.IntegerField(primary_key=True)
+    noteid = models.ForeignKey('Note', db_column='noteid')
     c_timestamp = models.DateTimeField()
-    uid         = models.ForeignKey('User', db_column='uid')
-    c_latitude  = models.DecimalField(max_digits=9, decimal_places=6)
+    uid = models.ForeignKey('User', db_column='uid')
+    c_latitude = models.DecimalField(max_digits=9, decimal_places=6)
     c_longitude = models.DecimalField(max_digits=9, decimal_places=6)
-    comment     = models.CharField(max_length=140)
+    comment = models.CharField(max_length=140)
 
     class Meta:
         db_table = 'comments'
@@ -61,39 +64,40 @@ class Comments(models.Model, HttpRequestResponser, Formatter):
             return nComments.commentid + 1
 
     def addComment(self, data):
-        newCommentid         = self.getNewCommentid()
-        nComment             = Comments()
-        nComment.commentid   = newCommentid
-        nComment.noteid      = Note(noteid=data['noteid'])
+        newCommentid = self.getNewCommentid()
+        nComment = Comments()
+        nComment.commentid = newCommentid
+        nComment.noteid = Note(noteid=data['noteid'])
         nComment.c_timestamp = timezone.now()
-        nComment.uid         = User(uid=data['uid'])
-        nComment.c_latitude  = data['c_latitude']
+        nComment.uid = User(uid=data['uid'])
+        nComment.c_latitude = data['c_latitude']
         nComment.c_longitude = data['c_longtitude']
-        nComment.comment     = data['comment']
+        nComment.comment = data['comment']
         return newCommentid
 
+
 class Filter(models.Model, HttpRequestResponser, Formatter):
-    stateid      = models.ForeignKey('State', db_column='stateid', primary_key=True)
-    tagid        = models.ForeignKey('Tag', db_column='tagid', primary_key=True)
+    stateid = models.ForeignKey('State', db_column='stateid', primary_key=True)
+    tagid = models.ForeignKey('Tag', db_column='tagid', primary_key=True)
     f_start_time = models.DateTimeField(null=True, blank=True)
-    f_stop_time  = models.DateTimeField(null=True, blank=True)
-    f_repeat     = models.IntegerField(null=True, blank=True)
+    f_stop_time = models.DateTimeField(null=True, blank=True)
+    f_repeat = models.IntegerField(null=True, blank=True)
     f_visibility = models.IntegerField()
-    uid          = models.ForeignKey('State', db_column='uid', primary_key=True)
-    is_checked   = models.IntegerField(null=True, blank=True)
-    
+    uid = models.ForeignKey('State', db_column='uid', primary_key=True)
+    is_checked = models.IntegerField(null=True, blank=True)
+
     class Meta:
         db_table = 'filter'
 
     def categorizeFiltersIntoSystags(self, data, filterset):
-        result      = []
+        result = []
         tmp_sysTags = []
         #sysTags    = Tag().getUserSysTags(data)
         sysTags = Tag().getSysTags()
         #print "Here ==========>"
         #print sysTags
         for sys in sysTags:
-            sys['tags']       = []
+            sys['tags'] = []
             sys['is_checked'] = 0
             tmp_sysTags.append(sys)
 
@@ -107,17 +111,17 @@ class Filter(models.Model, HttpRequestResponser, Formatter):
                 if tagid_id > 10 and sys['tagid'] == row['sys_tagid']:
                     sys['is_checked'] = 1
                     sys['tags'].append(row)
-                #print "result row ================"
-            #print sys
+                    #print "result row ================"
+                #print sys
             result.append(sys)
         return result
 
     def extendFilterWithTagInfo(self, data, filterset):
         result = []
         for row in filterset:
-            tagid_id         = row['tagid_id']
-            tag              = Tag.objects.get(tagid=tagid_id)
-            row['tag_name']  = tag.tag_name
+            tagid_id = row['tagid_id']
+            tag = Tag.objects.get(tagid=tagid_id)
+            row['tag_name'] = tag.tag_name
             row['sys_tagid'] = tag.sys_tagid
             #print row
             result.append(row)
@@ -135,17 +139,18 @@ class Filter(models.Model, HttpRequestResponser, Formatter):
 
     def getDefaultFilterDataArray(self, data):
         return [int(data['stateid']), data['tagid'], None, None, 0, 0, int(data['uid']), IS_CHECKED_DEFAULT]
-    
+
     def addFilterAndTag(self, request):
-        data          = self.readData(request)
+        data = self.readData(request)
         data['tagid'] = Tag().addTag(data)
         if 'f_start_time' in data:
-            values = [int(data['stateid']), data['tagid'], data['f_start_time'], data['f_stop_time'], data['f_repeat'], data['f_visibility'], int(data['uid']), IS_CHECKED_DEFAULT]
+            values = [int(data['stateid']), data['tagid'], data['f_start_time'], data['f_stop_time'], data['f_repeat'],
+                      data['f_visibility'], int(data['uid']), IS_CHECKED_DEFAULT]
         else:
             values = [int(data['stateid']), data['tagid'], None, None, 0, 0, int(data['uid']), IS_CHECKED_DEFAULT]
         self.addFilter(values)
         return self.createResultSet({'tagid': data['tagid']}, 'json')
-    
+
     # arguments 'data' need to be a list including values that will be stored into filter 
     def addFilter(self, data):
         args = dict([('table', 'filter'), ('values', data)])
@@ -154,7 +159,7 @@ class Filter(models.Model, HttpRequestResponser, Formatter):
     def addDefaultFilter(self, data):
         for i in range(0, N_SYSTEM_TAGS):
             data['tagid'] = i
-            values        = self.getDefaultFilterDataArray(data)
+            values = self.getDefaultFilterDataArray(data)
             self.addFilter(values)
         return i
 
@@ -167,7 +172,7 @@ class Filter(models.Model, HttpRequestResponser, Formatter):
         args['values'] = [data['tagid'], data['uid'], data['stateid']]
         SQLExecuter().doDeleteData(args)
         return self.createResultSet(data, 'json')
-    
+
     def updateFilter(self, request):
         #request = 'stateid=0&tagid=1&f_start_time=2013-04-14 04:49:44&f_stop_time=2013-04-14 04:49:44&f_repeat=1&f_visibility=1&uid'
         #data = urlparse.parse_qsl(request)
@@ -176,9 +181,11 @@ class Filter(models.Model, HttpRequestResponser, Formatter):
             data['f_repeat'] = 1
         else:
             data['f_repeat'] = 0
-        Filter.objects.filter(stateid=data['stateid'],uid=data['uid'],tagid=data['tagid']).update(f_start_time=data['f_start_time'],f_stop_time=data['f_stop_time'],f_repeat=data['f_repeat'],f_visibility=data['f_visibility'])
+        Filter.objects.filter(stateid=data['stateid'], uid=data['uid'], tagid=data['tagid']).update(
+            f_start_time=data['f_start_time'], f_stop_time=data['f_stop_time'], f_repeat=data['f_repeat'],
+            f_visibility=data['f_visibility'])
         return self.createResultSet(data, 'json')
-    
+
     def activateFilter(self, request):
         data = self.readData(request)
         objFilter = Filter.objects.filter(tagid=data['tagid'], stateid=data['stateid'], uid=data['uid'])
@@ -190,24 +197,25 @@ class Filter(models.Model, HttpRequestResponser, Formatter):
         return self.createResultSet(data, 'json')
 
     def retrieveFilter(self, request):
-        data                  = self.readData(request)
-        objFilter             = Filter.objects.filter(tagid=data['tagid'], stateid=data['stateid'], uid=data['uid']).values()[0]
+        data = self.readData(request)
+        objFilter = Filter.objects.filter(tagid=data['tagid'], stateid=data['stateid'], uid=data['uid']).values()[0]
         objFilter['tag_name'] = Tag.objects.get(tagid=data['tagid']).tag_name
         print objFilter
         return self.createResultSet(objFilter)
 
+
 class Note(models.Model, HttpRequestResponser, Formatter):
-    note         = models.CharField(max_length=140)
-    n_timestamp  = models.DateTimeField()
-    link         = models.TextField(blank=True)
-    noteid       = models.IntegerField(primary_key=True)
-    uid          = models.ForeignKey('User', db_column='uid')
-    radius       = models.DecimalField(null=True, max_digits=10, decimal_places=2, blank=True)
+    note = models.CharField(max_length=140)
+    n_timestamp = models.DateTimeField()
+    link = models.TextField(blank=True)
+    noteid = models.IntegerField(primary_key=True)
+    uid = models.ForeignKey('User', db_column='uid')
+    radius = models.DecimalField(null=True, max_digits=10, decimal_places=2, blank=True)
     n_visibility = models.IntegerField()
-    n_latitude   = models.DecimalField(max_digits=9, decimal_places=6)
-    n_longitude  = models.DecimalField(max_digits=9, decimal_places=6)
-    is_comment   = models.IntegerField()
-    n_like       = models.IntegerField()
+    n_latitude = models.DecimalField(max_digits=9, decimal_places=6)
+    n_longitude = models.DecimalField(max_digits=9, decimal_places=6)
+    is_comment = models.IntegerField()
+    n_like = models.IntegerField()
 
     class Meta:
         db_table = 'note'
@@ -221,31 +229,31 @@ class Note(models.Model, HttpRequestResponser, Formatter):
             return notetuple.noteid + 1
 
     def addNote(self, data):
-        newNoteid          = self.getNewNoteid()
-        notetime              = Note()
-        notetime.note         = data['note']
-        notetime.n_timestamp  = timezone.now()
-        notetime.link         = ''
-        notetime.noteid       = newNoteid
-        notetime.uid          = User(uid=data['uid'])
-        
+        newNoteid = self.getNewNoteid()
+        notetime = Note()
+        notetime.note = data['note']
+        notetime.n_timestamp = timezone.now()
+        notetime.link = ''
+        notetime.noteid = newNoteid
+        notetime.uid = User(uid=data['uid'])
+
         if 'radius' in data:
-            notetime.radius       = data['radius']
+            notetime.radius = data['radius']
             notetime.n_visibility = data['n_visibility']
             if 'is_comment' in data:
                 notetime.is_comment = data['is_comment']
             else:
                 notetime.is_comment = 0
         else:
-            notetime.radius       = N_DEFAULT_RADIUS     # default 200 yards
+            notetime.radius = N_DEFAULT_RADIUS     # default 200 yards
             notetime.n_visibility = 0                    # default 0: public
-            notetime.is_comment   = IS_COMMENT
-        
-        notetime.n_latitude   = data['n_latitude']
-        notetime.n_longitude  = data['n_longitude']
-        notetime.n_like       = N_LIKES
+            notetime.is_comment = IS_COMMENT
+
+        notetime.n_latitude = data['n_latitude']
+        notetime.n_longitude = data['n_longitude']
+        notetime.n_like = N_LIKES
         notetime.save()
-        data['noteid']        = newNoteid
+        data['noteid'] = newNoteid
         return data
 
     def plusLike(self, data):
@@ -257,30 +265,34 @@ class Note(models.Model, HttpRequestResponser, Formatter):
         nowtime = timezone.now()
         # retrieve user filter
         uCTags = self.getUserCategoryTagsList(data)
-        
+
         # retrieve notesets
-        nlist1 = Note_Time.objects.filter(n_repeat=0, n_start_time__lte=nowtime, n_stop_time__gte=nowtime).values('noteid')
-        nlist2 = Note_Time.objects.raw("Select noteid From Note_Time Where n_repeat=1 And Time(Now()) Between Time(n_start_time) And Time(n_stop_time)").values('noteid')
-        nlist  = nlist1 + nlist2
-        notesets = Note.objects.filter(n_visibility__in=[0,1], noteid__in=nlist)
+        nlist1 = Note_Time.objects.filter(n_repeat=0, n_start_time__lte=nowtime, n_stop_time__gte=nowtime).values(
+            'noteid')
+        nlist2 = Note_Time.objects.raw(
+            "Select noteid From Note_Time Where n_repeat=1 And Time(Now()) Between Time(n_start_time) And Time(n_stop_time)").values(
+            'noteid')
+        nlist = nlist1 + nlist2
+        notesets = Note.objects.filter(n_visibility__in=[0, 1], noteid__in=nlist)
         return data
-    
+
+
 class Note_Tag(models.Model, HttpRequestResponser, Formatter):
     noteid = models.ForeignKey('Note', db_column='noteid', primary_key=True)
-    tagid  = models.ForeignKey('Tag', db_column='tagid', primary_key=True)
+    tagid = models.ForeignKey('Tag', db_column='tagid', primary_key=True)
 
     class Meta:
         db_table = 'note_tag'
-    
+
     def getSysTagid(self, data):
         for tagid in data['tagids']:
             if tagid >= 0 and tagid <= 10:
                 return tagid
-    
+
     def addNoteTag(self, data):
-        notetag        = Note_Tag()
+        notetag = Note_Tag()
         notetag.noteid = Note(noteid=data['noteid'])
-        notetag.tagid  = Tag(tagid=data['tagid'])
+        notetag.tagid = Tag(tagid=data['tagid'])
         notetag.save()
         return data
 
@@ -291,40 +303,42 @@ class Note_Tag(models.Model, HttpRequestResponser, Formatter):
                 data['tagid'] = tags[index]
                 Note_Tag().addNoteTag(data)
         elif 'tagids' in data:
+            data['tagid'] = data['tagids']
             Note_Tag().addNoteTag(data)
-        
+
         # add tags from tag_names
         if 'tagids' in data:
             self.addNoteTagFromTagName(data)
-        
+
         # add a default tag (all)
-        data['tagid']     = 0
+        data['tagid'] = 0
         data['sys_tagid'] = 0
         Note_Tag().addNoteTag(data)
         return data
-    
+
     def addNoteTagFromTagName(self, data):
-        sys_tagid         = self.getSysTagid(data)
+        sys_tagid = self.getSysTagid(data)
         data['sys_tagid'] = sys_tagid
         if 'tag_names' in data and len(data['tag_names']) > 1:
             for tag_name in data['tag_names']:
-                data['tag_name']  = tag_name
-                tagid = Tag().addTag(data)   
+                data['tag_name'] = tag_name
+                tagid = Tag().addTag(data)
         elif 'tag_names' in data:
             data['tag_name'] = data['tag_names']
-            tagid = Tag().addTag(data)  
-                
+            tagid = Tag().addTag(data)
+
     def deleteNoteTag(self, request):
         data = self.readData(request)
         Note_Tag.objects.filter(tagid=data['tagid'], noteid=data['noteid']).delete()
         return 0
-    
+
+
 class Note_Time(models.Model, HttpRequestResponser, Formatter):
-    timeid       = models.IntegerField(primary_key=True)
-    noteid       = models.ForeignKey('Note', db_column='noteid')
+    timeid = models.IntegerField(primary_key=True)
+    noteid = models.ForeignKey('Note', db_column='noteid')
     n_start_time = models.DateTimeField()
-    n_stop_time  = models.DateTimeField(null=True, blank=True)
-    n_repeat     = models.IntegerField(null=True, blank=True)
+    n_stop_time = models.DateTimeField(null=True, blank=True)
+    n_repeat = models.IntegerField(null=True, blank=True)
 
     class Meta:
         db_table = 'note_time'
@@ -333,21 +347,21 @@ class Note_Time(models.Model, HttpRequestResponser, Formatter):
         if len(Note_Time.objects.all().values()) == 0:
             return 1
         else:
-            notetime = Note_Time.objects.all().order_by('timeid',).latest('timeid')
+            notetime = Note_Time.objects.all().order_by('timeid', ).latest('timeid')
             #print tag.tagid
             return notetime.timeid + 1
 
     def addNoteTime(self, data):
-        newNoteTimeid         = self.getNewNoteTimeid()
-        notetime              = Note_Time()
-        notetime.timeid       = newNoteTimeid
-        notetime.noteid       = Note(noteid=data['noteid'])
+        newNoteTimeid = self.getNewNoteTimeid()
+        notetime = Note_Time()
+        notetime.timeid = newNoteTimeid
+        notetime.noteid = Note(noteid=data['noteid'])
         notetime.n_start_time = data['n_start_time']
-        notetime.n_stop_time  = data['n_stop_time']
-        notetime.n_repeat     = data['n_repeat']
+        notetime.n_stop_time = data['n_stop_time']
+        notetime.n_repeat = data['n_repeat']
         notetime.save()
         return data
-    
+
     def addNoteTimeRange(self, data):
         '''
         if 'n_start_time' in data and type(data['n_start_time']) == list and len(data['n_start_time']) > 1:
@@ -360,20 +374,21 @@ class Note_Time(models.Model, HttpRequestResponser, Formatter):
                 data['n_repeat']     = repeat[index]
                 Note_Time().addNoteTime(data)
         '''
-        
+
         if 'n_repeat' not in data:
             data['n_repeat'] = 0
-         
+
         if len(data['n_start_time']) == 0 or len(data['n_stop_time']) == 0:
             data['n_start_time'] = timezone.now()
-            data['n_stop_time']  = timezone.now() + datetime.timedelta(days=1)
+            data['n_stop_time'] = timezone.now() + datetime.timedelta(days=1)
 
         Note_Time().addNoteTime(data)
-    
+
+
 class State(models.Model, HttpRequestResponser, Formatter):
-    stateid    = models.IntegerField(primary_key=True)
+    stateid = models.IntegerField(primary_key=True)
     state_name = models.CharField(max_length=45)
-    uid        = models.ForeignKey('User', db_column='uid', primary_key=True)
+    uid = models.ForeignKey('User', db_column='uid', primary_key=True)
     is_current = models.IntegerField()
 
     class Meta:
@@ -451,10 +466,11 @@ class State(models.Model, HttpRequestResponser, Formatter):
         State.objects.filter(stateid=data['stateid'], uid=data['uid']).update(state_name=data['state_name'])
         return self.createResultSet(data, 'json')
 
+
 class Tag(models.Model, HttpRequestResponser, Formatter):
-    tagid     = models.IntegerField(primary_key=True)
-    tag_name  = models.CharField(max_length=45)
-    uid       = models.ForeignKey('User', null=True, db_column='uid', blank=True)
+    tagid = models.IntegerField(primary_key=True)
+    tag_name = models.CharField(max_length=45)
+    uid = models.ForeignKey('User', null=True, db_column='uid', blank=True)
     sys_tagid = models.IntegerField(null=True, blank=True)
 
     class Meta:
@@ -472,52 +488,52 @@ class Tag(models.Model, HttpRequestResponser, Formatter):
             return tag.tagid + 1
 
     def getUserSysTags(self, data):
-        result             = []
-        args               = {}
-        args['columns']    = ['b.*, a.tag_name, a.sys_tagid']
-        args['tables']     = ['tag as a', 'filter as b']
-        args['joins']      = ['a.tagid = b.tagid', 'a.tagid>=%s And a.tagid<=%s']
+        result = []
+        args = {}
+        args['columns'] = ['b.*, a.tag_name, a.sys_tagid']
+        args['tables'] = ['tag as a', 'filter as b']
+        args['joins'] = ['a.tagid = b.tagid', 'a.tagid>=%s And a.tagid<=%s']
         args['conditions'] = [{'criteria': 'b.uid=', 'logic': 'And'}, {'criteria': 'b.stateid=', 'logic': 'And'}]
-        args['values']     = [0, 10, data['uid_id'], data['stateid']]
-        slist              = SQLExecuter().doSelectData(args)
+        args['values'] = [0, 10, data['uid_id'], data['stateid']]
+        slist = SQLExecuter().doSelectData(args)
         for sys in slist:
             sys['is_checked'] = 0
             result.append(sys)
         return result
 
     def getUserTagsList(self, request, returnType='html'):
-        data        = self.readData(request)
+        data = self.readData(request)
         data['uid'] = '1'
-        taglist     = list(Tag.objects.filter(uid=data['uid']).order_by('tagid').values())
+        taglist = list(Tag.objects.filter(uid=data['uid']).order_by('tagid').values())
         defaultlist = list(Tag.objects.filter(uid=None).order_by('tagid').values())
-        data        = dict([('tagslist', taglist + defaultlist)])
+        data = dict([('tagslist', taglist + defaultlist)])
         return self.createResultSet(data, returnType)
 
     def getUserCategoryTagsList(self, data):
-        tmp         = []
-        result      = []
-        taglist     = list(Tag.objects.filter(uid=data['uid']).order_by('tagid').values())
+        tmp = []
+        result = []
+        taglist = list(Tag.objects.filter(uid=data['uid']).order_by('tagid').values())
         defaultlist = list(Tag.objects.filter(uid=None).order_by('tagid').values())
         print taglist
-        
+
         for dtag in defaultlist[1:]:
             dtag['tags'] = []
             tmp.append(dtag)
-        
+
         for row in tmp:
             for tag in taglist:
                 if tag['sys_tagid'] == row['sys_tagid']:
                     row['tags'].append(tag)
             result.append(row)
-                
+
         return result
-    
+
     def addTag(self, data):
-        newTagid      = self.getNewTagid()
-        tag           = Tag()
-        tag.tagid     = newTagid
-        tag.tag_name  = data['tag_name']
-        tag.uid       = User(uid=int(data['uid']))
+        newTagid = self.getNewTagid()
+        tag = Tag()
+        tag.tagid = newTagid
+        tag.tag_name = data['tag_name']
+        tag.uid = User(uid=int(data['uid']))
         tag.sys_tagid = data['sys_tagid']
         tag.save()
         return newTagid
@@ -536,12 +552,13 @@ class Tag(models.Model, HttpRequestResponser, Formatter):
         data = Tag.objects.filter(tagid=data['tagid'], uid=data['uid']).update(state_name=data['tag_name'])
         return self.createResultSet(data, 'json')
 
+
 class User(models.Model, HttpRequestResponser, Formatter):
-    uid         = models.IntegerField(primary_key=True)
-    u_name      = models.CharField(max_length=45)
-    email       = models.CharField(max_length=45)
+    uid = models.IntegerField(primary_key=True)
+    u_name = models.CharField(max_length=45)
+    email = models.CharField(max_length=45)
     u_timestamp = models.DateTimeField()
-    password    = models.CharField(max_length=15)
+    password = models.CharField(max_length=15)
 
     class Meta:
         db_table = 'user'
@@ -566,11 +583,11 @@ class User(models.Model, HttpRequestResponser, Formatter):
         return User.objects.filter(uid=input_uid).values()[0]
 
     def addUser(self, data):
-        usr             = User()
-        usr.uid         = self.getNewUid()
-        usr.u_name      = data['u_name']
-        usr.email       = data['email']
-        usr.password    = data['password']
+        usr = User()
+        usr.uid = self.getNewUid()
+        usr.u_name = data['u_name']
+        usr.email = data['email']
+        usr.password = data['password']
         usr.u_timestamp = timezone.now()
         usr.save()
         return User.objects.filter(email=data['email']).values()
@@ -589,10 +606,10 @@ class User(models.Model, HttpRequestResponser, Formatter):
             message.append('The email address is already taken.')
             result = 'fail'
 
-        usr               = self.simplifyObjToDateString(self.addUser(data))[0]
+        usr = self.simplifyObjToDateString(self.addUser(data))[0]
         usr['state_name'] = STATE_NAME_DEFAULT
-        state             = State().addState(usr, 'default')[0]
-        state['uid']      = state['uid_id']
+        state = State().addState(usr, 'default')[0]
+        state['uid'] = state['uid_id']
         ufilter = Filter().addDefaultFilter(state)
 
         self.setUserSession(request, usr)
@@ -636,33 +653,33 @@ class User(models.Model, HttpRequestResponser, Formatter):
         data = dict([('user', usr), ('stateslist', State().getUserStatesAndFiltersList(usr))])
         #print data
         return self.createResultSet(data)
-    
+
     def postNote(self, request):
-        data       = self.readData(request)
-        data       = Note().addNote(data)
-        
+        data = self.readData(request)
+        data = Note().addNote(data)
+
         Note_Time().addNoteTimeRange(data)
         Note_Tag().addMultipleNoteTags(data)
-            
+
         return self.createResultSet(data)
 
     def addExtraNoteTag(self, request):
         data = self.readData(request)
         Note_Tag().addNoteTags(data)
         return self.createResultSet(data)
-    
+
     def clickLike(self, request):
         data = self.readData(request)
         data = Note().plusLike(data)
         return self.createResultSet(data)
-    
+
     def postComment(self, request):
-        data              = self.readData(request)
+        data = self.readData(request)
         data['commentid'] = Comments().addComment(data)
         return self.createResultSet(data)
 
     def searchNotes(self, request):
-        data              = self.readData(request)
+        data = self.readData(request)
         '''
         data = {}
         data['uid']         = 2
@@ -672,9 +689,9 @@ class User(models.Model, HttpRequestResponser, Formatter):
         data['noteslist'] = NoteFilter().searchNotes(data)
         '''
         return self.createResultSet(data)
-    
+
     def receiveNotes(self, request):
-        data       = self.readData(request)
+        data = self.readData(request)
         '''
         data = {}
         data['uid']         = 2
@@ -683,40 +700,42 @@ class User(models.Model, HttpRequestResponser, Formatter):
         data['noteslist']   = NoteFilter().filterNotes(data)
         '''
         return self.createResultSet(data)
-    
+
+
 class NoteFilter(HttpRequestResponser, Formatter):
-    
     def __init__(self):
         self.sql = SQLExecuter()
-    
+
     def getValuesBasedonKey(self, valueset, key):
         result = []
         for row in valueset:
             result.append(row[key])
         return result
-    
+
     def getNoteInfoListByKewords(self, data, currenttime):
         data['keyword'] = '%' + data['keyword'] + '%'
-        strSQL          = "Select a.*, b.tagid, c.sys_tagid, c.tag_name, d.n_start_time, d.n_stop_time, n_repeat From note as a, note_tag as b, tag as c, (Select * From note_time Where %s between n_start_time And n_stop_time And n_repeat=0) as d Where a.noteid=b.noteid And b.tagid=c.tagid And a.noteid=d.noteid And (a.note like %s Or c.tag_name like %s) Union Select a.*, b.tagid, c.sys_tagid, c.tag_name, d.n_start_time, d.n_stop_time, n_repeat From note as a, note_tag as b, tag as c, (Select * From note_time Where %s between n_start_time And n_stop_time And n_repeat=1) as d Where a.noteid=b.noteid And b.tagid=c.tagid And a.noteid=d.noteid And (a.note like %s Or c.tag_name like %s)"
-        noteslist       = self.sql.doRawSQL(strSQL, [currenttime, data['keyword'], data['keyword'], currenttime, data['keyword'], data['keyword']])
+        strSQL = "Select a.*, b.tagid, c.sys_tagid, c.tag_name, d.n_start_time, d.n_stop_time, n_repeat From note as a, note_tag as b, tag as c, (Select * From note_time Where %s between n_start_time And n_stop_time And n_repeat=0) as d Where a.noteid=b.noteid And b.tagid=c.tagid And a.noteid=d.noteid And (a.note like %s Or c.tag_name like %s) Union Select a.*, b.tagid, c.sys_tagid, c.tag_name, d.n_start_time, d.n_stop_time, n_repeat From note as a, note_tag as b, tag as c, (Select * From note_time Where %s between n_start_time And n_stop_time And n_repeat=1) as d Where a.noteid=b.noteid And b.tagid=c.tagid And a.noteid=d.noteid And (a.note like %s Or c.tag_name like %s)"
+        noteslist = self.sql.doRawSQL(strSQL,
+                                      [currenttime, data['keyword'], data['keyword'], currenttime, data['keyword'],
+                                       data['keyword']])
         return noteslist
-    
+
     def getNoteInfoList(self, currenttime):
         # retrieve every detail of notes
-        strSQL    = 'Select a.*, b.tagid, c.sys_tagid, d.n_start_time, d.n_stop_time, n_repeat From note as a, note_tag as b, tag as c, (Select * From note_time Where %s between n_start_time And n_stop_time And n_repeat=0) as d Where a.noteid=b.noteid And b.tagid=c.tagid And a.noteid=d.noteid Union Select a.*, b.tagid, c.sys_tagid, d.n_start_time, d.n_stop_time, n_repeat From note as a, note_tag as b, tag as c, (Select * From note_time Where %s between n_start_time And n_stop_time And n_repeat=1) as d Where a.noteid=b.noteid And b.tagid=c.tagid And a.noteid=d.noteid'
+        strSQL = 'Select a.*, b.tagid, c.sys_tagid, d.n_start_time, d.n_stop_time, n_repeat From note as a, note_tag as b, tag as c, (Select * From note_time Where %s between n_start_time And n_stop_time And n_repeat=0) as d Where a.noteid=b.noteid And b.tagid=c.tagid And a.noteid=d.noteid Union Select a.*, b.tagid, c.sys_tagid, d.n_start_time, d.n_stop_time, n_repeat From note as a, note_tag as b, tag as c, (Select * From note_time Where %s between n_start_time And n_stop_time And n_repeat=1) as d Where a.noteid=b.noteid And b.tagid=c.tagid And a.noteid=d.noteid'
         noteslist = self.sql.doRawSQL(strSQL, [currenttime, currenttime])
         return noteslist
-    
+
     def getUserCategoryTagsList(self, data):
-        args               = {}
-        args['columns']    = ['b.*, c.sys_tagid']
-        args['tables']     = ['state as a', 'filter as b', 'tag as c']
-        args['joins']      = ['a.stateid=b.stateid And a.uid=b.uid And b.tagid=c.tagid And a.is_current=1 And is_checked=1']
+        args = {}
+        args['columns'] = ['b.*, c.sys_tagid']
+        args['tables'] = ['state as a', 'filter as b', 'tag as c']
+        args['joins'] = ['a.stateid=b.stateid And a.uid=b.uid And b.tagid=c.tagid And a.is_current=1 And is_checked=1']
         args['conditions'] = [{'criteria': 'b.uid=', 'logic': 'And'}]
-        args['values']     = [data['uid']]
-        uCTags             = self.sql.doSelectData(args)
+        args['values'] = [data['uid']]
+        uCTags = self.sql.doSelectData(args)
         return uCTags
-    
+
     def computeDistance(self, data, n_longitude, n_latitude):
         """
         Calculate the great circle distance between two points 
@@ -724,62 +743,62 @@ class NoteFilter(HttpRequestResponser, Formatter):
         """
         # convert decimal degrees to radians 
         lon1, lat1, lon2, lat2 = map(radians, [n_longitude, n_latitude, data['u_longitude'], data['u_latitude']])
-        
+
         # haversine formula 
-        dlon = lon2 - lon1 
-        dlat = lat2 - lat1 
-        a    = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
-        c    = 2 * asin(sqrt(a)) 
+        dlon = lon2 - lon1
+        dlat = lat2 - lat1
+        a = sin(dlat / 2) ** 2 + cos(lat1) * cos(lat2) * sin(dlon / 2) ** 2
+        c = 2 * asin(sqrt(a))
         dist = (6367 * c) * 1093.61 # km to yard
         return dist
-    
+
     def filterByTags(self, uProfile, noteslist):
-        result  = []
+        result = []
         passset = self.getValuesBasedonKey(uProfile, 'sys_tagid')
         for note in noteslist:
             if note['sys_tagid'] in passset:
                 result.append(note)
         return result
-    
+
     def filterByTime(self, uProfile, noteslist, currenttime):
-        result      = []
-        sys_tagset  = []
+        result = []
+        sys_tagset = []
         for filter in uProfile:
             if filter.f_repeat:
                 current = dateparse.parse_time(currenttime)
-                start   = dateparse.parse_time(filter.f_start_time)
-                end     = dateparse.parse_time(filter.f_stop_time)
+                start = dateparse.parse_time(filter.f_start_time)
+                end = dateparse.parse_time(filter.f_stop_time)
             else:
                 current = currenttime
-                start   = filter.f_start_time
-                end     = filter.f_stop_time
-                
+                start = filter.f_start_time
+                end = filter.f_stop_time
+
             if current >= start and current <= end:
                 sys_tagset.append(filter.sys_tagid)
-         
+
         for note in noteslist:
             if note['sys_tagid'] in sys_tagset:
                 result.append(note)
         return result
-    
+
     def filterByVisibility(self, data, uProfile, noteslist):
         friendslist = Friend().getFriendsList(data)
         # generalize visibility of user tags based on sys_tags
         sys_visset = {}
-        result     = []
+        result = []
         for ufilter in uProfile:
-            sys_tag    = ufilter.systagid
+            sys_tag = ufilter.systagid
             visibility = ufilter.f_visibility
             if (sys_tag in sys_visset and sys_visset[sys_tag] < visibility) or (sys_tag not in sys_visset):
                 sys_visset[sys_tag] = visibility
-        
+
         for note in noteslist:
             if note['sys_tagid'] in sys_visset and sys_visset[note.sys_tagid] == note['n_visibility']:
                 if (note['n_visibility'] == 1 and note['uid'] in friendslist) or note['n_visibility'] == 0:
                     result.append(note)
-    
+
         return result
-    
+
     def filterByLocation(self, data, noteslist):
         result = []
         for note in noteslist:
@@ -787,24 +806,24 @@ class NoteFilter(HttpRequestResponser, Formatter):
             if dist <= note['radius']:
                 result.append(note)
         return result
-    
+
     def filterNotes(self, data, mode='normal'):
         currenttime = timezone.now()
         if mode == 'normal':
             noteslist = self.getNoteInfoList(currenttime)
         else:
             noteslist = self.getNoteInfoListByKewords(data, currenttime)
-        uProfile    = self.getUserCategoryTagsList(data)
-        
+        uProfile = self.getUserCategoryTagsList(data)
+
         # filter by user's tags
         noteslist = self.filterByTags(uProfile, noteslist)
-        
+
         # filter by user's time range
         noteslist = self.filterByTime(uProfile, noteslist, currenttime)
-        
+
         # filter by visibility and friendship
         noteslist = self.filterByVisibility(data, uProfile, noteslist)
-        
+
         # filter by location
         noteslist = self.filterByLocation(data, noteslist)
         print noteslist

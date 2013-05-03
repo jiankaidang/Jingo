@@ -69,12 +69,15 @@ $("#setToCurrentLocation").click(function () {
     return false;
 });
 $("#publishNote").click(function () {
-    var noteInput = $("#note"), publishNoteButton = $(this);
+    var noteInput = $("#note");
+    if (noteInput.val() == "") {
+        return false;
+    }
     navigator.geolocation.getCurrentPosition(function (position) {
         $("#n_latitude").val(position.coords.latitude);
         $("#n_longitude").val(position.coords.longitude);
         $.post("/tasks/postNote/", $("#note-form").serialize(), function () {
-            $("#note-form").reset();
+            $("#note-form")[0].reset();
         });
     });
     return false;
@@ -86,18 +89,25 @@ $("#noteDetailTrigger").click(function () {
 });
 $("#accordion2").on("click", ".add-tag",function () {
     var sysTagLi = $(this).closest("li"), tagid = sysTagLi.attr("data-tagid");
-    var newTagLi = $('<li><input type="text" required autocomplete="off" name="tag_names"></li>').prependTo(sysTagLi.find("ul"));
+    var newTagLi = $('<li><input type="text" required></li>').prependTo(sysTagLi.find("ul"));
     newTagLi.find("input").blur(function () {
         var tagName = $(this).val();
         if (!tagName) {
             newTagLi.remove();
             return;
         }
-        newTagLi.find("input").hide();
-        newTagLi.append('<label class="checkbox"><input type="checkbox" checked>' + tagName +
+        newTagLi.html('<label class="checkbox"><input type="checkbox" value="' + tagName + '" name="tag_names" class="customized-tag">' + tagName +
             '<a href="javascript:void(0);" class="pull-right remove-tag"><i class="icon-trash"></i></a>' +
-            '</label>');
+            '</label>').find("input").click();
     }).focus();
-}).on("click", ".remove-tag", function () {
+}).on("click", ".remove-tag",function () {
         var tagLi = $(this).closest("li").remove();
+    }).on("click", ".customized-tag",function () {
+        if ($(this).is(":checked")) {
+            $(this).closest(".sys-tag-container").find(".sys-tag").prop("checked", true);
+        }
+    }).on("click", ".sys-tag", function () {
+        if (!$(this).is(":checked")) {
+            $(this).closest(".sys-tag-container").find(".customized-tag").prop("checked", false);
+        }
     });

@@ -10,9 +10,10 @@
             <div class="accordion-inner">
                 <ul class="unstyled">
                     {#                    {% for filter in state.filters %}#}
-                    <li data-tagid="{% comment %}{{ filter.tagid }}{% endcomment %}">
+                    <li data-tagid="{% comment %}{{ filter.tagid }}{% endcomment %}" class="sys-tag-container">
                         <label class="checkbox">
-                            <input type="checkbox" value="{% comment %}{{ filter.tagid }}{% endcomment %}">
+                            <input type="checkbox" value="1{% comment %}{{ filter.tagid }}{% endcomment %}"
+                                   name="tagids" class="sys-tag">
                             {% comment %}{{ filter.tag_name }}{% endcomment %}
                             food
                             <a href="javascript:void(0);" class="pull-right add-tag"><i class="icon-plus"></i></a>
@@ -21,7 +22,8 @@
                             {#                            {% for tag in filter.tags %}#}
                             <li data-tagid="{% comment %}{{ tag.tagid_id }}{% endcomment %}">
                                 <label class="checkbox">
-                                    <input type="checkbox" value="{% comment %}{{ tag.tagid_id }}{% endcomment %}">
+                                    <input type="checkbox" value="10{% comment %}{{ tag.tagid_id }}{% endcomment %}"
+                                           name="tagids" class="customized-tag">
                                     {#                                    {{ tag.tag_name }}#}
                                     chicken
                                     <a href="javascript:void(0);" class="pull-right remove-tag"><i

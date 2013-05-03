@@ -1,21 +1,20 @@
 from django.shortcuts import redirect
 from Jingo.models import *
-from Jingo.lib.NoteFilter import *
 
 http_res = HttpRequestResponser()
 
 
 def index(request):
-    
     #print User().searchNotes([])
     #data={}
     #data['uid'] = 4
     #print Tag().getUserCategoryTagsList(data)
-    
+
     page = 'login.html'
     if request.session.get('uid', False):
         page = 'index.html'
     return http_res.response(request, page)
+
 
 def admin(request):
     page = 'admin.html'
@@ -44,7 +43,7 @@ def tasks(request, mode):
     # API for user behaviors
     if mode == 'logout':
         data = User().logout(request)
-        return redirect('http://localhost:8000')
+        return redirect("/pages/login/")
 
     if mode == 'signup':
         page = 'profile.html'
@@ -55,7 +54,7 @@ def tasks(request, mode):
         page = 'index.html'
         data = User().login(request)
         return http_res.response(request, page, data)
-    
+
     # API for profile settings
     if mode == 'setDefaultState':
         page = 'response.html'
@@ -87,58 +86,58 @@ def tasks(request, mode):
         page = 'response.html'
         data = Filter().addFilterAndTag(request)
         return http_res.response(request, page, data, 'json')
-    
+
     if mode == 'deleteFilter':
         page = 'response.html'
         data = Filter().deleteFilter(request)
         return http_res.response(request, page, data, 'json')
-    
+
     if mode == 'updateFilter':
         page = 'response.html'
         data = Filter().updateFilter(request)
         return http_res.response(request, page, data, 'json')
-    
+
     if mode == 'retrieveFilter':
         page = 'filter.html'
         data = Filter().retrieveFilter(request)
         return http_res.response(request, page, data)
-    
+
     # API for note settings
     if mode == 'postNote':
         page = 'response.html'
         data = User().postNote(request)
         return http_res.response(request, page, data, 'json')
-    
+
     if mode == 'searchNote':
         page = 'response.html'
         data = User().searchNote(request)
         return http_res.response(request, page, data, 'json')
-    
+
     if mode == 'postComment':
         page = 'response.html'
         data = User().postComment(request)
         return http_res.response(request, page, data, 'json')
-    
+
     if mode == 'deleteNoteTag':
         page = 'response.html'
         data = User().deleteNoteTag(request)
         return http_res.response(request, page, data, 'json')
-    
+
     if mode == 'addExtraNoteTag':
         page = 'response.html'
         data = User().addExtraNoteTag(request)
         return http_res.response(request, page, data, 'json')
-    
+
     if mode == 'clickLike':
         page = 'response.html'
         data = User().clickLike(request)
         return http_res.response(request, page, data, 'json')
-    
+
     if mode == 'getTagsList':
         page = 'response.html'
         data = User().clickLike(request)
         return http_res.response(request, page, data, 'json')
-    
+
     # API for Tag settings
     if mode == 'getUserTagsList':
         page = 'response.html'
