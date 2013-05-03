@@ -86,11 +86,12 @@ class SQLExecuter:
 		strValues = self.getSQLString(args)
 		strSQL    = "Select " + strValues['columns'] + " From " + strValues['tables'] + " "
 		strSQL   += "Where " + strValues['joins'] + strValues['conditions']
-		#print strSQL
+		print 'do select'
+		print strSQL
 		self.cursor.execute(strSQL, args['values'])
 		return self.dictfetchall(self.cursor)
 	
 	def doRawSQL(self, strSQL, args=[]):
+		print strSQL
 		self.cursor.execute(strSQL, args)
 		return self.dictfetchall(self.cursor)
-		

@@ -4,6 +4,41 @@ from django.db import models
 from Jingo.lib.config import *
 from Jingo.lib.NoteFilter import *
 import urllib, urlparse
+from django.utils import timezone, dateparse
+from math import radians, cos, sin, asin, sqrt
+from Jingo.lib.SQLExecution import SQLExecuter
+
+class Friend(models.Model, HttpRequestResponser, Formatter):
+    uid = models.ForeignKey('User', db_column='uid')
+    f_uid = models.ForeignKey('User', db_column='f_uid')
+    is_friendship = models.IntegerField()
+    invitationid = models.IntegerField(primary_key=True)
+
+    class Meta:
+        db_table = 'friend'
+
+    def getNewInvitationid(self):
+        if len(Friend.objects.all().values()) == 0:
+            return 1
+        else:
+            friend = Friend.objects.all().order_by('invitationid').latest('invitationid')
+            print friend.invitationid
+            return friend.invitationid + 1
+
+    def getFriendsInvitations(self, input_uid):
+        return Friend.objects.filter(uid=input_uid, is_friendship=2).order_by('invitationid').values()
+
+    def getFriendsList(self, data):
+        return list(Friend.objects.filter(uid=data['uid'], is_friendship=1).order_by('invitationid').values('f_uid'))
+
+    def addInvitation(self, data):
+        newInvitationid = self.getNewInvitationid()
+        friend = Friend()
+        friend.uid = data['uid']
+        friend.f_uid = data['f_uid']
+        friend.is_friendship = 2                 # 0:denied, 1:accepted, 2:pending
+        friend.invitationid = newInvitationid
+        return Friend.objects.filter(invitationid=newInvitationid)
 
 class Comments(models.Model, HttpRequestResponser, Formatter):
     commentid   = models.IntegerField(primary_key=True)
@@ -160,38 +195,6 @@ class Filter(models.Model, HttpRequestResponser, Formatter):
         objFilter['tag_name'] = Tag.objects.get(tagid=data['tagid']).tag_name
         print objFilter
         return self.createResultSet(objFilter)
-
-class Friend(models.Model, HttpRequestResponser, Formatter):
-    uid = models.ForeignKey('User', db_column='uid')
-    f_uid = models.ForeignKey('User', db_column='f_uid')
-    is_friendship = models.IntegerField()
-    invitationid = models.IntegerField(primary_key=True)
-
-    class Meta:
-        db_table = 'friend'
-
-    def getNewInvitationid(self):
-        if len(Friend.objects.all().values()) == 0:
-            return 1
-        else:
-            friend = Friend.objects.all().order_by('invitationid').latest('invitationid')
-            print friend.invitationid
-            return friend.invitationid + 1
-
-    def getFriendsInvitations(self, input_uid):
-        return Friend.objects.filter(uid=input_uid, isfriendship=2).order_by('invitationid').values()
-
-    def getFriendsList(self, data):
-        return list(Friend.objects.filter(uid=data['uid'], isfriendship=1).order_by('invitationid').values('f_uid'))
-
-    def addInvitation(self, data):
-        newInvitationid = self.getNewInvitationid()
-        friend = Friend()
-        friend.uid = data['uid']
-        friend.f_uid = data['f_uid']
-        friend.is_friendship = 2                 # 0:denied, 1:accepted, 2:pending
-        friend.invitationid = newInvitationid
-        return Friend.objects.filter(invitationid=newInvitationid)
 
 class Note(models.Model, HttpRequestResponser, Formatter):
     note         = models.CharField(max_length=140)
@@ -463,6 +466,25 @@ class Tag(models.Model, HttpRequestResponser, Formatter):
         data        = dict([('tagslist', taglist + defaultlist)])
         return self.createResultSet(data, returnType)
 
+    def getUserCategoryTagsList(self, data):
+        tmp         = []
+        result      = []
+        taglist     = list(Tag.objects.filter(uid=data['uid']).order_by('tagid').values())
+        defaultlist = list(Tag.objects.filter(uid=None).order_by('tagid').values())
+        print taglist
+        
+        for dtag in defaultlist[1:]:
+            dtag['tags'] = []
+            tmp.append(dtag)
+        
+        for row in tmp:
+            for tag in taglist:
+                if tag['sys_tagid'] == row['sys_tagid']:
+                    row['tags'].append(tag)
+            result.append(row)
+                
+        return result
+    
     def addTag(self, data):
         newTagid      = self.getNewTagid()
         tag           = Tag()
@@ -613,11 +635,152 @@ class User(models.Model, HttpRequestResponser, Formatter):
         return self.createResultSet(data)
 
     def searchNotes(self, request):
-        data              = self.readData(request)
-        
+        #data              = self.readData(request)
+        data = {}
+        data['uid']         = 2
+        data['u_longitude'] = 39.557878
+        data['u_latitude']  = 30.110333
+        data['keyword']     = 'test'
+        data['noteslist'] = NoteFilter().searchNotes(data)
         return self.createResultSet(data)
     
     def receiveNotes(self, request):
-        data       = self.readData(request)
-        noteslist  = NoteFilter().filterNotes(data)
-        return self.createResultSet(noteslist)
+        #data       = self.readData(request)
+        data = {}
+        data['uid']         = 2
+        data['u_longitude'] = 39.557878
+        data['u_latitude']  = 30.110333
+        data['noteslist']   = NoteFilter().filterNotes(data)
+        return self.createResultSet(data)
+    
+class NoteFilter(HttpRequestResponser, Formatter):
+    
+    def __init__(self):
+        self.sql = SQLExecuter()
+    
+    def getValuesBasedonKey(self, valueset, key):
+        result = []
+        for row in valueset:
+            result.append(row[key])
+        return result
+    
+    def getNoteInfoListByKewords(self, data, currenttime):
+        data['keyword'] = '%' + data['keyword'] + '%'
+        strSQL          = "Select a.*, b.tagid, c.sys_tagid, c.tag_name, d.n_start_time, d.n_stop_time, n_repeat From note as a, note_tag as b, tag as c, (Select * From note_time Where %s between n_start_time And n_stop_time And n_repeat=0) as d Where a.noteid=b.noteid And b.tagid=c.tagid And a.noteid=d.noteid And (a.note like %s Or c.tag_name like %s) Union Select a.*, b.tagid, c.sys_tagid, c.tag_name, d.n_start_time, d.n_stop_time, n_repeat From note as a, note_tag as b, tag as c, (Select * From note_time Where %s between n_start_time And n_stop_time And n_repeat=1) as d Where a.noteid=b.noteid And b.tagid=c.tagid And a.noteid=d.noteid And (a.note like %s Or c.tag_name like %s)"
+        noteslist       = self.sql.doRawSQL(strSQL, [currenttime, data['keyword'], data['keyword'], currenttime, data['keyword'], data['keyword']])
+        return noteslist
+    
+    def getNoteInfoList(self, currenttime):
+        # retrieve every detail of notes
+        strSQL    = 'Select a.*, b.tagid, c.sys_tagid, d.n_start_time, d.n_stop_time, n_repeat From note as a, note_tag as b, tag as c, (Select * From note_time Where %s between n_start_time And n_stop_time And n_repeat=0) as d Where a.noteid=b.noteid And b.tagid=c.tagid And a.noteid=d.noteid Union Select a.*, b.tagid, c.sys_tagid, d.n_start_time, d.n_stop_time, n_repeat From note as a, note_tag as b, tag as c, (Select * From note_time Where %s between n_start_time And n_stop_time And n_repeat=1) as d Where a.noteid=b.noteid And b.tagid=c.tagid And a.noteid=d.noteid'
+        noteslist = self.sql.doRawSQL(strSQL, [currenttime, currenttime])
+        return noteslist
+    
+    def getUserCategoryTagsList(self, data):
+        args               = {}
+        args['columns']    = ['b.*, c.sys_tagid']
+        args['tables']     = ['state as a', 'filter as b', 'tag as c']
+        args['joins']      = ['a.stateid=b.stateid And a.uid=b.uid And b.tagid=c.tagid And a.is_current=1 And is_checked=1']
+        args['conditions'] = [{'criteria': 'b.uid=', 'logic': 'And'}]
+        args['values']     = [data['uid']]
+        uCTags             = self.sql.doSelectData(args)
+        return uCTags
+    
+    def computeDistance(self, data, n_longitude, n_latitude):
+        """
+        Calculate the great circle distance between two points 
+        on the earth (specified in decimal degrees)
+        """
+        # convert decimal degrees to radians 
+        lon1, lat1, lon2, lat2 = map(radians, [n_longitude, n_latitude, data['u_longitude'], data['u_latitude']])
+        
+        # haversine formula 
+        dlon = lon2 - lon1 
+        dlat = lat2 - lat1 
+        a    = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
+        c    = 2 * asin(sqrt(a)) 
+        dist = (6367 * c) * 1093.61 # km to yard
+        return dist
+    
+    def filterByTags(self, uProfile, noteslist):
+        result  = []
+        passset = self.getValuesBasedonKey(uProfile, 'sys_tagid')
+        for note in noteslist:
+            if note['sys_tagid'] in passset:
+                result.append(note)
+        return result
+    
+    def filterByTime(self, uProfile, noteslist, currenttime):
+        result      = []
+        sys_tagset  = []
+        for filter in uProfile:
+            if filter.f_repeat:
+                current = dateparse.parse_time(currenttime)
+                start   = dateparse.parse_time(filter.f_start_time)
+                end     = dateparse.parse_time(filter.f_stop_time)
+            else:
+                current = currenttime
+                start   = filter.f_start_time
+                end     = filter.f_stop_time
+                
+            if current >= start and current <= end:
+                sys_tagset.append(filter.sys_tagid)
+         
+        for note in noteslist:
+            if note['sys_tagid'] in sys_tagset:
+                result.append(note)
+        return result
+    
+    def filterByVisibility(self, data, uProfile, noteslist):
+        friendslist = Friend().getFriendsList(data)
+        # generalize visibility of user tags based on sys_tags
+        sys_visset = {}
+        result     = []
+        for ufilter in uProfile:
+            sys_tag    = ufilter.systagid
+            visibility = ufilter.f_visibility
+            if (sys_tag in sys_visset and sys_visset[sys_tag] < visibility) or (sys_tag not in sys_visset):
+                sys_visset[sys_tag] = visibility
+        
+        for note in noteslist:
+            if note['sys_tagid'] in sys_visset and sys_visset[note.sys_tagid] == note['n_visibility']:
+                if (note['n_visibility'] == 1 and note['uid'] in friendslist) or note['n_visibility'] == 0:
+                    result.append(note)
+    
+        return result
+    
+    def filterByLocation(self, data, noteslist):
+        result = []
+        for note in noteslist:
+            dist = self.computeDistance(data, note['n_longitude'], note['n_latitude'])
+            if dist <= note['radius']:
+                result.append(note)
+        return result
+    
+    def filterNotes(self, data, mode='normal'):
+        currenttime = timezone.now()
+        if mode == 'normal':
+            noteslist = self.getNoteInfoList(currenttime)
+        else:
+            noteslist = self.getNoteInfoListByKewords(data, currenttime)
+        uProfile    = self.getUserCategoryTagsList(data)
+        
+        # filter by user's tags
+        noteslist = self.filterByTags(uProfile, noteslist)
+        
+        # filter by user's time range
+        noteslist = self.filterByTime(uProfile, noteslist, currenttime)
+        
+        # filter by visibility and friendship
+        noteslist = self.filterByVisibility(data, uProfile, noteslist)
+        
+        # filter by location
+        noteslist = self.filterByLocation(data, noteslist)
+        print noteslist
+        return noteslist
+
+    def searchNotes(self, data):
+        noteslist = self.filterNotes(data, 'keyword')
+        
+        
+        

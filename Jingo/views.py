@@ -6,13 +6,11 @@ http_res = HttpRequestResponser()
 
 
 def index(request):
-    '''
-    data = {}
-    data['u_longitude'] = -74.019957
-    data['u_latitude']  = 40.640996
-    test = NoteFilter()
-    print test.computeDistance(data, -74.019957, 40.040996)
-    '''
+    
+    print User().searchNotes([])
+    #data={}
+    #data['uid'] = 4
+    #print Tag().getUserCategoryTagsList(data)
     
     page = 'login.html'
     if request.session.get('uid', False):
@@ -132,6 +130,11 @@ def tasks(request, mode):
         return http_res.response(request, page, data, 'json')
     
     if mode == 'clickLike':
+        page = 'response.html'
+        data = User().clickLike(request)
+        return http_res.response(request, page, data, 'json')
+    
+    if mode == 'getTagsList':
         page = 'response.html'
         data = User().clickLike(request)
         return http_res.response(request, page, data, 'json')

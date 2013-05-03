@@ -1,23 +1,26 @@
-from Jingo.lib.SQLExecution import SQLExecuter
 from Jingo.models import *
-from django.utils import timezone, dateparse
-from math import radians, cos, sin, asin, sqrt
 
 class NoteFilter(HttpRequestResponser, Formatter):
     
     def __init__(self):
         self.sql = SQLExecuter()
     
+    def getValuesBasedonKey(self, valueset, key):
+        result = []
+        for row in valueset:
+            result.append(row[key])
+        return result
+    
     def getNoteInfoList(self, currenttime):
         # retrieve every detail of notes
-        strSQL    = 'Select a.*, b.tagid, c.sys_tagid, d.n_start_time, d.n_stop_time, n_repeat From note as a, note_tag as b, tag as c, (Select * From note_time Where %s between n_start_time And n_stop_time And n_repeat=0) as d Where a.noteid=b.noteid And b.tagid=c.tagid And a.noteid=d.noteid Union Select a.*, c.sys_tagid, d.n_start_time, d.n_stop_time, n_repeat From note as a, note_tag as b, tag as c, (Select * From note_time Where %s between n_start_time And n_stop_time And n_repeat=1) as d Where a.noteid=b.noteid And b.tagid=c.tagid And a.noteid=d.noteid'
+        strSQL    = 'Select a.*, b.tagid, c.sys_tagid, d.n_start_time, d.n_stop_time, n_repeat From note as a, note_tag as b, tag as c, (Select * From note_time Where %s between n_start_time And n_stop_time And n_repeat=0) as d Where a.noteid=b.noteid And b.tagid=c.tagid And a.noteid=d.noteid Union Select a.*, b.tagid, c.sys_tagid, d.n_start_time, d.n_stop_time, n_repeat From note as a, note_tag as b, tag as c, (Select * From note_time Where %s between n_start_time And n_stop_time And n_repeat=1) as d Where a.noteid=b.noteid And b.tagid=c.tagid And a.noteid=d.noteid'
         noteslist = self.sql.doRawSQL(strSQL, [currenttime, currenttime])
         return noteslist
     
     def getUserCategoryTagsList(self, data):
         args               = {}
         args['columns']    = ['b.*, c.sys_tagid']
-        args['tables']     = ['state as a', 'filter as b', 'filter as b']
+        args['tables']     = ['state as a', 'filter as b', 'tag as c']
         args['joins']      = ['a.stateid=b.stateid And a.uid=b.uid And b.tagid=c.tagid And a.is_current=1 And is_checked=1']
         args['conditions'] = [{'criteria': 'b.uid=', 'logic': 'And'}]
         args['values']     = [data['uid']]
@@ -40,7 +43,16 @@ class NoteFilter(HttpRequestResponser, Formatter):
         dist = (6367 * c) * 1093.61 # km to yard
         return dist
     
+    def filterByTags(self, uProfile, noteslist):
+        result  = []
+        passset = self.getValuesBasedonKey(uProfile, 'sys_tagid')
+        for note in noteslist:
+            if note['sys_tagid'] in passset:
+                result.append(note)
+        return result
+    
     def filterByTime(self, uProfile, noteslist, currenttime):
+        result      = []
         sys_tagset  = []
         for filter in uProfile:
             if filter.f_repeat:
@@ -55,8 +67,10 @@ class NoteFilter(HttpRequestResponser, Formatter):
             if current >= start and current <= end:
                 sys_tagset.append(filter.sys_tagid)
          
-        noteslist = noteslist.objects.filter(sys_tagid__in=sys_tagset)
-        return noteslist
+        for note in noteslist:
+            if note['sys_tagid'] in sys_tagset:
+                result.append(note)
+        return result
     
     def filterByVisibility(self, data, uProfile, noteslist):
         friendslist = Friend().getFriendsList(data)
@@ -92,10 +106,10 @@ class NoteFilter(HttpRequestResponser, Formatter):
         uProfile    = self.getUserCategoryTagsList(data)
         
         # filter by user's tags
-        noteslist = noteslist.objects.filter(sys_tagid__in=uProfile.values_list('sys_tagid')) 
+        noteslist = self.filterByTags(uProfile, noteslist)
         
         # filter by user's time range
-        noteslist = self.filterByTime(uProfile, noteslist)
+        noteslist = self.filterByTime(uProfile, noteslist, currenttime)
         
         # filter by visibility and friendship
         noteslist = self.filterByVisibility(data, uProfile, noteslist)
