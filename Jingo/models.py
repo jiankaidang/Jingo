@@ -294,20 +294,25 @@ class Note_Tag(models.Model, HttpRequestResponser, Formatter):
             Note_Tag().addNoteTag(data)
         
         # add tags from tag_names
-        self.addNoteTagFromTagName(data)
+        if 'tagids' in data:
+            self.addNoteTagFromTagName(data)
         
         # add a default tag (all)
-        data['tagid'] = 0
+        data['tagid']     = 0
+        data['sys_tagid'] = 0
         Note_Tag().addNoteTag(data)
         return data
     
     def addNoteTagFromTagName(self, data):
-        sys_tagid = self.getSysTagid(data)
+        sys_tagid         = self.getSysTagid(data)
+        data['sys_tagid'] = sys_tagid
         if 'tag_names' in data and len(data['tag_names']) > 1:
             for tag_name in data['tag_names']:
                 data['tag_name']  = tag_name
-                data['sys_tagid'] = sys_tagid
-                tagid             = Tag().addTag(data)
+                tagid = Tag().addTag(data)   
+        elif 'tag_names' in data:
+            data['tag_name'] = data['tag_names']
+            tagid = Tag().addTag(data)  
                 
     def deleteNoteTag(self, request):
         data = self.readData(request)
@@ -359,7 +364,7 @@ class Note_Time(models.Model, HttpRequestResponser, Formatter):
         if 'n_repeat' not in data:
             data['n_repeat'] = 0
          
-        if len(data['n_start_time']) == 0 or len(data['n_start_time']) == 0:
+        if len(data['n_start_time']) == 0 or len(data['n_stop_time']) == 0:
             data['n_start_time'] = datetime.datetime.now()
             data['n_stop_time']  = datetime.datetime.now() + datetime.timedelta(days=1)
         
