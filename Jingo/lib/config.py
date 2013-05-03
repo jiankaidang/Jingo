@@ -13,6 +13,11 @@ LOGOUT_SUCCESS         = 'You\'re logged out.'
 N_SYSTEM_TAGS          = 11
 IS_CHECKED_DEFAULT     = 1
 
+# post notes 
+N_DEFAULT_RADIUS       = 200
+IS_COMMENT             = 1
+N_LIKES                = 0
+
 # include Project library 
 from Jingo.lib.HttpRequestTasks import *
 from Jingo.lib.DataVerification import *

@@ -224,7 +224,7 @@ class Note(models.Model, HttpRequestResponser, Formatter):
         newNoteid          = self.getNewNoteid()
         notetime              = Note()
         notetime.note         = data['note']
-        notetime.n_timestamp  = datetime.datetime.now()
+        notetime.n_timestamp  = timezone.now()
         notetime.link         = ''
         notetime.noteid       = newNoteid
         notetime.uid          = User(uid=data['uid'])
@@ -237,13 +237,13 @@ class Note(models.Model, HttpRequestResponser, Formatter):
             else:
                 notetime.is_comment = 0
         else:
-            notetime.radius       = 200                  # default 200 yards
+            notetime.radius       = N_DEFAULT_RADIUS     # default 200 yards
             notetime.n_visibility = 0                    # default 0: public
-            notetime.is_comment   = 1
+            notetime.is_comment   = IS_COMMENT
         
         notetime.n_latitude   = data['n_latitude']
         notetime.n_longitude  = data['n_longitude']
-        notetime.n_like       = 0
+        notetime.n_like       = N_LIKES
         notetime.save()
         data['noteid']        = newNoteid
         return data
@@ -365,9 +365,9 @@ class Note_Time(models.Model, HttpRequestResponser, Formatter):
             data['n_repeat'] = 0
          
         if len(data['n_start_time']) == 0 or len(data['n_stop_time']) == 0:
-            data['n_start_time'] = datetime.datetime.now()
-            data['n_stop_time']  = datetime.datetime.now() + datetime.timedelta(days=1)
-        
+            data['n_start_time'] = timezone.now()
+            data['n_stop_time']  = timezone.now() + datetime.timedelta(days=1)
+
         Note_Time().addNoteTime(data)
     
 class State(models.Model, HttpRequestResponser, Formatter):
