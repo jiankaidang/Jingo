@@ -7,7 +7,7 @@ http_res = HttpRequestResponser()
 
 def index(request):
     
-    print User().searchNotes([])
+    #print User().searchNotes([])
     #data={}
     #data['uid'] = 4
     #print Tag().getUserCategoryTagsList(data)
