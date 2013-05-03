@@ -1,8 +1,11 @@
 from __future__ import unicode_literals
+<<<<<<< HEAD
 import datetime
 from math import radians, cos, sin, asin, sqrt
 
 from django.utils import timezone
+=======
+>>>>>>> commit
 from django.db import models
 from django.utils import dateparse
 
