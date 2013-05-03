@@ -232,7 +232,10 @@ class Note(models.Model, HttpRequestResponser, Formatter):
         if 'radius' in data:
             notetime.radius       = data['radius']
             notetime.n_visibility = data['n_visibility']
-            notetime.is_comment   = data['is_comment']
+            if 'is_comment' in data:
+                notetime.is_comment = data['is_comment']
+            else:
+                notetime.is_comment = 0
         else:
             notetime.radius       = 200                  # default 200 yards
             notetime.n_visibility = 0                    # default 0: public
@@ -354,6 +357,8 @@ class Note_Time(models.Model, HttpRequestResponser, Formatter):
         '''
         
         if 'n_start_time' in data:
+            if 'n_repeat' not in data:
+                data['n_repeat'] = 0
             Note_Time().addNoteTime(data)
         else:
             data['n_start_time'] = datetime.datetime.now()
