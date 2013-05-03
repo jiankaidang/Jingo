@@ -69,3 +69,8 @@ html body .bottom-bar #note-detail #accordion2 {
 html body .bottom-bar #note-detail #accordion2 .customized-tags {
     list-style: none;
 }
+
+html body .bottom-bar #note-detail #repeat label,
+html body .bottom-bar #note-detail #visibility label {
+    margin-left: 71px;
+}

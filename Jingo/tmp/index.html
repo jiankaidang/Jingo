@@ -44,6 +44,47 @@
                 </div>
             </div>
             {% include "tag.html" %}
+            <div class="control-group">
+                <div class="controls">
+                    <label class="control-label" for="n_start_time">
+                        From
+                        <input type="datetime-local" id="n_start_time" name="n_start_time"
+                               value="{% comment %}{{ datetime.now }}{% endcomment %}">
+                    </label>
+                </div>
+            </div>
+            <div class="control-group">
+                <div class="controls">
+                    <label class="control-label" for="n_stop_time">
+                        To
+                        <input type="datetime-local" id="n_stop_time" name="n_stop_time"
+                               value="{% comment %}{{ f_stop_time }}{% endcomment %}">
+                    </label>
+                </div>
+            </div>
+            <div class="control-group">
+                <div class="controls" id="repeat">
+                    <label class="checkbox">
+                        <input type="checkbox" name="n_repeat">Repeat
+                    </label>
+                </div>
+            </div>
+            <div class="control-group">
+                <div class="controls" id="visibility">
+                    <label class="radio">
+                        <input type="radio" name="n_visibility" value="0" checked>
+                        Public
+                    </label>
+                    <label class="radio">
+                        <input type="radio" name="n_visibility" value="1">
+                        Friends
+                    </label>
+                    <label class="radio">
+                        <input type="radio" name="n_visibility" value="2">
+                        Only Me
+                    </label>
+                </div>
+            </div>
         </div>
     </form>
     <div id="map-canvas"></div>
