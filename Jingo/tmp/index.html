@@ -14,15 +14,18 @@
             </div>
         </div>
     </div>
-    <form class="form-horizontal bottom-bar" data-uid="{{ request.session.uid }}" id="note-form">
+    <form class="form-horizontal bottom-bar" id="note-form">
         <div class="control-group" id="note-bar">
             <div class="controls">
                 <div class="input-prepend input-append">
                     <a class="add-on" href="javascript:void(0);" id="setToCurrentLocation"><i class="icon-home"></i></a>
-                    <textarea rows="1" placeholder="What's on your mind?" id="note"></textarea>
+                    <textarea rows="1" placeholder="What's on your mind?" id="note" name="note"></textarea>
+                    <input type="hidden" value="{{ request.session.uid }}" name="uid">
+                    <input type="hidden" name="n_latitude" id="n_latitude">
+                    <input type="hidden" name="n_longitude" id="n_longitude">
                     <a class="add-on" href="#" id="publishNote" data-uid="{{ request.session.uid }}"><i
                             class="icon-share"></i></a>
-                    <a class="add-on" href="#" id="noteDetail"><i class="icon-chevron-up"></i></a>
+                    <a class="add-on" href="#" id="noteDetailTrigger"><i class="icon-chevron-up"></i></a>
                 </div>
             </div>
         </div>
@@ -66,6 +69,13 @@
                 <div class="controls" id="repeat">
                     <label class="checkbox">
                         <input type="checkbox" name="n_repeat">Repeat
+                    </label>
+                </div>
+            </div>
+            <div class="control-group">
+                <div class="controls" id="repeat">
+                    <label class="checkbox">
+                        <input type="checkbox" name="is_comment" checked="">Allow comment?
                     </label>
                 </div>
             </div>

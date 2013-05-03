@@ -71,48 +71,33 @@ $("#setToCurrentLocation").click(function () {
 $("#publishNote").click(function () {
     var noteInput = $("#note"), publishNoteButton = $(this);
     navigator.geolocation.getCurrentPosition(function (position) {
-        $.post("/tasks/postNote/", {
-            uid: publishNoteButton.attr("data-uid"),
-            note: noteInput.val(),
-            n_latitude: position.coords.latitude,
-            n_longitude: position.coords.longitude
-        }, function () {
-            noteInput.val("");
+        $("#n_latitude").val(position.coords.latitude);
+        $("#n_longitude").val(position.coords.longitude);
+        $.post("/tasks/postNote/", $("#note-form").serialize(), function () {
+            $("#note-form").reset();
         });
     });
     return false;
 });
-$("#noteDetail").click(function () {
+$("#noteDetailTrigger").click(function () {
     $(this).find("i").toggleClass("icon-chevron-up").toggleClass("icon-chevron-down");
+    $("#note-detail").slideToggle();
     return false;
 });
-var uid = $("#note-form").attr("data-uid");
 $("#accordion2").on("click", ".add-tag",function () {
     var sysTagLi = $(this).closest("li"), tagid = sysTagLi.attr("data-tagid");
-    var newTagLi = $('<li><input type="text" required autocomplete="off"></li>').prependTo(sysTagLi.find("ul"));
+    var newTagLi = $('<li><input type="text" required autocomplete="off" name="tag_names"></li>').prependTo(sysTagLi.find("ul"));
     newTagLi.find("input").blur(function () {
         var tagName = $(this).val();
         if (!tagName) {
             newTagLi.remove();
             return;
         }
-        $.post("/tasks/addTag/", {
-            uid: uid,
-            sys_tagid: tagid,
-            tag_name: tagName
-        }, function (response) {
-            var tagid = response.tagid;
-            newTagLi.html('<label class="checkbox"><input type="checkbox" value="' + tagid + '" checked>' + tagName +
-                '<a href="javascript:void(0);" class="pull-right remove-tag"><i class="icon-trash"></i></a>' +
-                '</label>').attr("data-tagid", tagid);
-        })
+        newTagLi.find("input").hide();
+        newTagLi.append('<label class="checkbox"><input type="checkbox" checked>' + tagName +
+            '<a href="javascript:void(0);" class="pull-right remove-tag"><i class="icon-trash"></i></a>' +
+            '</label>');
     }).focus();
 }).on("click", ".remove-tag", function () {
-        var tagLi = $(this).closest("li");
-        $.post("/tasks/deleteTag/", {
-            uid: uid,
-            tagid: tagLi.attr("data-tagid")
-        }, function () {
-            tagLi.remove();
-        })
+        var tagLi = $(this).closest("li").remove();
     });
