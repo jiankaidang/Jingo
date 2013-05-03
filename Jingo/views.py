@@ -3,6 +3,14 @@ from Jingo.models import *
 
 http_res = HttpRequestResponser()
 
+def init(request):
+    data        = {}
+    data['uid'] = request.session['uid']
+    data        = Tag().getUserCategoryTagsList(data)
+    data        = dict([('tagslist', data)])
+    print data
+    return Formatter().createResultSet(data, 'html')
+
 def index(request):
     #print User().searchNotes([])
     #data={}
@@ -12,8 +20,9 @@ def index(request):
     page = 'login.html'
     if request.session.get('uid', False):
         page = 'index.html'
+        data = init(request)
+        return http_res.response(request, page, data)
     return http_res.response(request, page)
-
 
 def admin(request):
     page = 'admin.html'
@@ -42,11 +51,7 @@ def tasks(request, mode):
     # API for user behaviors
     if mode == 'logout':
         data = User().logout(request)
-<<<<<<< HEAD
-        return redirect("/pages/login/")
-=======
         return redirect('/pages/login/')
->>>>>>> commit
 
     if mode == 'signup':
         page = 'profile.html'
@@ -119,14 +124,8 @@ def tasks(request, mode):
     if mode == 'postComment':
         page = 'response.html'
         data = User().postComment(request)
-<<<<<<< HEAD
         return http_res.response(request, page, data, 'json')
-
-=======
-        return redirect('http://localhost:8000')
-        #return http_res.response(request, page, data, 'json')
-    
->>>>>>> commit
+        
     if mode == 'deleteNoteTag':
         page = 'response.html'
         data = User().deleteNoteTag(request)

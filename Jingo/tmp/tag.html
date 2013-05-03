@@ -9,31 +9,29 @@
         <div id="collapse1" class="accordion-body collapse">
             <div class="accordion-inner">
                 <ul class="unstyled">
-                    {#                    {% for filter in state.filters %}#}
-                    <li data-tagid="{% comment %}{{ filter.tagid }}{% endcomment %}" class="sys-tag-container">
+                    {% for sys in tagslist %}
+                    <li data-tagid="{% comment %}{{ sys.tagid }}{% endcomment %}" class="sys-tag-container">
                         <label class="checkbox">
-                            <input type="checkbox" value="1{% comment %}{{ filter.tagid }}{% endcomment %}"
+                            <input type="checkbox" value="1{% comment %}{{ sys.tagid }}{% endcomment %}"
                                    name="tagids" class="sys-tag">
-                            {% comment %}{{ filter.tag_name }}{% endcomment %}
-                            food
+                            {% comment %}{{ sys.tag_name }}{% endcomment %}
                             <a href="javascript:void(0);" class="pull-right add-tag"><i class="icon-plus"></i></a>
                         </label>
                         <ul class="customized-tags">
-                            {#                            {% for tag in filter.tags %}#}
+                            {% for tag in sys.tags %}
                             <li data-tagid="{% comment %}{{ tag.tagid_id }}{% endcomment %}">
                                 <label class="checkbox">
-                                    <input type="checkbox" value="10{% comment %}{{ tag.tagid_id }}{% endcomment %}"
+                                    <input type="checkbox" value="10{% comment %}{{ tag.tagid }}{% endcomment %}"
                                            name="tagids" class="customized-tag">
-                                    {#                                    {{ tag.tag_name }}#}
-                                    chicken
+                                                                        {{ tag.tag_name }}
                                     <a href="javascript:void(0);" class="pull-right remove-tag"><i
                                             class="icon-trash"></i></a>
                                 </label>
                             </li>
-                            {#                            {% endfor %}#}
+                              {% endfor %}
                         </ul>
                     </li>
-                    {#                    {% endfor %}#}
+                                        {% endfor %}
                 </ul>
             </div>
         </div>

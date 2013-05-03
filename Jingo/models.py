@@ -1,17 +1,13 @@
 from __future__ import unicode_literals
-<<<<<<< HEAD
 import datetime
 from math import radians, cos, sin, asin, sqrt
 
 from django.utils import timezone
-=======
->>>>>>> commit
 from django.db import models
 from django.utils import dateparse
 
 from Jingo.lib.config import *
 from Jingo.lib.SQLExecution import SQLExecuter
-
 
 class Friend(models.Model, HttpRequestResponser, Formatter):
     uid = models.ForeignKey('User', db_column='uid')
@@ -45,7 +41,6 @@ class Friend(models.Model, HttpRequestResponser, Formatter):
         friend.invitationid = newInvitationid
         return Friend.objects.filter(invitationid=newInvitationid)
 
-
 class Comments(models.Model, HttpRequestResponser, Formatter):
     commentid = models.IntegerField(primary_key=True)
     noteid = models.ForeignKey('Note', db_column='noteid')
@@ -77,7 +72,6 @@ class Comments(models.Model, HttpRequestResponser, Formatter):
         nComment.c_longitude = data['c_longtitude']
         nComment.comment = data['comment']
         return newCommentid
-
 
 class Filter(models.Model, HttpRequestResponser, Formatter):
     stateid = models.ForeignKey('State', db_column='stateid', primary_key=True)
@@ -206,7 +200,6 @@ class Filter(models.Model, HttpRequestResponser, Formatter):
         print objFilter
         return self.createResultSet(objFilter)
 
-
 class Note(models.Model, HttpRequestResponser, Formatter):
     note = models.CharField(max_length=140)
     n_timestamp = models.DateTimeField()
@@ -279,7 +272,6 @@ class Note(models.Model, HttpRequestResponser, Formatter):
         notesets = Note.objects.filter(n_visibility__in=[0, 1], noteid__in=nlist)
         return data
 
-
 class Note_Tag(models.Model, HttpRequestResponser, Formatter):
     noteid = models.ForeignKey('Note', db_column='noteid', primary_key=True)
     tagid = models.ForeignKey('Tag', db_column='tagid', primary_key=True)
@@ -335,7 +327,6 @@ class Note_Tag(models.Model, HttpRequestResponser, Formatter):
         Note_Tag.objects.filter(tagid=data['tagid'], noteid=data['noteid']).delete()
         return 0
 
-
 class Note_Time(models.Model, HttpRequestResponser, Formatter):
     timeid = models.IntegerField(primary_key=True)
     noteid = models.ForeignKey('Note', db_column='noteid')
@@ -386,7 +377,6 @@ class Note_Time(models.Model, HttpRequestResponser, Formatter):
             data['n_stop_time'] = timezone.now() + datetime.timedelta(days=1)
 
         Note_Time().addNoteTime(data)
-
 
 class State(models.Model, HttpRequestResponser, Formatter):
     stateid = models.IntegerField(primary_key=True)
@@ -468,7 +458,6 @@ class State(models.Model, HttpRequestResponser, Formatter):
         data = self.readData(request)
         State.objects.filter(stateid=data['stateid'], uid=data['uid']).update(state_name=data['state_name'])
         return self.createResultSet(data, 'json')
-
 
 class Tag(models.Model, HttpRequestResponser, Formatter):
     tagid = models.IntegerField(primary_key=True)
