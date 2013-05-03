@@ -1,10 +1,19 @@
 from django.shortcuts import redirect
 from Jingo.models import *
+from Jingo.lib.NoteFilter import *
 
 http_res = HttpRequestResponser()
 
 
 def index(request):
+    '''
+    data = {}
+    data['u_longitude'] = -74.019957
+    data['u_latitude']  = 40.640996
+    test = NoteFilter()
+    print test.computeDistance(data, -74.019957, 40.040996)
+    '''
+    
     page = 'login.html'
     if request.session.get('uid', False):
         page = 'index.html'
@@ -125,4 +134,10 @@ def tasks(request, mode):
     if mode == 'clickLike':
         page = 'response.html'
         data = User().clickLike(request)
+        return http_res.response(request, page, data, 'json')
+    
+    # API for Tag settings
+    if mode == 'getUserTagsList':
+        page = 'response.html'
+        data = Tag().getUserTagsList(request)
         return http_res.response(request, page, data, 'json')

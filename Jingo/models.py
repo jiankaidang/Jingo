@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 from django.utils import timezone
 from django.db import models
 from Jingo.lib.config import *
+from Jingo.lib.NoteFilter import *
 import urllib, urlparse
 
 class Comments(models.Model, HttpRequestResponser, Formatter):
@@ -180,8 +181,8 @@ class Friend(models.Model, HttpRequestResponser, Formatter):
     def getFriendsInvitations(self, input_uid):
         return Friend.objects.filter(uid=input_uid, isfriendship=2).order_by('invitationid').values()
 
-    def getFriendsList(self, input_uid):
-        return Friend.objects.filter(uid=input_uid, isfriendship=1).order_by('invitationid').values()
+    def getFriendsList(self, data):
+        return list(Friend.objects.filter(uid=data['uid'], isfriendship=1).order_by('invitationid').values('f_uid'))
 
     def addInvitation(self, data):
         newInvitationid = self.getNewInvitationid()
@@ -235,7 +236,7 @@ class Note(models.Model, HttpRequestResponser, Formatter):
             notetime.is_comment   = 1
         
         notetime.n_latitude   = data['n_latitude']
-        notetime.n_longitude  = data['n_latitude']
+        notetime.n_longitude  = data['n_longitude']
         notetime.n_like       = 0
         notetime.save()
         data['noteid']        = newNoteid
@@ -246,10 +247,17 @@ class Note(models.Model, HttpRequestResponser, Formatter):
         Note.objects.filter(noteid=data['noteid']).update(n_like=data['n_like'])
         return data
 
-    def getNoteList(self, data):
+    
+    def filterNotes(self, data):
         nowtime = timezone.now()
-        Note_Time.objects.filter(n_repeat=0, n_start_time__lte=nowtime, n_stop_time__gte=nowtime)
-        Note.objects.filter(n_visibility__in=[0,1], )
+        # retrieve user filter
+        uCTags = self.getUserCategoryTagsList(data)
+        
+        # retrieve notesets
+        nlist1 = Note_Time.objects.filter(n_repeat=0, n_start_time__lte=nowtime, n_stop_time__gte=nowtime).values('noteid')
+        nlist2 = Note_Time.objects.raw("Select noteid From Note_Time Where n_repeat=1 And Time(Now()) Between Time(n_start_time) And Time(n_stop_time)").values('noteid')
+        nlist  = nlist1 + nlist2
+        notesets = Note.objects.filter(n_visibility__in=[0,1], noteid__in=nlist)
         return data
     
 class Note_Tag(models.Model, HttpRequestResponser, Formatter):
@@ -262,14 +270,22 @@ class Note_Tag(models.Model, HttpRequestResponser, Formatter):
     def addNoteTag(self, data):
         notetag        = Note_Tag()
         notetag.noteid = Note(noteid=data['noteid'])
-        notetag.tagid  = data['tagid']
+        notetag.tagid  = Tag(tagid=data['tagid'])
+        notetag.save()
         return data
 
     def addMultipleNoteTags(self, data):
-        tags       = data['tagid']
-        for index in tags:
-            data['tagid'] = tags[index]
-            Note_Tag().addNoteTags(data)
+        if 'tagid' in data and type(data['tagid']) == list and len(data['tagid']) > 1:
+            tags = data['tagid']
+            for index in tags:
+                data['tagid'] = tags[index]
+                Note_Tag().addNoteTag(data)
+        elif 'tagid' in data:
+            Note_Tag().addNoteTag(data)
+        
+        # add a default tag (all)
+        data['tagid'] = 0
+        Note_Tag().addNoteTag(data)
         return data
     
     def deleteNoteTag(self, request):
@@ -307,7 +323,7 @@ class Note_Time(models.Model, HttpRequestResponser, Formatter):
         return data
     
     def addNoteTimeRange(self, data):
-        if 'n_start_time' in data:
+        if 'n_start_time' in data and type(data['n_start_time']) == list and len(data['n_start_time']) > 1:
             start_time = data['n_start_time']
             stop_time  = data['n_stop_time']
             repeat     = data['n_repeat']
@@ -316,6 +332,8 @@ class Note_Time(models.Model, HttpRequestResponser, Formatter):
                 data['n_stop_time']  = stop_time[index]
                 data['n_repeat']     = repeat[index]
                 Note_Time().addNoteTime(data)
+        elif 'n_start_time' in data:
+            Note_Time().addNoteTime(data)
         else:
             data['n_start_time'] = timezone.now()
             data['n_stop_time']  = timezone.now()
@@ -404,9 +422,9 @@ class State(models.Model, HttpRequestResponser, Formatter):
         return self.createResultSet(data, 'json')
 
 class Tag(models.Model, HttpRequestResponser, Formatter):
-    tagid = models.IntegerField(primary_key=True)
-    tag_name = models.CharField(max_length=45)
-    uid = models.ForeignKey('User', null=True, db_column='uid', blank=True)
+    tagid     = models.IntegerField(primary_key=True)
+    tag_name  = models.CharField(max_length=45)
+    uid       = models.ForeignKey('User', null=True, db_column='uid', blank=True)
     sys_tagid = models.IntegerField(null=True, blank=True)
 
     class Meta:
@@ -424,24 +442,26 @@ class Tag(models.Model, HttpRequestResponser, Formatter):
             return tag.tagid + 1
 
     def getUserSysTags(self, data):
-        result = []
-        args = {}
-        args['columns'] = ['b.*, a.tag_name, a.sys_tagid']
-        args['tables'] = ['tag as a', 'filter as b']
-        args['joins'] = ['a.tagid = b.tagid', 'a.tagid>=%s And a.tagid<=%s']
+        result             = []
+        args               = {}
+        args['columns']    = ['b.*, a.tag_name, a.sys_tagid']
+        args['tables']     = ['tag as a', 'filter as b']
+        args['joins']      = ['a.tagid = b.tagid', 'a.tagid>=%s And a.tagid<=%s']
         args['conditions'] = [{'criteria': 'b.uid=', 'logic': 'And'}, {'criteria': 'b.stateid=', 'logic': 'And'}]
-        args['values'] = [0, 10, data['uid_id'], data['stateid']]
-        slist = SQLExecuter().doSelectData(args)
+        args['values']     = [0, 10, data['uid_id'], data['stateid']]
+        slist              = SQLExecuter().doSelectData(args)
         for sys in slist:
             sys['is_checked'] = 0
             result.append(sys)
         return result
 
-    def getUserTags(self, request):
-        data    = self.readData(request)
-        taglist = Tag.objects.filter(uid=data['uid'], sys_tagid=data['sys_tagid']).order_by('tagid').values('tag_name')
-        data    = dict([('tags', taglist)])
-        return self.createResultSet(data, 'json')
+    def getUserTagsList(self, request, returnType='html'):
+        data        = self.readData(request)
+        data['uid'] = '1'
+        taglist     = list(Tag.objects.filter(uid=data['uid']).order_by('tagid').values())
+        defaultlist = list(Tag.objects.filter(uid=None).order_by('tagid').values())
+        data        = dict([('tagslist', taglist + defaultlist)])
+        return self.createResultSet(data, returnType)
 
     def addTag(self, data):
         newTagid      = self.getNewTagid()
@@ -573,9 +593,7 @@ class User(models.Model, HttpRequestResponser, Formatter):
         data       = Note().addNote(data)
         
         Note_Time().addNoteTimeRange(data)
-        
-        if 'tagid' in data:
-            Note_Tag().addMultipleNoteTags(data)
+        Note_Tag().addMultipleNoteTags(data)
             
         return self.createResultSet(data)
 
@@ -599,3 +617,7 @@ class User(models.Model, HttpRequestResponser, Formatter):
         
         return self.createResultSet(data)
     
+    def receiveNotes(self, request):
+        data       = self.readData(request)
+        noteslist  = NoteFilter().filterNotes(data)
+        return self.createResultSet(noteslist)

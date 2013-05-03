@@ -2,6 +2,8 @@ from Jingo.lib.config import *
 from django.core import serializers
 from Jingo.models import *
 import re, types, datetime, json
+from django.utils import simplejson
+from django.core.serializers.json import DjangoJSONEncoder
 
 class DataVerifier:
     
@@ -60,7 +62,7 @@ class Formatter:
         for k, v in enumerate(data.values()):
             key            = data.keys()[k]
             resultset[key] = v
-        
+            
         if outputType == 'json':
             return self.jsonEncoder(resultset)
         else:
