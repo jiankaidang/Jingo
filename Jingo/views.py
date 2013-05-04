@@ -146,6 +146,11 @@ def tasks(request, mode):
         page = 'response.html'
         data = User().receiveNotes(request)
         return http_res.response(request, page, data, 'json')
+    
+    if mode == 'readNote':
+        page = 'note.html'
+        data = User().readNotes(request)
+        return http_res.response(request, page, data)
 
     # API for Tag settings
     if mode == 'getUserTagsList':
