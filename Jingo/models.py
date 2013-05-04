@@ -75,7 +75,10 @@ class Comments(models.Model, HttpRequestResponser, Formatter):
         nComment.c_longitude = data['c_longitude']
         nComment.comment     = data['comment']
         '''
+        data['c_longitude'] = "%.6f" % data['c_longitude']
+        data['c_latitude']  = "%.6f" % data['c_latitude']
         values = [newCommentid, int(data['noteid']), timezone.now(), int(data['uid']), float(data['c_latitude']), float(data['c_longitude']), data['comment']]
+        print values
         args = dict([('table', 'comments'), ('values', values)])
         SQLExecuter().doInsertData(args)
         return newCommentid
