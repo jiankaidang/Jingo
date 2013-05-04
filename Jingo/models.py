@@ -56,9 +56,6 @@ class Comments(models.Model, HttpRequestResponser, Formatter):
     class Meta:
         db_table = 'comments'
 
-    def getNumberofComments(self, note, poster):
-        return Comments.objects.filter(noteid=note, uid=poster).count()
-
     def getNewCommentid(self):
         if len(Comments.objects.all().values()) == 0:
             return 1
@@ -78,6 +75,14 @@ class Comments(models.Model, HttpRequestResponser, Formatter):
         nComment.comment     = data['comment']
         return newCommentid
 
+    def retrieveComments(self, data):
+        result = []
+        for comm in Comments.objects.filter(noteid=data['noteid']).values():
+            replier         = User.objects.filter(uid=comm['uid_id']).values('u_name')[0]['u_name']
+            comm['replier'] = replier
+            result.append(comm)
+        return result
+    
 class Filter(models.Model, HttpRequestResponser, Formatter):
     stateid = models.ForeignKey('State', db_column='stateid', primary_key=True)
     tagid = models.ForeignKey('Tag', db_column='tagid', primary_key=True)
@@ -676,9 +681,11 @@ class User(models.Model, HttpRequestResponser, Formatter):
                 if reader != poster:
                     note['is_friendship'] = Friend().checkFriendship(reader, poster)
                 
-                Comments().getNumberofComments(note['noteid'], poster)
+                comments             = Comments().retrieveComments(data)
+                note['n_comments']   = len(comments)
+                note['commentslist'] = comments
                 
-                note['poster'] = User.objects.filter(uid=poster).values()[0]
+                note['poster']       = User.objects.filter(uid=poster).values()[0]
                 
                 return self.createResultSet(note)
 
