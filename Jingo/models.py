@@ -695,7 +695,7 @@ class User(models.Model, HttpRequestResponser, Formatter):
         '''
         data['noteslist']   = NoteFilter().filterNotes(data)
         print data
-        return self.createResultSet(data)
+        return self.createResultSet(data, 'json')
 
 
 class NoteFilter(HttpRequestResponser, Formatter):
