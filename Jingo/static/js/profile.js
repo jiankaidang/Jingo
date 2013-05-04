@@ -55,11 +55,11 @@ $(function () {
                     stateid: stateid
                 }, function (response) {
                     var tagid = response.tagid;
-                    newTagLi.html('<label class="checkbox"><input type="checkbox" value="' + tagid + '" class="check-filter" checked>' + tagName +
+                    newTagLi.html('<label class="checkbox"><input type="checkbox" value="' + tagid + '" class="check-filter customized-tag">' + tagName +
                         '<a href="javascript:void(0);" class="pull-right remove-tag"><i class="icon-trash"></i></a>' +
                         '<a class="pull-right update-filter" data-toggle="modal" href="/tasks/retrieveFilter/?uid=' + uid +
                         '&stateid=' + stateid + '&tagid=' + tagid +
-                        '" data-target="#myModal"><i class="icon-pencil"></i></a></label>').attr("data-tagid", tagid);
+                        '" data-target="#myModal"><i class="icon-pencil"></i></a></label>').attr("data-tagid", tagid).find("input").click();
                 })
             }).focus();
         }).on("click", ".remove-tag",function () {
@@ -72,6 +72,11 @@ $(function () {
                 tagLi.remove();
             })
         }).on("click", ".check-filter", function () {
+            if ($(this).is(".customized-tag:checked")) {
+                $(this).closest(".sys-tag-container").find(".sys-tag").prop("checked", true);
+            } else if ($(this).is(".sys-tag") && !$(this).is(":checked")) {
+                $(this).closest(".sys-tag-container").find(".customized-tag").prop("checked", false);
+            }
             $.post("/tasks/activateFilter/", {
                 uid: uid,
                 stateid: $(this).closest(".accordion-group").attr("data-stateid"),
