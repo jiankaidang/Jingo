@@ -76,10 +76,32 @@ html body .bottom-bar #note-detail #visibility label {
     margin-left: 71px;
 }
 
-html body .follow-friend {
+html body .note-container {
+    max-height: 196px;
+    width: 273px;
+}
+
+html body .note-container .follow-friend {
     margin-left: 20px;
 }
 
-html body .note-time {
+html body .note-container .note-time {
     margin-right: 10px;
+}
+
+html body .note-container .note-button {
+    margin-right: 20px;
+}
+
+html body .note-container .note-action-num {
+    margin-right: 20px;
+}
+
+html body .note-container .note-comments-container {
+    margin-top: 10px;
+    display: none;
+}
+
+html body .note-container .note-comments-container .note-comment-textarea {
+    width: 232px;
 }
