@@ -25,9 +25,11 @@
                     <a class="add-on publish-comment-btn" href="#"><i class="icon-share"></i></a></div>
             </div>
             <dl class="comments-list">
-                <dt>Ching-Che Chang</dt>
-                <dd>This is my comment.</dd>
-                <p class="muted">04/30/2013 08:35 PM</p>
+            	{% for reply in commentslist %}
+                <dt>{{ reply.replier }}</dt>
+                <dd>{{ reply.comment }}</dd>
+                <p class="muted">{{ reply.c_timestamp|date:'Y-m-d H:i:s' }}</p>
+                {% endfor %}
             </dl>
         </div>
     </div>
