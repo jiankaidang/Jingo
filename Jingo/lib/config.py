@@ -12,6 +12,8 @@ LOGOUT_SUCCESS         = 'You\'re logged out.'
 # filter and system tags
 N_SYSTEM_TAGS          = 11
 IS_CHECKED_DEFAULT     = 1
+N_START_TIME           = '2000-01-01 00:00:00'
+N_STOP_TIME            = '2000-12-31 23:59:59'
 
 # post notes 
 N_DEFAULT_RADIUS       = 200

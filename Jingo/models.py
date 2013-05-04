@@ -5,7 +5,7 @@ from math import radians, cos, sin, asin, sqrt
 from django.utils import timezone
 from django.db import models
 from django.utils import dateparse
-from django.utils.formats import date_format
+
 from Jingo.lib.config import *
 from Jingo.lib.SQLExecution import SQLExecuter
 
@@ -30,12 +30,7 @@ class Friend(models.Model, HttpRequestResponser, Formatter):
         return Friend.objects.filter(uid=input_uid, is_friendship=2).order_by('invitationid').values()
 
     def getFriendsList(self, data):
-        if len(Friend.objects.all()) == 0:
-            return []
-        else:
-            friendlist = Friend.objects.filter(uid=data['uid'], is_friendship=1).order_by('invitationid').values('f_uid')
-            print friendlist
-            return list(friendlist)
+        return list(Friend.objects.filter(uid=data['uid'], is_friendship=1).order_by('invitationid').values('f_uid'))
 
     def addInvitation(self, data):
         newInvitationid = self.getNewInvitationid()
@@ -140,7 +135,7 @@ class Filter(models.Model, HttpRequestResponser, Formatter):
             return filterset
 
     def getDefaultFilterDataArray(self, data):
-        return [int(data['stateid']), data['tagid'], '2000-01-01 00:00:00', '2000-12-31 23:59:59', 1, 0, int(data['uid']), IS_CHECKED_DEFAULT]
+        return [int(data['stateid']), data['tagid'], N_START_TIME, N_STOP_TIME, 1, 0, int(data['uid']), IS_CHECKED_DEFAULT]
 
     def addFilterAndTag(self, request):
         data = self.readData(request)
@@ -149,9 +144,9 @@ class Filter(models.Model, HttpRequestResponser, Formatter):
             values = [int(data['stateid']), data['tagid'], data['f_start_time'], data['f_stop_time'], data['f_repeat'],
                       data['f_visibility'], int(data['uid']), IS_CHECKED_DEFAULT]
         else:
-            values = [int(data['stateid']), data['tagid'], None, None, 0, 0, int(data['uid']), IS_CHECKED_DEFAULT]
+            values = self.getDefaultFilterDataArray(data)
         self.addFilter(values)
-        return self.createResultSet({'tagid': data['tagid']}, 'json')
+        return self.createResultSet({'tagid': data['tagid']})
 
     # arguments 'data' need to be a list including values that will be stored into filter 
     def addFilter(self, data):
@@ -347,7 +342,7 @@ class Note_Time(models.Model, HttpRequestResponser, Formatter):
         if len(Note_Time.objects.all().values()) == 0:
             return 1
         else:
-            notetime = Note_Time.objects.all().order_by('timeid', ).latest('timeid')
+            notetime = Note_Time.objects.all().order_by('timeid').latest('timeid')
             #print tag.tagid
             return notetime.timeid + 1
 
@@ -659,7 +654,9 @@ class User(models.Model, HttpRequestResponser, Formatter):
 
         Note_Time().addNoteTimeRange(data)
         Note_Tag().addMultipleNoteTags(data)
-
+        print "post notes"
+        print data
+        data = self.simplifyObjToDateString(data)
         return self.createResultSet(data)
 
     def addExtraNoteTag(self, request):
@@ -698,9 +695,10 @@ class User(models.Model, HttpRequestResponser, Formatter):
         data['u_latitude']  = 30.110333
         data['noteslist']   = NoteFilter().filterNotes(data)
         '''
-        data['noteslist']   = NoteFilter().filterNotes(data)
+        data['noteslist']   = self.simplifyObjToDateString(NoteFilter().filterNotes(data))
         print data
-        return self.createResultSet(data, 'json')
+        #data = self.simplifyObjToDateString(data)
+        return self.createResultSet(data)
 
 
 class NoteFilter(HttpRequestResponser, Formatter):
@@ -743,7 +741,7 @@ class NoteFilter(HttpRequestResponser, Formatter):
         on the earth (specified in decimal degrees)
         """
         # convert decimal degrees to radians 
-        lon1, lat1, lon2, lat2 = map(radians, [n_longitude, n_latitude, data['u_longitude'], data['u_latitude']])
+        lon1, lat1, lon2, lat2 = map(radians, [float(n_longitude), float(n_latitude), float(data['u_longitude']), float(data['u_latitude'])])
 
         # haversine formula 
         dlon = lon2 - lon1
@@ -762,15 +760,17 @@ class NoteFilter(HttpRequestResponser, Formatter):
         return result
 
     def filterByTime(self, uProfile, noteslist, currenttime):
-        result = []
-        sys_tagset = []
+        result      = []
+        sys_tagset  = []
+        currenttime = datetime.datetime.strptime(currenttime, '%Y-%m-%d %H:%M:%S')
+   
         for filter in uProfile:
             if filter['f_repeat']:
-                current = dateparse.parse_time(currenttime)
-                start = dateparse.parse_time(filter['f_start_time'].isoformat())
-                end = dateparse.parse_time(filter['f_stop_time'].isoformat())
+                current = currenttime.strftime('%H:%M:%S')
+                start = filter['f_start_time'].strftime('%H:%M:%S')
+                end = filter['f_stop_time'].strftime('%H:%M:%S')
             else:
-                current = currenttime
+                current = currenttime.strftime('%Y-%m-%d %H:%M:%S')
                 start = filter['f_start_time']
                 end = filter['f_stop_time']
 
@@ -809,13 +809,13 @@ class NoteFilter(HttpRequestResponser, Formatter):
         return result
 
     def filterNotes(self, data, mode='normal'):
-        currenttime = timezone.now().strftime('%Y-%m-%d %H:%m:%S')
+        currenttime = timezone.now().strftime('%Y-%m-%d %H:%M:%S') 
         if mode == 'normal':
             noteslist = self.getNoteInfoList(currenttime)
         else:
             noteslist = self.getNoteInfoListByKewords(data, currenttime)
         uProfile = self.getUserCategoryTagsList(data)
-        print uProfile
+
         # filter by user's tags
         noteslist = self.filterByTags(uProfile, noteslist)
 

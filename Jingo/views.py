@@ -17,7 +17,7 @@ def index(request):
     #data={}
     #data['uid'] = 4
     #print Tag().getUserCategoryTagsList(data)
-
+    #request.session.clear()
     page = 'login.html'
     if request.session.get('uid', False):
         page = 'index.html'

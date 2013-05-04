@@ -1,7 +1,7 @@
 from Jingo.lib.config import *
 from django.core import serializers
 from Jingo.models import *
-import re, types, datetime, json
+import re, types, datetime, json, decimal
 from django.utils import simplejson
 from django.core.serializers.json import DjangoJSONEncoder
 
@@ -50,6 +50,9 @@ class Formatter:
                 if type(v) is datetime.datetime:
                     key      = row.keys()[k]
                     row[key] = row[key].isoformat()
+                if type(v) is decimal.Decimal:
+                    key      = row.keys()[k]
+                    row[key] = str(row[key])
             result.append(row)
         return result # list with several valuequerysets
     
