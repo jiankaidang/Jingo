@@ -280,10 +280,8 @@ class Note_Tag(models.Model, HttpRequestResponser, Formatter):
         db_table = 'note_tag'
         
     def addNoteTag(self, data):
-        notetag        = Note_Tag()
-        notetag.noteid = Note(noteid=data['noteid'])
-        notetag.tagid  = Tag(tagid=data['tagid'])
-        notetag.save()
+        args = dict([('table', 'note_tag'), ('values', [data['noteid'], data['tagid']])])
+        SQLExecuter().doInsertData(args) 
         return data
 
     def addMultipleNoteTags(self, data):
@@ -301,8 +299,9 @@ class Note_Tag(models.Model, HttpRequestResponser, Formatter):
 
         # add a default tag (all)
         data['tagid'] = 0
-        data['sys_tagid'] = 0
+        print data
         Note_Tag().addNoteTag(data)
+        print "finished"
         return data
 
     def parseTagNames(self, data, stag_name):
@@ -528,11 +527,11 @@ class Tag(models.Model, HttpRequestResponser, Formatter):
         return self.createResultSet(data, 'json')
 
 class User(models.Model, HttpRequestResponser, Formatter):
-    uid = models.IntegerField(primary_key=True)
-    u_name = models.CharField(max_length=45)
-    email = models.CharField(max_length=45)
+    uid         = models.IntegerField(primary_key=True)
+    u_name      = models.CharField(max_length=45)
+    email       = models.CharField(max_length=45)
     u_timestamp = models.DateTimeField()
-    password = models.CharField(max_length=15)
+    password    = models.CharField(max_length=15)
 
     class Meta:
         db_table = 'user'
