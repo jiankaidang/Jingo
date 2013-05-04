@@ -14,10 +14,10 @@
     <div class="accordion-inner">
         <ul class="unstyled">
             {% for filter in state.filters %}
-                <li data-tagid="{{ filter.tagid }}">
+                <li data-tagid="{{ filter.tagid }}" class="sys-tag-container">
                     <label class="checkbox">
                         <input type="checkbox" value="{{ filter.tagid }}" {% if filter.is_checked %}
-                               checked="true" {% endif %} class="check-filter">
+                               checked="true" {% endif %} class="check-filter sys-tag">
                         {{ filter.tag_name }}
                         <a href="javascript:void(0);" class="pull-right add-tag"><i class="icon-plus"></i></a>
                         <a class="pull-right update-filter" data-toggle="modal"
@@ -29,7 +29,7 @@
                             <li data-tagid="{{ tag.tagid_id }}">
                                 <label class="checkbox">
                                     <input type="checkbox" value="{{ tag.tagid_id }}" {% if tag.is_checked %}
-                                           checked="true" {% endif %} class="check-filter">
+                                           checked="true" {% endif %} class="check-filter customized-tag">
                                     {{ tag.tag_name }}
                                     <a href="javascript:void(0);" class="pull-right remove-tag"><i
                                             class="icon-trash"></i></a>
