@@ -64,21 +64,21 @@ class SQLExecuter:
 	def doInsertData(self, args):
 		strValues = self.getInsertString(args)
 		strSQL    = "Insert Into " + args['table'] + " Values (" + strValues + ")"
-		print strSQL
+		#print strSQL
 		self.cursor.execute(strSQL, args['values'])
 		transaction.commit_unless_managed()
 
 	def doDeleteData(self, args):
 		strValues = self.getDeleteString(args)
 		strSQL    = "Delete From " + args['table'] + " Where " + strValues
-		print strSQL
+		#print strSQL
 		self.cursor.execute(strSQL, args['values'])
 		transaction.commit_unless_managed()
 	
 	def doUpdateData(self, args):
 		strValues = self.getUpdateString(args)
 		strSQL    = "Update " + args['table'] + "Set " + strValues['fields'] + " Where " + strValues
-		print strSQL
+		#print strSQL
 		self.cursor.execute(strSQL, args['values'])
 		transaction.commit_unless_managed()
 		
@@ -86,12 +86,12 @@ class SQLExecuter:
 		strValues = self.getSQLString(args)
 		strSQL    = "Select " + strValues['columns'] + " From " + strValues['tables'] + " "
 		strSQL   += "Where " + strValues['joins'] + strValues['conditions']
-		print 'do select'
-		print strSQL
+		#print 'do select'
+		#print strSQL
 		self.cursor.execute(strSQL, args['values'])
 		return self.dictfetchall(self.cursor)
 	
 	def doRawSQL(self, strSQL, args=[]):
-		print strSQL
+		#print strSQL
 		self.cursor.execute(strSQL, args)
 		return self.dictfetchall(self.cursor)

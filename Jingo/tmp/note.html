@@ -1,7 +1,7 @@
 <div class="container note-container">
     <div>Jiankai Dang
-        <button class="btn btn-mini follow-friend" type="button">Follow</button>
-        <button class="btn btn-mini follow-friend btn-danger" type="button">Unfollow</button>
+        {% if is_friendship %}<button class="btn btn-mini follow-friend" type="button">Follow</button>{% endif %}
+        {% if is_friendship %}<button class="btn btn-mini follow-friend btn-danger" type="button">Unfollow</button>{% endif %}
     </div>
     <div><span class="muted note-time">{{ n_timestamp }}</span>
         {% if n_visibility == 0 %}<i class="icon-globe"></i>{% endif %}
@@ -10,7 +10,7 @@
         </div>
     <p>{{ note }}<br><a href="{{ link }}">{{ link }}</a></p>
 
-    <div class="muted"><span class="note-action-num">47 Likes</span><span class="note-action-num">47 Comments</span>
+    <div class="muted"><span class="note-action-num">{{ n_like }} Likes</span><span class="note-action-num">{{ n_comments }} Comments</span>
     </div>
     <div>
         <button class="btn btn-mini note-button"><i class="icon-thumbs-up"></i> Like</button>

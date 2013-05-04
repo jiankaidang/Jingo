@@ -25,7 +25,6 @@ class DataVerifier:
             return True
         return False
 
-
 class Formatter:
     
     def __init__(self):
@@ -43,13 +42,16 @@ class Formatter:
     
     # deal with datetime object like datetime.datetime(2013, 4, 13, 9, 0)
     # we need to transfer it in the form of "2013-04-13T21:38:01"
-    def simplifyObjToDateString(self, data):
+    def simplifyObjToDateString(self, data, pattern='iso'):
         result = []
         for row in data:
             for k, v in enumerate(row.values()):
                 if type(v) is datetime.datetime:
                     key      = row.keys()[k]
-                    row[key] = row[key].isoformat()
+                    if pattern == 'iso':
+                        row[key] = row[key].isoformat()
+                    else:
+                        row[key] = row[key].strftime(NORMAL_DATE_PATTERN)
                 if type(v) is decimal.Decimal:
                     key      = row.keys()[k]
                     row[key] = str(row[key])
@@ -58,17 +60,14 @@ class Formatter:
     
     def createResultSet(self, data={}, outputType='html', result=RESULT_SUCCESS, message={}):
         resultset = dict([('result', result), ('message', message), ])
-        
-        for k, v in enumerate(data.values()):
-            key            = data.keys()[k]
-            resultset[key] = v
-        
-        return resultset
-        '''
-        if outputType == 'json':
-            #return json.dumps(resultset)
-            #return self.jsonEncoder(resultset)
-            return resultset
+        if type(data) is dict:
+            for k, v in enumerate(data.values()):
+                key            = data.keys()[k]
+                resultset[key] = v
         else:
-            return resultset
-        '''
+            for row in data:
+                for k, v in enumerate(row.values()):
+                    key            = row.keys()[k]
+                    resultset[key] = v
+        return resultset
+

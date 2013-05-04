@@ -35,6 +35,7 @@ class HttpRequestResponser(Formatter):
             resultset = self.jsonEncoder(data)
             #resultset = dict([('result', self.jsonEncoder(data))])
             #resultset = dict([('result', json.dumps(data))])
+            print "final json data"
             print resultset
             return HttpResponse(resultset, mimetype="application/json")
         if dataType == 'default':
