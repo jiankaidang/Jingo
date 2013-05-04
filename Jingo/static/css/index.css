@@ -75,3 +75,11 @@ html body .bottom-bar #note-detail #repeat label,
 html body .bottom-bar #note-detail #visibility label {
     margin-left: 71px;
 }
+
+html body .follow-friend {
+    margin-left: 20px;
+}
+
+html body .note-time {
+    margin-right: 10px;
+}

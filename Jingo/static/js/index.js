@@ -35,17 +35,23 @@ function initialize() {
                 $.each(data.noteslist, function (index, note) {
                     var marker = new google.maps.Marker({
                         position: new google.maps.LatLng(note.n_latitude, note.n_longitude),
+//                        position: pos,
                         map: map
                     });
                     google.maps.event.addListener(marker, 'click', function () {
-                        $.post("/tasks//", {
-
-                        }, function (data) {
-                            new google.maps.InfoWindow({
-                                content: data,
-                                maxWidth: 250
-                            }).open(map, marker);
-                        });
+                        $(".top-bar,#note-form").hide();
+//                        $.post("/tasks//", {
+//
+//                        }, function (data) {
+                        new google.maps.InfoWindow({
+                            content: '<div class="container"><h6>Jiankai Dang<button class="btn btn-mini follow-friend" type="button">Follow</button>' +
+                                '<button class="btn btn-mini follow-friend btn-danger" type="button">Unfollow</button></h6><div><span class="muted note-time">04/30/2013 08:35 PM</span>' +
+                                '<i class="icon-globe"></i><i class="icon-user"></i><i class="icon-lock"></i></div>' +
+                                '<p>abcdefgd, abcdefgd, abcdefgd, abcdefgd, abcdefgd, abcdefgd, abcdefgd, abcdefgd, abcdefgd, abcdefgd, abcdefgd, abcdefgd, abcdefgd, abcdefgd, </p>' +
+                                '</div>',
+                            maxWidth: 273
+                        }).open(map, marker);
+//                        });
                     });
                 });
             });
@@ -105,7 +111,7 @@ $("#noteDetailTrigger").click(function () {
 });
 $("#accordion2").on("click", ".add-tag",function () {
     var sysTagLi = $(this).closest("li"), tagid = sysTagLi.attr("data-tagid");
-    var newTagLi = $('<li><input type="text" required pattern="[a-zA-Z]"></li>').prependTo(sysTagLi.find("ul"));
+    var newTagLi = $('<li><input type="text" pattern="[a-zA-Z]+"></li>').prependTo(sysTagLi.find("ul"));
     newTagLi.find("input").blur(function () {
         var tagName = $(this).val();
         if (!tagName) {
