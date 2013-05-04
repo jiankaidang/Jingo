@@ -44,7 +44,7 @@ function initialize() {
                             noteid: note.noteid
                         }, function (data) {
                             var infoWindow = new google.maps.InfoWindow({
-                                content: data
+                                content: $(data)[0]
                             });
                             google.maps.event.addListener(infoWindow, 'domready', function () {
                                 var content = $(infoWindow.getContent());
