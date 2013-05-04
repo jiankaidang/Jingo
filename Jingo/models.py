@@ -289,14 +289,12 @@ class Note_Tag(models.Model, HttpRequestResponser, Formatter):
     def addMultipleNoteTags(self, data):
         if 'tagids' in data and type(data['tagids']) == list and len(data['tagids']) > 1:
             tags = data['tagids']
-            for index in tags:
-                data['tagid'] = tags[index]
+            for tag in tags:
+                data['tagid'] = tag
                 Note_Tag().addNoteTag(data)
         elif 'tagids' in data:
             data['tagid'] = data['tagids']
             Note_Tag().addNoteTag(data)
-
-        data['sys_tagid'] = self.getSysTagid(data)
         
         # add tags from tag_names
         self.addNoteTagFromTagName(data)
@@ -695,6 +693,8 @@ class User(models.Model, HttpRequestResponser, Formatter):
         data['u_latitude']  = 30.110333
         data['noteslist']   = NoteFilter().filterNotes(data)
         '''
+        data['noteslist']   = NoteFilter().filterNotes(data)
+        print data
         return self.createResultSet(data)
 
 

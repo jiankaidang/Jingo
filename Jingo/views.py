@@ -141,9 +141,9 @@ def tasks(request, mode):
         data = User().clickLike(request)
         return http_res.response(request, page, data, 'json')
 
-    if mode == 'getTagsList':
+    if mode == 'receiveNotes':
         page = 'response.html'
-        data = User().clickLike(request)
+        data = User().receiveNotes(request)
         return http_res.response(request, page, data, 'json')
 
     # API for Tag settings
