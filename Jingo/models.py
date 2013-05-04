@@ -449,9 +449,9 @@ class State(models.Model, HttpRequestResponser, Formatter):
         return self.createResultSet(data, 'json')
 
 class Tag(models.Model, HttpRequestResponser, Formatter):
-    tagid = models.IntegerField(primary_key=True)
-    tag_name = models.CharField(max_length=45)
-    uid = models.ForeignKey('User', null=True, db_column='uid', blank=True)
+    tagid     = models.IntegerField(primary_key=True)
+    tag_name  = models.CharField(max_length=45)
+    uid       = models.ForeignKey('User', null=True, db_column='uid', blank=True)
     sys_tagid = models.IntegerField(null=True, blank=True)
 
     class Meta:
@@ -648,20 +648,16 @@ class User(models.Model, HttpRequestResponser, Formatter):
         return self.createResultSet(data)
 
     def postComment(self, request):
-        data              = self.readData(request)
-        data['commentid'] = Comments().addComment(data)
+        data                = self.readData(request)
+        data['commentid']   = Comments().addComment(data)
+        data['u_name']      = User.objects.filter(uid=data['uid']).values('u_name')[0]['u_name']
+        data['c_timestamp'] = Comments.objects.filter(commentid=data['commentid']).values()[0]['c_timestamp']
         return self.createResultSet(data)
 
     def searchNotes(self, request):
-        data = self.readData(request)
-        '''
-        data = {}
-        data['uid']         = 2
-        data['u_longitude'] = 39.557878
-        data['u_latitude']  = 30.110333
-        data['keyword']     = 'test'
+        data              = self.readData(request)
         data['noteslist'] = NoteFilter().searchNotes(data)
-        '''
+        
         return self.createResultSet(data)
 
     def receiveNotes(self, request):
