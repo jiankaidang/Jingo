@@ -704,7 +704,7 @@ class User(models.Model, HttpRequestResponser, Formatter):
     def readNote(self, request):
         data = self.readData(request)
         for note in request.session['noteslist']:
-            if note.noteid == data['noteid']:
+            if note['noteid'] == data['noteid']:
                 return self.createResultSet(data)
 
 class NoteFilter(HttpRequestResponser, Formatter):
