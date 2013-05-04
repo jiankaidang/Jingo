@@ -696,10 +696,16 @@ class User(models.Model, HttpRequestResponser, Formatter):
         data['noteslist']   = NoteFilter().filterNotes(data)
         '''
         data['noteslist']   = self.simplifyObjToDateString(NoteFilter().filterNotes(data))
+        request.session['noteslist'] = data['noteslist'] 
         print data
         #data = self.simplifyObjToDateString(data)
         return self.createResultSet(data)
 
+    def readNote(self, request):
+        data = self.readData(request)
+        for note in request.session['noteslist']:
+            if note.noteid == data['noteid']:
+                return self.createResultSet(data)
 
 class NoteFilter(HttpRequestResponser, Formatter):
     def __init__(self):
