@@ -53,8 +53,7 @@ class Formatter:
             result.append(row)
         return result # list with several valuequerysets
     
-    def jsonEncoder(self, resultset):
-        return json.JSONEncoder().encode(resultset)
+    
     
     def createResultSet(self, data={}, outputType='html', result=RESULT_SUCCESS, message={}):
         resultset = dict([('result', result), ('message', message), ])
@@ -62,8 +61,13 @@ class Formatter:
         for k, v in enumerate(data.values()):
             key            = data.keys()[k]
             resultset[key] = v
-            
+        
+        return resultset
+        '''
         if outputType == 'json':
-            return self.jsonEncoder(resultset)
+            #return json.dumps(resultset)
+            #return self.jsonEncoder(resultset)
+            return resultset
         else:
             return resultset
+        '''

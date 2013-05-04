@@ -8,8 +8,9 @@ def init(request):
     data['uid'] = request.session['uid']
     data        = Tag().getUserCategoryTagsList(data)
     data        = dict([('tagslist', data)])
+    print "show tagslist"
     print data
-    return Formatter().createResultSet(data, 'html')
+    return Formatter().createResultSet(data)
 
 def index(request):
     #print User().searchNotes([])

@@ -5,7 +5,7 @@ from math import radians, cos, sin, asin, sqrt
 from django.utils import timezone
 from django.db import models
 from django.utils import dateparse
-
+from django.utils.formats import date_format
 from Jingo.lib.config import *
 from Jingo.lib.SQLExecution import SQLExecuter
 
@@ -30,7 +30,12 @@ class Friend(models.Model, HttpRequestResponser, Formatter):
         return Friend.objects.filter(uid=input_uid, is_friendship=2).order_by('invitationid').values()
 
     def getFriendsList(self, data):
-        return list(Friend.objects.filter(uid=data['uid'], is_friendship=1).order_by('invitationid').values('f_uid'))
+        if len(Friend.objects.all()) == 0:
+            return []
+        else:
+            friendlist = Friend.objects.filter(uid=data['uid'], is_friendship=1).order_by('invitationid').values('f_uid')
+            print friendlist
+            return list(friendlist)
 
     def addInvitation(self, data):
         newInvitationid = self.getNewInvitationid()
@@ -135,7 +140,7 @@ class Filter(models.Model, HttpRequestResponser, Formatter):
             return filterset
 
     def getDefaultFilterDataArray(self, data):
-        return [int(data['stateid']), data['tagid'], None, None, 0, 0, int(data['uid']), IS_CHECKED_DEFAULT]
+        return [int(data['stateid']), data['tagid'], '2000-01-01 00:00:00', '2000-12-31 23:59:59', 1, 0, int(data['uid']), IS_CHECKED_DEFAULT]
 
     def addFilterAndTag(self, request):
         data = self.readData(request)
@@ -695,7 +700,7 @@ class User(models.Model, HttpRequestResponser, Formatter):
         '''
         data['noteslist']   = NoteFilter().filterNotes(data)
         print data
-        return self.createResultSet(data)
+        return self.createResultSet(data, 'json')
 
 
 class NoteFilter(HttpRequestResponser, Formatter):
@@ -760,17 +765,17 @@ class NoteFilter(HttpRequestResponser, Formatter):
         result = []
         sys_tagset = []
         for filter in uProfile:
-            if filter.f_repeat:
+            if filter['f_repeat']:
                 current = dateparse.parse_time(currenttime)
-                start = dateparse.parse_time(filter.f_start_time)
-                end = dateparse.parse_time(filter.f_stop_time)
+                start = dateparse.parse_time(filter['f_start_time'].isoformat())
+                end = dateparse.parse_time(filter['f_stop_time'].isoformat())
             else:
                 current = currenttime
-                start = filter.f_start_time
-                end = filter.f_stop_time
+                start = filter['f_start_time']
+                end = filter['f_stop_time']
 
             if current >= start and current <= end:
-                sys_tagset.append(filter.sys_tagid)
+                sys_tagset.append(filter['sys_tagid'])
 
         for note in noteslist:
             if note['sys_tagid'] in sys_tagset:
@@ -783,13 +788,13 @@ class NoteFilter(HttpRequestResponser, Formatter):
         sys_visset = {}
         result = []
         for ufilter in uProfile:
-            sys_tag = ufilter.systagid
-            visibility = ufilter.f_visibility
+            sys_tag = ufilter['sys_tagid']
+            visibility = ufilter['f_visibility']
             if (sys_tag in sys_visset and sys_visset[sys_tag] < visibility) or (sys_tag not in sys_visset):
                 sys_visset[sys_tag] = visibility
 
         for note in noteslist:
-            if note['sys_tagid'] in sys_visset and sys_visset[note.sys_tagid] == note['n_visibility']:
+            if note['sys_tagid'] in sys_visset and sys_visset[note['sys_tagid']] == note['n_visibility']:
                 if (note['n_visibility'] == 1 and note['uid'] in friendslist) or note['n_visibility'] == 0:
                     result.append(note)
 
@@ -804,13 +809,13 @@ class NoteFilter(HttpRequestResponser, Formatter):
         return result
 
     def filterNotes(self, data, mode='normal'):
-        currenttime = timezone.now()
+        currenttime = timezone.now().strftime('%Y-%m-%d %H:%m:%S')
         if mode == 'normal':
             noteslist = self.getNoteInfoList(currenttime)
         else:
             noteslist = self.getNoteInfoListByKewords(data, currenttime)
         uProfile = self.getUserCategoryTagsList(data)
-
+        print uProfile
         # filter by user's tags
         noteslist = self.filterByTags(uProfile, noteslist)
 
