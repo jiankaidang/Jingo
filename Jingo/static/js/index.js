@@ -50,13 +50,23 @@ function initialize() {
                                     scrollTop: container.find(".note-comments-container").show().position().top
                                 });
                             }).on("click", ".publish-comment-btn", function () {
-                                    $.post("/tasks/postComment/", {
-                                        uid: uid
+                                    var comment = $(this).prev(".note-comment-textarea").val();
+                                    navigator.geolocation.getCurrentPosition(function (position) {
+                                        $.post("/tasks/postComment/", {
+                                            uid: uid,
+                                            noteid: note.noteid,
+                                            c_latitude: position.coords.latitude,
+                                            c_longitude: position.coords.longitude,
+                                            comment: comment
+                                        });
                                     });
                                 });
                             new google.maps.InfoWindow({
                                 content: content[0]
                             }).open(map, marker);
+                            content.prop({
+                                maxHeight: content.parent().height()
+                            });
                         });
                     });
                 });
