@@ -41,9 +41,6 @@ class Formatter:
         else:
             return int(data)
     
-    def parsePos(self, symbol, target):
-        return result
-    
     # deal with datetime object like datetime.datetime(2013, 4, 13, 9, 0)
     # we need to transfer it in the form of "2013-04-13T21:38:01"
     def simplifyObjToDateString(self, data):
