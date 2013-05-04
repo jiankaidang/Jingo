@@ -3,11 +3,12 @@
         <button class="btn btn-mini follow-friend" type="button">Follow</button>
         <button class="btn btn-mini follow-friend btn-danger" type="button">Unfollow</button>
     </div>
-    <div><span class="muted note-time">04/30/2013 08:35 PM</span>
-        <i class="icon-globe"></i><i class="icon-user"></i><i class="icon-lock"></i></div>
-    <p>abcdefgd, abcdefgd, abcdefgd, abcdefgd, abcdefgd, abcdefgd, abcdefgd, abcdefgd, abcdefgd, abcdefgd, abcdefgd,
-        abcdefgd, abcdefgd, abcdefgd,
-        <br><a href="http://google.com">http://google.com</a></p>
+    <div><span class="muted note-time">{{ n_timestamp }}</span>
+        {% if n_visibility == 0 %}<i class="icon-globe"></i>{% endif %}
+        {% if n_visibility == 1 %}<i class="icon-user"></i>{% endif %}
+        {% if n_visibility == 2 %}<i class="icon-lock"></i>{% endif %}
+        </div>
+    <p>{{ note }}<br><a href="{{ link }}">{{ link }}</a></p>
 
     <div class="muted"><span class="note-action-num">47 Likes</span><span class="note-action-num">47 Comments</span>
     </div>

@@ -56,8 +56,6 @@ class Formatter:
             result.append(row)
         return result # list with several valuequerysets
     
-    
-    
     def createResultSet(self, data={}, outputType='html', result=RESULT_SUCCESS, message={}):
         resultset = dict([('result', result), ('message', message), ])
         

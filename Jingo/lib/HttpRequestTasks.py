@@ -39,5 +39,7 @@ class HttpRequestResponser(Formatter):
             return HttpResponse(resultset, mimetype="application/json")
         if dataType == 'default':
             resultset = data
+            print "final data"
+            print resultset
             return render_to_response(page, resultset, context_instance=RequestContext(request))
         
