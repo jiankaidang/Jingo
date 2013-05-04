@@ -20,7 +20,7 @@
                 <div class="input-prepend input-append">
                     <a class="add-on" href="javascript:void(0);" id="setToCurrentLocation"><i class="icon-home"></i></a>
                     <textarea rows="1" placeholder="What's on your mind?" id="note" name="note" required></textarea>
-                    <input type="hidden" value="{{ request.session.uid }}" name="uid">
+                    <input type="hidden" value="{{ request.session.uid }}" name="uid" id="uid">
                     <input type="hidden" name="n_latitude" id="n_latitude">
                     <input type="hidden" name="n_longitude" id="n_longitude">
                     <a class="add-on" href="#" id="publishNote" data-uid="{{ request.session.uid }}"><i
