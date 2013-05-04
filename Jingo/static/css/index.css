@@ -104,7 +104,11 @@ html body .note-container .note-comments-container {
     display: none;
 }
 
-html body .note-container .note-comments-container .note-comment-textarea {
+html body .note-container .note-comments-container .input-append {
+    margin-bottom: 0;
+}
+
+html body .note-container .note-comments-container .input-append .note-comment-textarea {
     width: 232px;
 }
 

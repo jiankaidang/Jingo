@@ -54,7 +54,10 @@ function initialize() {
                                         scrollTop: container.find(".note-comments-container").show().position().top + 1
                                     });
                                 }).on("click", ".publish-comment-btn",function () {
-                                        var comment = $(this).prev(".note-comment-textarea").val();
+                                        var publishCommentBtn = $(this);
+                                        var commentsNum = publishCommentBtn.closest(".note-container").find(".comments-num");
+                                        var comment = publishCommentBtn.prev(".note-comment-textarea").val(),
+                                            commentsList = publishCommentBtn.closest(".note-comments-container").find(".comments-list");
                                         navigator.geolocation.getCurrentPosition(function (position) {
                                             $.post("/tasks/postComment/", {
                                                 uid: uid,
@@ -62,12 +65,16 @@ function initialize() {
                                                 c_latitude: position.coords.latitude,
                                                 c_longitude: position.coords.longitude,
                                                 comment: comment
-                                            }, function () {
-
+                                            }, function (data) {
+                                                commentsList.prepend('<dt>' + data.u_name + '</dt><dd>' + comment +
+                                                    '</dd><p class="muted">' + data.c_timestamp + '</p>');
+                                                commentsNum.html(commentsNum.html() + 1);
                                             });
                                         });
                                     }).css({
                                         maxHeight: content.height()
+                                    }).on("click", ".publish-comment-btn", function () {
+
                                     });
                             });
                             google.maps.event.addListener(infoWindow, 'closeclick', function () {

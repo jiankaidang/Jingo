@@ -1,16 +1,20 @@
 <div class="container note-container">
     <div>{{ poster.u_name }}
-        {% if is_friendship %}<button class="btn btn-mini follow-friend" type="button">Follow</button>{% endif %}
-        {% if is_friendship %}<button class="btn btn-mini follow-friend btn-danger" type="button">Unfollow</button>{% endif %}
+        {% if is_friendship %}
+            <button class="btn btn-mini follow-friend" type="button">Follow</button>{% endif %}
+        {% if is_friendship %}
+            <button class="btn btn-mini follow-friend btn-danger" type="button">Unfollow</button>{% endif %}
     </div>
     <div><span class="muted note-time">{{ n_timestamp }}</span>
         {% if n_visibility == 0 %}<i class="icon-globe"></i>{% endif %}
         {% if n_visibility == 1 %}<i class="icon-user"></i>{% endif %}
         {% if n_visibility == 2 %}<i class="icon-lock"></i>{% endif %}
-        </div>
+    </div>
     <p>{{ note }}<br><a href="{{ link }}">{{ link }}</a></p>
 
-    <div class="muted"><span class="note-action-num">{{ n_like }} Likes</span><span class="note-action-num">{{ n_comments }} Comments</span>
+    <div class="muted"><span class="note-action-num"><span class="likes-num">{{ n_like }}</span> Likes</span><span
+            class="note-action-num"><span
+            class="comments-num">{{ n_comments }}</span> Comments</span>
     </div>
     <div>
         <button class="btn btn-mini note-button"><i class="icon-thumbs-up"></i> Like</button>
@@ -25,10 +29,10 @@
                     <a class="add-on publish-comment-btn" href="#"><i class="icon-share"></i></a></div>
             </div>
             <dl class="comments-list">
-            	{% for reply in commentslist %}
-                <dt>{{ reply.replier }}</dt>
-                <dd>{{ reply.comment }}</dd>
-                <p class="muted">{{ reply.c_timestamp|date:'Y-m-d H:i:s' }}</p>
+                {% for reply in commentslist %}
+                    <dt>{{ reply.replier }}</dt>
+                    <dd>{{ reply.comment }}</dd>
+                    <p class="muted">{{ reply.c_timestamp|date:'Y-m-d H:i:s' }}</p>
                 {% endfor %}
             </dl>
         </div>
