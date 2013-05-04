@@ -71,7 +71,7 @@ class Comments(models.Model, HttpRequestResponser, Formatter):
         nComment.c_timestamp = timezone.now()
         nComment.uid         = User(uid=data['uid'])
         nComment.c_latitude  = data['c_latitude']
-        nComment.c_longitude = data['c_longtitude']
+        nComment.c_longitude = data['c_longitude']
         nComment.comment     = data['comment']
         return newCommentid
 
@@ -648,10 +648,12 @@ class User(models.Model, HttpRequestResponser, Formatter):
         return self.createResultSet(data)
 
     def postComment(self, request):
+        dataset             = []
         data                = self.readData(request)
         data['commentid']   = Comments().addComment(data)
         data['u_name']      = User.objects.filter(uid=data['uid']).values('u_name')[0]['u_name']
         data['c_timestamp'] = Comments.objects.filter(commentid=data['commentid']).values()[0]['c_timestamp']
+        data                = self.simplifyObjToDateString(dataset.append(data), NORMAL_DATE_PATTERN)[0]
         return self.createResultSet(data)
 
     def searchNotes(self, request):

@@ -55,7 +55,7 @@ class Formatter:
                 if type(v) is decimal.Decimal:
                     key      = row.keys()[k]
                     row[key] = str(row[key])
-            result.append(row)
+                result.append(row)
         return result # list with several valuequerysets
     
     def createResultSet(self, data={}, outputType='html', result=RESULT_SUCCESS, message={}):
