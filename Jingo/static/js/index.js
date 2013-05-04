@@ -9,20 +9,6 @@ function initialize() {
     };
     map = new google.maps.Map(document.getElementById('map-canvas'),
         mapOptions);
-
-    // Try HTML5 geolocation
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(function (position) {
-            var pos = new google.maps.LatLng(position.coords.latitude,
-                position.coords.longitude);
-            map.setCenter(pos);
-        }, function () {
-            handleNoGeolocation(true);
-        });
-    } else {
-        // Browser doesn't support Geolocation
-        handleNoGeolocation(false);
-    }
     var myloc = new google.maps.Marker({
         clickable: false,
         icon: new google.maps.MarkerImage('http://maps.gstatic.com/mapfiles/mobile/mobileimgs2.png',
@@ -33,13 +19,43 @@ function initialize() {
         zIndex: 999,
         map: map
     });
+    // Try HTML5 geolocation
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function (position) {
+            var pos = new google.maps.LatLng(position.coords.latitude,
+                position.coords.longitude);
+            map.setCenter(pos);
+            myloc.setPosition(pos);
 
-    if (navigator.geolocation) navigator.geolocation.getCurrentPosition(function (pos) {
-        var me = new google.maps.LatLng(pos.coords.latitude, pos.coords.longitude);
-        myloc.setPosition(me);
-    }, function (error) {
-        // ...
-    });
+            $.post("/tasks/receiveNotes/", {
+                uid: $("#uid").val(),
+                u_latitude: position.coords.latitude,
+                u_longitude: position.coords.longitude
+            }, function (data) {
+                $.each(data.noteslist, function (index, note) {
+                    var marker = new google.maps.Marker({
+                        position: new google.maps.LatLng(note.n_latitude, note.n_longitude),
+                        map: map
+                    });
+                    google.maps.event.addListener(marker, 'click', function () {
+                        $.post("/tasks//", {
+
+                        }, function (data) {
+                            new google.maps.InfoWindow({
+                                content: data,
+                                maxWidth: 250
+                            }).open(map, marker);
+                        });
+                    });
+                });
+            });
+        }, function () {
+            handleNoGeolocation(true);
+        });
+    } else {
+        // Browser doesn't support Geolocation
+        handleNoGeolocation(false);
+    }
 }
 
 function handleNoGeolocation(errorFlag) {
@@ -89,14 +105,15 @@ $("#noteDetailTrigger").click(function () {
 });
 $("#accordion2").on("click", ".add-tag",function () {
     var sysTagLi = $(this).closest("li"), tagid = sysTagLi.attr("data-tagid");
-    var newTagLi = $('<li><input type="text" required></li>').prependTo(sysTagLi.find("ul"));
+    var newTagLi = $('<li><input type="text" required pattern="[a-zA-Z]"></li>').prependTo(sysTagLi.find("ul"));
     newTagLi.find("input").blur(function () {
         var tagName = $(this).val();
         if (!tagName) {
             newTagLi.remove();
             return;
         }
-        newTagLi.html('<label class="checkbox"><input type="checkbox" value="' + tagName + '" name="tag_names" class="customized-tag">' + tagName +
+        newTagLi.html('<label class="checkbox"><input type="checkbox" value="' +
+            $(this).closest(".sys-tag-container").attr("data-tagid") + "_" + tagName + '" name="tag_names" class="customized-tag">' + tagName +
             '<a href="javascript:void(0);" class="pull-right remove-tag"><i class="icon-trash"></i></a>' +
             '</label>').find("input").click();
     }).focus();
