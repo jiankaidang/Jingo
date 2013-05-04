@@ -10,18 +10,18 @@
             <div class="accordion-inner">
                 <ul class="unstyled">
                     {% for sys in tagslist %}
-                    <li data-tagid="{% comment %}{{ sys.tagid }}{% endcomment %}" class="sys-tag-container">
+                    <li data-tagid="{{ sys.tagid }}" class="sys-tag-container">
                         <label class="checkbox">
-                            <input type="checkbox" value="1{% comment %}{{ sys.tagid }}{% endcomment %}"
+                            <input type="checkbox" value="{{ sys.tagid }}"
                                    name="tagids" class="sys-tag">
-                            {% comment %}{{ sys.tag_name }}{% endcomment %}
+                            {{ sys.tag_name }}
                             <a href="javascript:void(0);" class="pull-right add-tag"><i class="icon-plus"></i></a>
                         </label>
                         <ul class="customized-tags">
                             {% for tag in sys.tags %}
-                            <li data-tagid="{% comment %}{{ tag.tagid_id }}{% endcomment %}">
+                            <li data-tagid="{{ tag.tagid_id }}">
                                 <label class="checkbox">
-                                    <input type="checkbox" value="10{% comment %}{{ tag.tagid }}{% endcomment %}"
+                                    <input type="checkbox" value="{{ tag.tagid }}"
                                            name="tagids" class="customized-tag">
                                                                         {{ tag.tag_name }}
                                     <a href="javascript:void(0);" class="pull-right remove-tag"><i

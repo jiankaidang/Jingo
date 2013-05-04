@@ -5,12 +5,24 @@ from Jingo.lib.DataVerification import Formatter
 import json
 
 class HttpRequestResponser(Formatter):
+    
+    def convertToDict(self, request):
+        data = {}
+        if request.method == 'POST':
+            args = dict(request.POST.iterlists())
+        else:
+            args = dict(request.GET.iterlists())
+        for key in args:
+            if len(args[key]) > 1:
+                data[key] = args[key]
+            else:
+                data[key] = args[key][0]
+        return data
+    
     def readData(self, request):
-        if request.method == 'GET':
-            data = request.GET.dict()
-            print request.GET
-        elif request.method == 'POST':
-            data = request.POST.dict()
+        data = self.convertToDict(request)
+        print "POST/GET data"
+        print data
         return data
 
     def response(self, request, page, data={}, dataType='default'):

@@ -278,16 +278,11 @@ class Note_Tag(models.Model, HttpRequestResponser, Formatter):
 
     class Meta:
         db_table = 'note_tag'
-
-    def getSysTagid(self, data):
-        for tagid in data['tagids']:
-            if tagid >= 0 and tagid <= 10:
-                return tagid
-
+        
     def addNoteTag(self, data):
-        notetag = Note_Tag()
+        notetag        = Note_Tag()
         notetag.noteid = Note(noteid=data['noteid'])
-        notetag.tagid = Tag(tagid=data['tagid'])
+        notetag.tagid  = Tag(tagid=data['tagid'])
         notetag.save()
         return data
 
@@ -301,9 +296,10 @@ class Note_Tag(models.Model, HttpRequestResponser, Formatter):
             data['tagid'] = data['tagids']
             Note_Tag().addNoteTag(data)
 
+        data['sys_tagid'] = self.getSysTagid(data)
+        
         # add tags from tag_names
-        if 'tagids' in data:
-            self.addNoteTagFromTagName(data)
+        self.addNoteTagFromTagName(data)
 
         # add a default tag (all)
         data['tagid'] = 0
@@ -311,17 +307,24 @@ class Note_Tag(models.Model, HttpRequestResponser, Formatter):
         Note_Tag().addNoteTag(data)
         return data
 
+    def parseTagNames(self, data, stag_name):
+        pos               = stag_name.index(SPLITTER_SYMBOL)
+        data['sys_tagid'] = stag_name[:pos]
+        data['tag_name']  = stag_name[pos+1:]
+        return data
+    
     def addNoteTagFromTagName(self, data):
-        sys_tagid = self.getSysTagid(data)
-        data['sys_tagid'] = sys_tagid
         if 'tag_names' in data and len(data['tag_names']) > 1:
-            for tag_name in data['tag_names']:
-                data['tag_name'] = tag_name
-                tagid = Tag().addTag(data)
+            for stag_name in data['tag_names']:
+                data             = self.parseTagNames(data, stag_name)
+                data['tagid']    = Tag().addTag(data)
+                Note_Tag().addNoteTag(data)
+                
         elif 'tag_names' in data:
-            data['tag_name'] = data['tag_names']
-            tagid = Tag().addTag(data)
-
+            data             = self.parseTagNames(data, data['tag_names'])
+            data['tagid']    = Tag().addTag(data)
+            Note_Tag().addNoteTag(data)
+    
     def deleteNoteTag(self, request):
         data = self.readData(request)
         Note_Tag.objects.filter(tagid=data['tagid'], noteid=data['noteid']).delete()
@@ -521,6 +524,8 @@ class Tag(models.Model, HttpRequestResponser, Formatter):
         return result
 
     def addTag(self, data):
+        print "add Tag===>"
+        print data
         newTagid = self.getNewTagid()
         tag = Tag()
         tag.tagid = newTagid
@@ -543,7 +548,6 @@ class Tag(models.Model, HttpRequestResponser, Formatter):
         data = self.readData(request)
         data = Tag.objects.filter(tagid=data['tagid'], uid=data['uid']).update(state_name=data['tag_name'])
         return self.createResultSet(data, 'json')
-
 
 class User(models.Model, HttpRequestResponser, Formatter):
     uid = models.IntegerField(primary_key=True)

@@ -17,6 +17,7 @@ IS_CHECKED_DEFAULT     = 1
 N_DEFAULT_RADIUS       = 200
 IS_COMMENT             = 1
 N_LIKES                = 0
+SPLITTER_SYMBOL        = '_'
 
 # include Project library 
 from Jingo.lib.HttpRequestTasks import *
