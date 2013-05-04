@@ -8,15 +8,16 @@ def init(request):
     data['uid'] = request.session['uid']
     data        = Tag().getUserCategoryTagsList(data)
     data        = dict([('tagslist', data)])
+    print "show tagslist"
     print data
-    return Formatter().createResultSet(data, 'html')
+    return Formatter().createResultSet(data)
 
 def index(request):
     #print User().searchNotes([])
     #data={}
     #data['uid'] = 4
     #print Tag().getUserCategoryTagsList(data)
-
+    #request.session.clear()
     page = 'login.html'
     if request.session.get('uid', False):
         page = 'index.html'

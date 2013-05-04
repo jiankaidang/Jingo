@@ -1,7 +1,7 @@
 from Jingo.lib.config import *
 from django.core import serializers
 from Jingo.models import *
-import re, types, datetime, json
+import re, types, datetime, json, decimal
 from django.utils import simplejson
 from django.core.serializers.json import DjangoJSONEncoder
 
@@ -50,11 +50,13 @@ class Formatter:
                 if type(v) is datetime.datetime:
                     key      = row.keys()[k]
                     row[key] = row[key].isoformat()
+                if type(v) is decimal.Decimal:
+                    key      = row.keys()[k]
+                    row[key] = str(row[key])
             result.append(row)
         return result # list with several valuequerysets
     
-    def jsonEncoder(self, resultset):
-        return json.JSONEncoder().encode(resultset)
+    
     
     def createResultSet(self, data={}, outputType='html', result=RESULT_SUCCESS, message={}):
         resultset = dict([('result', result), ('message', message), ])
@@ -62,8 +64,13 @@ class Formatter:
         for k, v in enumerate(data.values()):
             key            = data.keys()[k]
             resultset[key] = v
-            
+        
+        return resultset
+        '''
         if outputType == 'json':
-            return self.jsonEncoder(resultset)
+            #return json.dumps(resultset)
+            #return self.jsonEncoder(resultset)
+            return resultset
         else:
             return resultset
+        '''
