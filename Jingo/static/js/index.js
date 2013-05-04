@@ -43,30 +43,37 @@ function initialize() {
                         $.post("/tasks/readNote/", {
                             noteid: note.noteid
                         }, function (data) {
-                            var content = $(data);
-                            content.on("click", ".note-comment-button",function () {
-                                var container = $(this).closest(".note-container");
-                                container.animate({
-                                    scrollTop: container.find(".note-comments-container").show().position().top
-                                });
-                            }).on("click", ".publish-comment-btn", function () {
-                                    var comment = $(this).prev(".note-comment-textarea").val();
-                                    navigator.geolocation.getCurrentPosition(function (position) {
-                                        $.post("/tasks/postComment/", {
-                                            uid: uid,
-                                            noteid: note.noteid,
-                                            c_latitude: position.coords.latitude,
-                                            c_longitude: position.coords.longitude,
-                                            comment: comment
-                                        });
-                                    });
-                                });
-                            new google.maps.InfoWindow({
-                                content: content[0]
-                            }).open(map, marker);
-                            content.prop({
-                                maxHeight: content.parent().height()
+                            var infoWindow = new google.maps.InfoWindow({
+                                content: data
                             });
+                            google.maps.event.addListener(infoWindow, 'domready', function () {
+                                var content = $(infoWindow.getContent());
+                                content.on("click", ".note-comment-button",function () {
+                                    var container = $(this).closest(".note-container");
+                                    container.animate({
+                                        scrollTop: container.find(".note-comments-container").show().position().top + 1
+                                    });
+                                }).on("click", ".publish-comment-btn",function () {
+                                        var comment = $(this).prev(".note-comment-textarea").val();
+                                        navigator.geolocation.getCurrentPosition(function (position) {
+                                            $.post("/tasks/postComment/", {
+                                                uid: uid,
+                                                noteid: note.noteid,
+                                                c_latitude: position.coords.latitude,
+                                                c_longitude: position.coords.longitude,
+                                                comment: comment
+                                            }, function () {
+
+                                            });
+                                        });
+                                    }).css({
+                                        maxHeight: content.height()
+                                    });
+                            });
+                            google.maps.event.addListener(infoWindow, 'closeclick', function () {
+                                $(".top-bar,#note-form").show();
+                            });
+                            infoWindow.open(map, marker);
                         });
                     });
                 });
