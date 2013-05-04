@@ -678,6 +678,8 @@ class User(models.Model, HttpRequestResponser, Formatter):
                 
                 Comments().getNumberofComments(note['noteid'], poster)
                 
+                note['poster'] = User.objects.filter(uid=poster).values()[0]
+                
                 return self.createResultSet(note)
 
 class NoteFilter(HttpRequestResponser, Formatter):
