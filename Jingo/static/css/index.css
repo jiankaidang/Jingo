@@ -79,6 +79,9 @@ html body .bottom-bar #note-detail #visibility label {
 html body .note-container {
     max-height: 196px;
     width: 273px;
+    overflow: auto;
+    top: 10px;
+    position: relative;
 }
 
 html body .note-container .follow-friend {

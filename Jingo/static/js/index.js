@@ -34,30 +34,25 @@ function initialize() {
             }, function (data) {
                 $.each(data.noteslist, function (index, note) {
                     var marker = new google.maps.Marker({
-//                position: new google.maps.LatLng(note.n_latitude, note.n_longitude),
-                        position: pos,
+                        position: new google.maps.LatLng(note.n_latitude, note.n_longitude),
                         map: map
                     });
                     google.maps.event.addListener(marker, 'click', function () {
                         $(".top-bar,#note-form").hide();
-//                        $.post("/tasks//", {
-//
-//                        }, function (data) {
-                        new google.maps.InfoWindow({
-                            content: '<div class="container note-container"><div>Jiankai Dang<button class="btn btn-mini follow-friend" type="button">Follow</button>' +
-                                '<button class="btn btn-mini follow-friend btn-danger" type="button">Unfollow</button></div><div><span class="muted note-time">04/30/2013 08:35 PM</span>' +
-                                '<i class="icon-globe"></i><i class="icon-user"></i><i class="icon-lock"></i></div>' +
-                                '<p>abcdefgd, abcdefgd, abcdefgd, abcdefgd, abcdefgd, abcdefgd, abcdefgd, abcdefgd, abcdefgd, abcdefgd, abcdefgd, abcdefgd, abcdefgd, abcdefgd, ' +
-                                '<br><a href="http://google.com">http://google.com</a></p>' +
-                                '<div class="muted"><span class="note-action-num">47 Likes</span><span class="note-action-num">47 Comments</span></div>' +
-                                '<div><button class="btn btn-mini note-button"><i class="icon-thumbs-up"></i> Like</button>' +
-                                '<button class="btn btn-mini note-button note-comment-button"><i class="icon-comment"></i> Comment</button></div>' +
-                                '<div class="note-comments-container"><div class="control-group"><div class="controls"><div class="input-append">' +
-                                '<textarea placeholder="Write a comment..." rows="1" required class="note-comment-textarea"></textarea>' +
-                                '<a class="add-on" href="#"><i class="icon-share"></i></a></div></div></div></div>' +
-                                '</div>'
-                        }).open(map, marker);
-//                        });
+                        $.post("/tasks/readNote/", {
+                            noteid: note.noteid
+                        }, function (data) {
+                            var content = $(data);
+                            content.on("click", ".note-comment-button", function () {
+                                var container = $(this).closest(".note-container");
+                                container.animate({
+                                    scrollTop: container.find(".note-comments-container").show().position().top
+                                });
+                            });
+                            new google.maps.InfoWindow({
+                                content: content[0]
+                            }).open(map, marker);
+                        });
                     });
                 });
             });
@@ -140,6 +135,3 @@ $("#accordion2").on("click", ".add-tag",function () {
             $(this).closest(".sys-tag-container").find(".customized-tag").prop("checked", false);
         }
     });
-$("#map-canvas").on("click", ".note-comment-button", function () {
-    $(this).closest(".note-container").find(".note-comments-container").slideUp();
-});
