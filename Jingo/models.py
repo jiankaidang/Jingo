@@ -65,6 +65,7 @@ class Comments(models.Model, HttpRequestResponser, Formatter):
 
     def addComment(self, data):
         newCommentid         = self.getNewCommentid()
+        '''
         nComment             = Comments()
         nComment.commentid   = newCommentid
         nComment.noteid      = Note(noteid=data['noteid'])
@@ -73,6 +74,10 @@ class Comments(models.Model, HttpRequestResponser, Formatter):
         nComment.c_latitude  = data['c_latitude']
         nComment.c_longitude = data['c_longitude']
         nComment.comment     = data['comment']
+        '''
+        values = [newCommentid, int(data['noteid']), timezone.now(), int(data['uid']), float(data['c_latitude']), float(data['c_longitude']), data['comment']]
+        args = dict([('table', 'comments'), ('values', values)])
+        SQLExecuter().doInsertData(args)
         return newCommentid
 
     def retrieveComments(self, data):
