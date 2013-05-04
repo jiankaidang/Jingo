@@ -108,3 +108,7 @@ html body .note-container .note-comments-container {
 html body .note-container .note-comments-container .note-comment-textarea {
     width: 232px;
 }
+
+html body .note-container .note-comments-container .comments-list {
+    border-top: 1px;
+}

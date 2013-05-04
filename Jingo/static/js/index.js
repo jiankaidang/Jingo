@@ -19,6 +19,7 @@ function initialize() {
         zIndex: 999,
         map: map
     });
+    var uid = $("#uid").val();
     // Try HTML5 geolocation
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(function (position) {
@@ -28,7 +29,7 @@ function initialize() {
             myloc.setPosition(pos);
 
             $.post("/tasks/receiveNotes/", {
-                uid: $("#uid").val(),
+                uid: uid,
                 u_latitude: position.coords.latitude,
                 u_longitude: position.coords.longitude
             }, function (data) {
@@ -43,12 +44,16 @@ function initialize() {
                             noteid: note.noteid
                         }, function (data) {
                             var content = $(data);
-                            content.on("click", ".note-comment-button", function () {
+                            content.on("click", ".note-comment-button",function () {
                                 var container = $(this).closest(".note-container");
                                 container.animate({
                                     scrollTop: container.find(".note-comments-container").show().position().top
                                 });
-                            });
+                            }).on("click", ".publish-comment-btn", function () {
+                                    $.post("/tasks/postComment/", {
+                                        uid: uid
+                                    });
+                                });
                             new google.maps.InfoWindow({
                                 content: content[0]
                             }).open(map, marker);
