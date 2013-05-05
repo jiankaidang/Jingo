@@ -55,10 +55,10 @@ class Formatter:
                 if type(v) is decimal.Decimal:
                     key      = row.keys()[k]
                     row[key] = str(row[key])
-                result.append(row)
+            result.append(row)
         return result # list with several valuequerysets
     
-    def createResultSet(self, data={}, outputType='html', result=RESULT_SUCCESS, message={}):
+    def createResultSet(self, data={}, result=RESULT_SUCCESS, message={}):
         resultset = dict([('result', result), ('message', message), ])
         if type(data) is dict:
             for k, v in enumerate(data.values()):
