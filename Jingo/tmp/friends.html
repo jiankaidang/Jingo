@@ -1,9 +1,6 @@
 {% extends "base.html" %}
 {% load staticfiles %}
 {% block title %}Friends{% endblock title %}
-{% block css %}
-    <link href="{% static "css/friends.css" %}" rel="stylesheet">
-{% endblock css %}
 {% block content %}
     <div class="container">
         <h2>Friends</h2>
@@ -13,7 +10,7 @@
                 <div class="accordion-heading">
                     <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2"
                        href="#collapse1">
-                        <span>Friends List<span class="badge badge-info pull-right">{{ n_friends }}</span></span>
+                        <span>Friends<span class="badge badge-info pull-right">{{ n_friends }}</span></span>
                     </a>
                 </div>
                 <div id="collapse1" class="accordion-body in collapse">
@@ -22,7 +19,15 @@
                             {% for friend in friendslist %}
                                 <li>
                                     {{ friend.u_name }}
+                                    <button class="btn btn-mini btn-danger pull-right unfollow-friend" type="button"
+                                            f_uid="{{ friend.uid }}">
+                                        Unfollow
+                                    </button>
                                 </li>
+                            {% empty %}
+                                <div class="alert alert-info">
+                                    You have no friend!
+                                </div>
                             {% endfor %}
                         </ul>
                     </div>
@@ -40,9 +45,17 @@
                     <div class="accordion-inner">
                         <ul class="unstyled">
                             {% for friend in pendingslist %}
-                                <li>
+                                <li invitationid="{{ friend.invitationid }}">
                                     {{ friend.u_name }}
+                                <span class="pull-right">
+                                    <button class="btn btn-mini btn-primary accept-friend" type="button">Accept</button>
+                                    <button class="btn btn-mini btn-danger deny-friend" type="button">Deny</button>
+                                </span>
                                 </li>
+                            {% empty %}
+                                <div class="alert alert-success">
+                                    You have no pending request!
+                                </div>
                             {% endfor %}
                         </ul>
                     </div>
