@@ -49,9 +49,14 @@ class Friend(models.Model, HttpRequestResponser, Formatter):
     def getFriendsInfoList(self, data):
         flist = []
         for friend in Friend.objects.filter(uid=data['uid'],is_friendship=data['is_friendship']).values():
-            fuser = User.objects.filter(uid=friend['f_uid']).values()[0]
+            fuser = User.objects.filter(uid=friend['f_uid_id']).values()[0]
             flist.append(fuser)
-        return data
+        
+        for friend in Friend.objects.filter(f_uid=data['uid'],is_friendship=data['is_friendship']).values():
+            fuser = User.objects.filter(uid=friend['uid_id']).values()[0]
+            flist.append(fuser)
+            
+        return flist
     
     def checkFriendship(self, reader, poster):
         if Friend.objects.filter(uid=reader, f_uid=poster).count():
@@ -717,13 +722,18 @@ class User(models.Model, HttpRequestResponser, Formatter):
         data = Friend().responseInvitation(data)
         return self.createResultSet(data)
     
-    def showFriendsList(self, request):
-        data      = self.readData(request)
-        flist     = Friend().getFriendsInfoList(data)
-        n_friends = len(flist)
-        data = dict([('friendslist', flist), ('n_friends', n_friends)])
+    def initFriendArea(self, request):
+        #data                  = self.readData(request)
+        data                  = {}
+        data['uid']           = request.session['uid']
+        data['is_friendship'] = 1
+        flist                 = Friend().getFriendsInfoList(data)
+        data['is_friendship'] = 2
+        print data
+        plist                 = Friend().getFriendsInfoList(data)
+        data                  = dict([('friendslist', flist), ('n_friends', len(flist)), ('pendingslist', plist), ('n_pendings', len(plist))])
         return self.createResultSet(data)
-        
+    
 class NoteFilter(HttpRequestResponser, Formatter):
     def __init__(self):
         self.sql = SQLExecuter()

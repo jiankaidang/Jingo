@@ -45,6 +45,10 @@ def pages(request, mode):
             data = User().getUserProfile(request)
         else:
             page = 'login.html'
+    if mode == 'friends':
+        page = 'friends.html'
+        data = User().initFriendArea(request)
+        
     return http_res.response(request, page, data)
 
 # deal with AJAX request and database access
@@ -154,14 +158,10 @@ def tasks(request, mode):
 
     # API for Friendship settings
     if mode == 'sendInvitation':
-        page = 'response.html'
         data = User().sendInvitation(request)
         return http_res.response(request, page, data, 'json')
+    
     if mode == 'replyInvitation':
-        page = 'response.html'
         data = User().replyInvitation(request)
         return http_res.response(request, page, data, 'json')
-    if mode == 'showFriendsList':
-        page = 'response.html'
-        data = User().showFriendsList(request)
-        return http_res.response(request, page, data, 'json')
+    

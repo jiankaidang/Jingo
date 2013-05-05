@@ -1,0 +1,22 @@
+<h2>You need to manually add friendship for testing. This page may still contain errors!</h2> 
+<div>
+<h3>friendslist: you have {{ n_friends }} friends in the list.</h3>
+<ul>
+{%for friend in friendslist %} 
+<li>{{ friend.u_name }}</li>
+{% endfor %}
+</ul>
+</div>
+<div>
+<h3>pendingslist: {{ n_pendings }} new friends request to follow your news.</h3>
+<ul>
+{%for friend in pendingslist %} 
+<li>
+<span>{{ friend.u_name }}</span>
+<span><button>accept</button></span>
+<span><button>deny</button></span>
+</li>
+{% endfor %}
+</ul>
+</div>
+<a href="{% url 'index' %}"> Home </a> | <a href="{% url 'pages' mode='profile' %}"> Profile </a> | <a href="{% url 'tasks' mode='logout' %}"> Logout </a>
