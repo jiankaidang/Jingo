@@ -44,7 +44,6 @@ class Friend(models.Model, HttpRequestResponser, Formatter):
             return 1
         return 0
 
-
 class Comments(models.Model, HttpRequestResponser, Formatter):
     commentid = models.IntegerField(primary_key=True)
     noteid = models.ForeignKey('Note', db_column='noteid')
@@ -679,9 +678,10 @@ class User(models.Model, HttpRequestResponser, Formatter):
         return self.createResultSet(data)
 
     def searchNotes(self, request):
-        data = self.readData(request)
-        data['noteslist'] = NoteFilter().searchNotes(data)
-
+        data              = self.readData(request)
+        noteslist         = NoteFilter().retrieveNotesByKeywords(data)
+        data['noteslist'] = self.simplifyObjToDateString(noteslist, NORMAL_DATE_PATTERN)
+        request.session['noteslist'] = data['noteslist']
         return self.createResultSet(data)
 
     def receiveNotes(self, request):
@@ -720,6 +720,10 @@ class NoteFilter(HttpRequestResponser, Formatter):
             result.append(row[key])
         return result
 
+    '''
+    def getKeywordset(self, data):
+        (a.note like %s Or c.tag_name like %s)
+    '''
     def getNoteInfoListByKewords(self, data, currenttime):
         data['keyword'] = '%' + data['keyword'] + '%'
         strSQL = "Select a.*, b.tagid, c.sys_tagid, c.tag_name, d.n_start_time, d.n_stop_time, n_repeat From note as a, note_tag as b, tag as c, (Select * From note_time Where %s between n_start_time And n_stop_time And n_repeat=0) as d Where a.noteid=b.noteid And b.tagid=c.tagid And a.noteid=d.noteid And (a.note like %s Or c.tag_name like %s) Union Select a.*, b.tagid, c.sys_tagid, c.tag_name, d.n_start_time, d.n_stop_time, n_repeat From note as a, note_tag as b, tag as c, (Select * From note_time Where %s between n_start_time And n_stop_time And n_repeat=1) as d Where a.noteid=b.noteid And b.tagid=c.tagid And a.noteid=d.noteid And (a.note like %s Or c.tag_name like %s)"
@@ -840,8 +844,7 @@ class NoteFilter(HttpRequestResponser, Formatter):
         #print noteslist
         return noteslist
 
-    def searchNotes(self, data):
-        noteslist = self.filterNotes(data, 'keyword')
-        
+    def retrieveNotesByKeywords(self, data):
+        return self.filterNotes(data, 'keyword')
         
         
