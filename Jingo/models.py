@@ -725,11 +725,11 @@ class NoteFilter(HttpRequestResponser, Formatter):
         (a.note like %s Or c.tag_name like %s)
     '''
     def getNoteInfoListByKewords(self, data, currenttime):
-        data['keyword'] = '%' + data['keyword'] + '%'
+        data['keywords'] = '%' + data['keywords'] + '%'
         strSQL = "Select a.*, b.tagid, c.sys_tagid, c.tag_name, d.n_start_time, d.n_stop_time, n_repeat From note as a, note_tag as b, tag as c, (Select * From note_time Where %s between n_start_time And n_stop_time And n_repeat=0) as d Where a.noteid=b.noteid And b.tagid=c.tagid And a.noteid=d.noteid And (a.note like %s Or c.tag_name like %s) Union Select a.*, b.tagid, c.sys_tagid, c.tag_name, d.n_start_time, d.n_stop_time, n_repeat From note as a, note_tag as b, tag as c, (Select * From note_time Where %s between n_start_time And n_stop_time And n_repeat=1) as d Where a.noteid=b.noteid And b.tagid=c.tagid And a.noteid=d.noteid And (a.note like %s Or c.tag_name like %s)"
         noteslist = self.sql.doRawSQL(strSQL,
-                                      [currenttime, data['keyword'], data['keyword'], currenttime, data['keyword'],
-                                       data['keyword']])
+                                      [currenttime, data['keywords'], data['keywords'], currenttime, data['keywords'],
+                                       data['keywords']])
         return noteslist
 
     def getNoteInfoList(self, currenttime):

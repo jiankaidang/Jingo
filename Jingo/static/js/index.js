@@ -1,14 +1,40 @@
 var map;
-
+var fakeMarker;
 function initialize() {
     var mapOptions = {
-        zoom: 13,
+        zoom: 16,
         streetViewControl: false,
         mapTypeControl: false,
         mapTypeId: google.maps.MapTypeId.ROADMAP
     };
     map = new google.maps.Map(document.getElementById('map-canvas'),
         mapOptions);
+    fakeMarker = new google.maps.Marker({
+        clickable: false,
+        icon: {
+            url: '/static/img/jingo.gif',
+            size: new google.maps.Size(71, 71),
+            origin: new google.maps.Point(0, 0),
+            anchor: new google.maps.Point(17, 34),
+            scaledSize: new google.maps.Size(25, 25)
+        },
+        shadow: null,
+        zIndex: 999,
+        map: map,
+        animation: google.maps.Animation.BOUNCE,
+        draggable: true,
+        visible: false
+    });
+    google.maps.event.addListener(fakeMarker, 'dragend', function (event) {
+        fakeMarker.setPosition(event.latLng);
+        fakeMarker.setVisible(true);
+        receiveNotes(event.latLng);
+    });
+    google.maps.event.addListener(map, 'click', function (event) {
+        fakeMarker.setPosition(event.latLng);
+        fakeMarker.setVisible(true);
+        receiveNotes(event.latLng);
+    });
     var myloc = new google.maps.Marker({
         clickable: false,
         icon: new google.maps.MarkerImage('http://maps.gstatic.com/mapfiles/mobile/mobileimgs2.png',
@@ -19,7 +45,6 @@ function initialize() {
         zIndex: 999,
         map: map
     });
-    var uid = $("#uid").val();
     // Try HTML5 geolocation
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(function (position) {
@@ -27,64 +52,7 @@ function initialize() {
                 position.coords.longitude);
             map.setCenter(pos);
             myloc.setPosition(pos);
-
-            $.post("/tasks/receiveNotes/", {
-                uid: uid,
-                u_latitude: position.coords.latitude,
-                u_longitude: position.coords.longitude
-            }, function (data) {
-                $.each(data.noteslist, function (index, note) {
-                    var marker = new google.maps.Marker({
-                        position: new google.maps.LatLng(note.n_latitude, note.n_longitude),
-                        map: map
-                    });
-                    google.maps.event.addListener(marker, 'click', function () {
-                        $(".top-bar,#note-form").hide();
-                        $.post("/tasks/readNote/", {
-                            noteid: note.noteid
-                        }, function (data) {
-                            var infoWindow = new google.maps.InfoWindow({
-                                content: $(data)[0]
-                            });
-                            google.maps.event.addListener(infoWindow, 'domready', function () {
-                                var content = $(infoWindow.getContent());
-                                content.on("click", ".note-comment-button",function () {
-                                    var container = $(this).closest(".note-container");
-                                    container.animate({
-                                        scrollTop: container.find(".note-comments-container").show().position().top + 1
-                                    });
-                                }).on("click", ".publish-comment-btn",function () {
-                                        var publishCommentBtn = $(this);
-                                        var commentsNum = publishCommentBtn.closest(".note-container").find(".comments-num");
-                                        var comment = publishCommentBtn.prev(".note-comment-textarea").val(),
-                                            commentsList = publishCommentBtn.closest(".note-comments-container").find(".comments-list");
-                                        navigator.geolocation.getCurrentPosition(function (position) {
-                                            $.post("/tasks/postComment/", {
-                                                uid: uid,
-                                                noteid: note.noteid,
-                                                c_latitude: position.coords.latitude,
-                                                c_longitude: position.coords.longitude,
-                                                comment: comment
-                                            }, function (data) {
-                                                commentsList.prepend('<dt>' + data.u_name + '</dt><dd>' + comment +
-                                                    '</dd><p class="muted">' + data.c_timestamp + '</p>');
-                                                commentsNum.html(commentsNum.html() + 1);
-                                            });
-                                        });
-                                    }).css({
-                                        maxHeight: content.height()
-                                    }).on("click", ".publish-comment-btn", function () {
-
-                                    });
-                            });
-                            google.maps.event.addListener(infoWindow, 'closeclick', function () {
-                                $(".top-bar,#note-form").show();
-                            });
-                            infoWindow.open(map, marker);
-                        });
-                    });
-                });
-            });
+            receiveNotes(pos);
         }, function () {
             handleNoGeolocation(true);
         });
@@ -117,6 +85,9 @@ $("#setToCurrentLocation").click(function () {
         var pos = new google.maps.LatLng(position.coords.latitude,
             position.coords.longitude);
         map.setCenter(pos);
+        fakeMarker.setVisible(false);
+        receiveNotes(new google.maps.LatLng(position.coords.latitude,
+            position.coords.longitude));
     });
     return false;
 });
@@ -125,11 +96,16 @@ $("#publishNote").click(function () {
     if (noteInput.val() == "") {
         return false;
     }
-    navigator.geolocation.getCurrentPosition(function (position) {
-        $("#n_latitude").val(position.coords.latitude);
-        $("#n_longitude").val(position.coords.longitude);
-        $.post("/tasks/postNote/", $("#note-form").serialize(), function () {
+    getMarkerPosition(function (latLng) {
+        $("#n_latitude").val(latLng.lat());
+        $("#n_longitude").val(latLng.lng());
+        $.post("/tasks/postNote/", $("#note-form").serialize(), function (data) {
             $("#note-form")[0].reset();
+            dropMarker({
+                noteid: data.noteid,
+                n_latitude: latLng.lat(),
+                n_longitude: latLng.lng()
+            });
         });
     });
     return false;
@@ -164,3 +140,104 @@ $("#accordion2").on("click", ".add-tag",function () {
             $(this).closest(".sys-tag-container").find(".customized-tag").prop("checked", false);
         }
     });
+$("#searchBtn").click(function () {
+    getMarkerPosition(function (latLng) {
+        $.post("/tasks/searchNotes/", {
+            uid: $("#uid").val(),
+            keywords: $("#searchMaps").val(),
+            u_latitude: latLng.lat(),
+            u_longitude: latLng.lng()
+        }, function (data) {
+            $("#searchMaps").val("");
+            renderNoteList(data);
+        });
+    });
+});
+var markersArray = [];
+function renderNoteList(data) {
+    $.each(markersArray, function (index, marker) {
+        marker.setMap(null);
+    });
+    $.each(data.noteslist, function (index, note) {
+        dropMarker(note);
+    });
+}
+function receiveNotes(latLng) {
+    $.post("/tasks/receiveNotes/", {
+        uid: $("#uid").val(),
+        u_latitude: latLng.lat(),
+        u_longitude: latLng.lng()
+    }, renderNoteList);
+}
+function getMarkerPosition(callback) {
+    if (fakeMarker.getVisible()) {
+        callback(fakeMarker.getPosition());
+        return;
+    }
+    navigator.geolocation.getCurrentPosition(function (position) {
+        callback(new google.maps.LatLng(position.coords.latitude,
+            position.coords.longitude));
+    });
+}
+function dropMarker(note) {
+    var marker = new google.maps.Marker({
+        position: new google.maps.LatLng(note.n_latitude, note.n_longitude),
+        map: map,
+        animation: google.maps.Animation.DROP
+    });
+    markersArray.push(marker);
+    google.maps.event.addListener(marker, 'click', function () {
+        $(".top-bar,#note-form").hide();
+        marker.setAnimation(google.maps.Animation.BOUNCE);
+        $.post("/tasks/readNote/", {
+            noteid: note.noteid
+        }, function (data) {
+            var infoWindow = new google.maps.InfoWindow({
+                content: $(data)[0]
+            });
+            google.maps.event.addListener(infoWindow, 'domready', function () {
+                var content = $(infoWindow.getContent());
+                content.on("click", ".note-comment-button",function () {
+                    var container = $(this).closest(".note-container");
+                    container.animate({
+                        scrollTop: container.find(".note-comments-container").show().position().top + 1
+                    });
+                }).on("click", ".publish-comment-btn",function () {
+                        var publishCommentBtn = $(this);
+                        var commentsNum = publishCommentBtn.closest(".note-container").find(".comments-num"),
+                            noteCommentTextarea = publishCommentBtn.prev(".note-comment-textarea");
+                        var comment = noteCommentTextarea.val(),
+                            commentsList = publishCommentBtn.closest(".note-comments-container").find(".comments-list");
+                        getMarkerPosition(function (latLng) {
+                            $.post("/tasks/postComment/", {
+                                uid: uid,
+                                noteid: note.noteid,
+                                c_latitude: latLng.lat(),
+                                c_longitude: latLng.lng(),
+                                comment: comment
+                            }, function (data) {
+                                commentsList.prepend('<dt>' + data.u_name + '</dt><dd>' + comment +
+                                    '</dd><p class="muted">' + data.c_timestamp + '</p>');
+                                commentsNum.html(parseInt(commentsNum.html()) + 1);
+                                noteCommentTextarea.val("");
+                            });
+                        });
+                    }).css({
+                        maxHeight: content.height()
+                    }).on("click", ".note-like-button", function () {
+                        var likesNum = $(this).closest(".note-container").find(".likes-num");
+                        $.post("/tasks/clickLike/", {
+                            noteid: note.noteid
+                        }, function (data) {
+                            likesNum.html(data.n_like);
+                        });
+                    });
+            });
+            google.maps.event.addListener(infoWindow, 'closeclick', function () {
+                $(".top-bar,#note-form").show();
+                marker.setAnimation(null);
+            });
+            infoWindow.open(map, marker);
+        });
+    });
+}

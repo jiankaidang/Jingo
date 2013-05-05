@@ -117,9 +117,9 @@ def tasks(request, mode):
         data = User().postNote(request)
         return http_res.response(request, page, data, 'json')
 
-    if mode == 'searchNote':
+    if mode == 'searchNotes':
         page = 'response.html'
-        data = User().searchNote(request)
+        data = User().searchNotes(request)
         return http_res.response(request, page, data, 'json')
 
     if mode == 'postComment':
