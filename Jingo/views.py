@@ -47,7 +47,8 @@ def pages(request, mode):
 
     if mode == 'profile':
         if request.session.get('uid', False):
-            return http_res.response(request, 'profile.html', request.session['usrprofile'])
+            usr = request.session['usrdata']
+            return http_res.response(request, 'profile.html', dict([('stateslist', State().getUserStatesAndFiltersList(usr))]))
         else: 
             return redirect('/pages/login/')
             

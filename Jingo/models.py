@@ -137,7 +137,7 @@ class Filter(models.Model, HttpRequestResponser, Formatter):
             sys_tagid = row['sys_tagid'] 
             
             # this is a system tag
-            if tagid >= 0 and tagid <= 10:
+            if tagid >= 1 and tagid <= 10:
                 sysTags[tagid]['is_checked'] = row['is_checked']
                 
             # this is a child tag
@@ -191,7 +191,7 @@ class Filter(models.Model, HttpRequestResponser, Formatter):
         SQLExecuter().doInsertData(args)
 
     def addDefaultFilter(self, data):
-        for i in range(1, N_SYSTEM_TAGS):
+        for i in range(0, N_SYSTEM_TAGS):
             data['tagid'] = i
             values        = self.getDefaultFilterDataArray(data)
             self.addFilter(values)
@@ -423,14 +423,13 @@ class State(models.Model, HttpRequestResponser, Formatter):
         return State.objects.all().filter(uid=data['uid']).order_by('is_current').reverse().values()
 
     def getUserStatesAndFiltersList(self, data):
-        filt = Filter()
+        filt     = Filter()
         datalist = []
-        uslist = self.getUserStatesList(data)  # get user's all states
+        uslist   = self.getUserStatesList(data)  # get user's all states
+        print len(uslist)
         for state in uslist:
-            filterset = filt.getUserStateFilters(state)
+            filterset        = filt.getUserStateFilters(state)
             state['filters'] = filterset
-            print "now the state has"
-            print len(filterset)
             datalist.append(state)
         return datalist
 
