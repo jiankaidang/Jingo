@@ -566,7 +566,7 @@ class User(models.Model, HttpRequestResponser, Formatter):
         db_table = 'user'
 
     def setUserSession(self, request, usr):
-        request.session['uid'] = usr['uid']
+        request.session['uid']     = usr['uid']
         request.session['usrdata'] = usr
 
     def getNewUid(self):
@@ -617,28 +617,28 @@ class User(models.Model, HttpRequestResponser, Formatter):
         self.setUserSession(request, usr)
 
     def login(self, request):
-        if request.method != 'POST':
-            pass
-            # raise Http404('Only POSTs are allowed')
-        ##print request.session.get('uid', False)
+        message  = {}
+        result   = RESULT_FAIL
+        response = {}
+        
         if request.session.get('uid', False):
-            print 'you already logged in!'
-            return dict([('result', 'fail'), ('data', '')])
+            result = RESULT_SUCCESS
         else:
-            data = self.readData(request)
+            data  = self.readData(request)
             check = User.objects.filter(email=data['email']).values()
             if len(check) == 0:
-                message = MESSAGE_EMAIL_ERROR
-                return self.createResultSet(data, 'html', RESULT_FAIL, message)
-            else:
-                usr = self.simplifyObjToDateString(check)[0]
-                if usr['password'] == data['password']:
-                    self.setUserSession(request, usr)
-                    self.createResultSet(usr)
-                else:
-                    message = MESSAGE_PASSWORD_ERROR
-                    return self.createResultSet(data, 'html', RESULT_FAIL, message)
-
+                message['email'] = MESSAGE_EMAIL_ERROR
+                
+            if len(check) > 0 and check[0]['password'] != data['password']:
+                message['password'] = MESSAGE_PASSWORD_ERROR
+                
+            if len(check) > 0 and check[0]['password'] == data['password']:
+                result   = RESULT_SUCCESS
+                response = self.simplifyObjToDateString(check)
+                self.setUserSession(request, check[0])
+            
+        return self.createResultSet(response, 'html', result, message)
+    
     def logout(self, request):
         try:
             del request.session['uid']

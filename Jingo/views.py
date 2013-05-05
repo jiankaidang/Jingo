@@ -64,11 +64,11 @@ def tasks(request, mode):
         return redirect('/pages/profile/')
 
     if mode == 'login':
-        page = 'index.html'
         data = User().login(request)
-        if len(data['message']) > 0:
-            page = 'login.html'
-        return http_res.response(request, page, data)
+        if data['result']:
+            return redirect('index')
+        else:
+            return http_res.response(request, 'login.html', data)
 
     # API for profile settings
     if mode == 'setDefaultState':

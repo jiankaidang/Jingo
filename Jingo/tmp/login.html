@@ -5,6 +5,8 @@
         <form action="{% url 'tasks' mode='login' %}" method="post">
             {% csrf_token %}
             <h2>Please login</h2>
+            {% if message.email %} {{ message.email }} {% endif %}
+            {% if message.password %} {{ message.password }} {% endif %}
             <input type="text" class="input-block-level" placeholder="Email address" name="email">
             <input type="password" class="input-block-level" placeholder="Password" name="password">
             <button class="btn btn-large btn-primary" type="submit">Login</button>
