@@ -241,3 +241,8 @@ function dropMarker(note) {
         });
     });
 }
+if (true) {
+    setInterval(function () {
+        $(".icon-heart").toggleClass("icon-white");
+    }, 500);
+}
