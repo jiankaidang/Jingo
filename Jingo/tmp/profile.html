@@ -20,11 +20,9 @@
                 </div>
             {% endfor %}
         </div>
-        <a class="btn btn-link" href="{% url 'index' %}">Skip</a>
-        {% if request.session.uid %}
-            <a class="btn-link btn" href="{% url 'tasks' mode='logout' %}">Logout</a>
-            <a class="btn-link btn" href="{% url 'pages' mode='friends' %}">Friends</a>
-        {% endif %}
+        <a class="btn btn-link" href="{% url 'index' %}">Home</a>
+        <a class="btn-link btn" href="{% url 'pages' mode='friends' %}">Friends</a>
+        <a class="btn-link btn" href="{% url 'tasks' mode='logout' %}">Logout</a>
         <!-- Modal -->
         <div id="myModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
              aria-hidden="true">

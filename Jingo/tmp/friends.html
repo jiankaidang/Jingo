@@ -1,22 +1,59 @@
-<h2>You need to manually add friendship for testing. This page may still contain errors!</h2> 
-<div>
-<h3>friendslist: you have {{ n_friends }} friends in the list.</h3>
-<ul>
-{%for friend in friendslist %} 
-<li>{{ friend.u_name }}</li>
-{% endfor %}
-</ul>
-</div>
-<div>
-<h3>pendingslist: {{ n_pendings }} new friends request to follow your news.</h3>
-<ul>
-{%for friend in pendingslist %} 
-<li>
-<span>{{ friend.u_name }}</span>
-<span><button>accept</button></span>
-<span><button>deny</button></span>
-</li>
-{% endfor %}
-</ul>
-</div>
-<a href="{% url 'index' %}"> Home </a> | <a href="{% url 'pages' mode='profile' %}"> Profile </a> | <a href="{% url 'tasks' mode='logout' %}"> Logout </a>
+{% extends "base.html" %}
+{% load staticfiles %}
+{% block title %}Friends{% endblock title %}
+{% block css %}
+    <link href="{% static "css/friends.css" %}" rel="stylesheet">
+{% endblock css %}
+{% block content %}
+    <div class="container">
+        <h2>Friends</h2>
+
+        <div class="accordion" id="accordion2" data-uid="{{ request.session.uid }}">
+            <div class="accordion-group">
+                <div class="accordion-heading">
+                    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2"
+                       href="#collapse1">
+                        <span>Friends List<span class="badge badge-info pull-right">{{ n_friends }}</span></span>
+                    </a>
+                </div>
+                <div id="collapse1" class="accordion-body in collapse">
+                    <div class="accordion-inner">
+                        <ul class="unstyled">
+                            {% for friend in friendslist %}
+                                <li>
+                                    {{ friend.u_name }}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="accordion-group">
+                <div class="accordion-heading">
+                    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2"
+                       href="#collapse2">
+                        <span>Pending Requests<span
+                                class="badge badge-important pull-right">{{ n_pendings }}</span></span>
+                    </a>
+                </div>
+                <div id="collapse2" class="accordion-body collapse">
+                    <div class="accordion-inner">
+                        <ul class="unstyled">
+                            {% for friend in pendingslist %}
+                                <li>
+                                    {{ friend.u_name }}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <a class="btn btn-link" href="{% url 'index' %}">Home</a>
+        <a class="btn-link btn" href="{% url 'pages' mode='profile' %}">Profile</a>
+        <a class="btn-link btn" href="{% url 'tasks' mode='logout' %}">Logout</a>
+    </div>
+{% endblock content %}
+{% block js %}
+    <script src="{% static "js/friends.js" %}"></script>
+{% endblock js %}
