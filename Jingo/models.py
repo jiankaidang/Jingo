@@ -21,7 +21,6 @@ class Friend(models.Model, HttpRequestResponser, Formatter):
             return 1
         else:
             friend = Friend.objects.all().order_by('invitationid').latest('invitationid')
-            #print friend.invitationid
             return friend.invitationid + 1
 
     def getFriendsInvitations(self, input_uid):
@@ -32,13 +31,28 @@ class Friend(models.Model, HttpRequestResponser, Formatter):
 
     def addInvitation(self, data):
         newInvitationid = self.getNewInvitationid()
-        friend = Friend()
-        friend.uid = data['uid']
-        friend.f_uid = data['f_uid']
-        friend.is_friendship = 2                 # 0:denied, 1:accepted, 2:pending
-        friend.invitationid = newInvitationid
-        return Friend.objects.filter(invitationid=newInvitationid)
+        # 0:denied, 1:accepted, 2:pending
+        values          = [int(data['uid']), int(data['f_uid']), 2, newInvitationid]
+        args            = dict([('table', 'friend'), ('values', values)])
+        SQLExecuter().doInsertData(args)
+        
+        data['friendship']   = 'pending'
+        data['invitationid'] = newInvitationid
+        
+        return data
 
+    def responseInvitation(self, data):
+        Friend.objects.filter(invitationid=data['invitationid']).update(is_friendship=data['reply'])
+        data['friendship'] = data['reply']
+        return data
+    
+    def getFriendsInfoList(self, data):
+        flist = []
+        for friend in Friend.objects.filter(uid=data['uid'],is_friendship=data['is_friendship']).values():
+            fuser = User.objects.filter(uid=friend['f_uid']).values()[0]
+            flist.append(fuser)
+        return data
+    
     def checkFriendship(self, reader, poster):
         if Friend.objects.filter(uid=reader, f_uid=poster).count():
             return 1
@@ -65,16 +79,6 @@ class Comments(models.Model, HttpRequestResponser, Formatter):
 
     def addComment(self, data):
         newCommentid = self.getNewCommentid()
-        '''
-        nComment             = Comments()
-        nComment.commentid   = newCommentid
-        nComment.noteid      = Note(noteid=data['noteid'])
-        nComment.c_timestamp = timezone.now()
-        nComment.uid         = User(uid=data['uid'])
-        nComment.c_latitude  = data['c_latitude']
-        nComment.c_longitude = data['c_longitude']
-        nComment.comment     = data['comment']
-        '''
         data['c_longitude'] = "%.6f" % float(data['c_longitude'])
         data['c_latitude'] = "%.6f" % float(data['c_latitude'])
         values = [newCommentid, int(data['noteid']), timezone.now(), int(data['uid']), float(data['c_latitude']),
@@ -107,17 +111,18 @@ class Filter(models.Model, HttpRequestResponser, Formatter):
         db_table = 'filter'
 
     def categorizeFiltersIntoSystags(self, data, filterset):
-        result = []
+        result      = []
         tmp_sysTags = []
         #sysTags    = Tag().getUserSysTags(data)
         sysTags = Tag().getSysTags()
-        ##print "Here ==========>"
-        ##print sysTags
+        #print "Here ==========>"
+        #print sysTags
         for sys in sysTags:
             sys['tags'] = []
             sys['is_checked'] = 0
             tmp_sysTags.append(sys)
-
+        print "sys"
+        print len(tmp_sysTags)
         for sys in tmp_sysTags:
             for row in filterset:
                 tagid_id = row['tagid_id']
@@ -140,12 +145,14 @@ class Filter(models.Model, HttpRequestResponser, Formatter):
             tag = Tag.objects.get(tagid=tagid_id)
             row['tag_name'] = tag.tag_name
             row['sys_tagid'] = tag.sys_tagid
-            ##print row
+            print row
             result.append(row)
         return result
 
     def getUserStateFilters(self, data):
         filterset = Filter.objects.filter(uid_id=data['uid_id'], stateid=data['stateid']).values()
+        print "state filters"
+        print filterset
         filterset = self.extendFilterWithTagInfo(data, filterset)
         filterset = self.categorizeFiltersIntoSystags(data, filterset)
         if len(filterset) == 0:
@@ -427,14 +434,6 @@ class State(models.Model, HttpRequestResponser, Formatter):
         data = [stateid, STATE_NAME_DEFAULT, uid, is_current]
         args = dict([('table', 'State'), ('values', data)])
         SQLExecuter().doInsertData(args)
-        '''
-        state            = State()
-        state.state_name = STATE_NAME_DEFAULT
-        state.uid        = User(uid=input_uid)
-        state.is_current = is_current
-        state.stateid    = stateid
-        state.save();
-        '''
 
     def addState(self, request, mode='user-defined'):
 
@@ -709,7 +708,22 @@ class User(models.Model, HttpRequestResponser, Formatter):
 
                 return self.createResultSet(note)
 
-
+    def sendInvitation(self, request):
+        data = self.readData(request)
+        return Friend().addInvitation(data)
+    
+    def replyInvitation(self, request):
+        data = self.readData(request)
+        data = Friend().responseInvitation(data)
+        return self.createResultSet(data)
+    
+    def showFriendsList(self, request):
+        data      = self.readData(request)
+        flist     = Friend().getFriendsInfoList(data)
+        n_friends = len(flist)
+        data = dict([('friendslist', flist), ('n_friends', n_friends)])
+        return self.createResultSet(data)
+        
 class NoteFilter(HttpRequestResponser, Formatter):
     def __init__(self):
         self.sql = SQLExecuter()

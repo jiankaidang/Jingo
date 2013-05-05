@@ -152,8 +152,16 @@ def tasks(request, mode):
         data = User().readNote(request)
         return http_res.response(request, page, data)
 
-    # API for Tag settings
-    if mode == 'getUserTagsList':
+    # API for Friendship settings
+    if mode == 'sendInvitation':
         page = 'response.html'
-        data = Tag().getUserTagsList(request)
+        data = User().sendInvitation(request)
+        return http_res.response(request, page, data, 'json')
+    if mode == 'replyInvitation':
+        page = 'response.html'
+        data = User().replyInvitation(request)
+        return http_res.response(request, page, data, 'json')
+    if mode == 'showFriendsList':
+        page = 'response.html'
+        data = User().showFriendsList(request)
         return http_res.response(request, page, data, 'json')
