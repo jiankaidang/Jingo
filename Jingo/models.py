@@ -31,7 +31,7 @@ class Friend(models.Model, HttpRequestResponser, Formatter):
 
     def addInvitation(self, data):
         newInvitationid = self.getNewInvitationid()
-        # 0:denied, 1:accepted, 2:pending
+        # 0:denied, 1:accepted, 2:pending, 3:cancel
         values          = [int(data['uid']), int(data['f_uid']), 2, newInvitationid]
         args            = dict([('table', 'friend'), ('values', values)])
         SQLExecuter().doInsertData(args)
@@ -49,11 +49,13 @@ class Friend(models.Model, HttpRequestResponser, Formatter):
     def getFriendsInfoList(self, data):
         flist = []
         for friend in Friend.objects.filter(uid=data['uid'],is_friendship=data['is_friendship']).values():
-            fuser = User.objects.filter(uid=friend['f_uid_id']).values()[0]
+            fuser                 = User.objects.filter(uid=friend['f_uid_id']).values()[0]
+            fuser['invitationid'] = friend['invitationid']
             flist.append(fuser)
         
         for friend in Friend.objects.filter(f_uid=data['uid'],is_friendship=data['is_friendship']).values():
-            fuser = User.objects.filter(uid=friend['uid_id']).values()[0]
+            fuser                 = User.objects.filter(uid=friend['uid_id']).values()[0]
+            fuser['invitationid'] = friend['invitationid']
             flist.append(fuser)
             
         return flist
@@ -63,6 +65,11 @@ class Friend(models.Model, HttpRequestResponser, Formatter):
             return 1
         return 0
 
+    def cancelFriendship(self, data):
+        Friend.objects.filter(uid=data['uid'], f_uid=data['f_uid'], is_friendship=1).update(is_friendship=3)
+        Friend.objects.filter(uid=data['f_uid'], f_uid=data['uid'], is_friendship=1).update(is_friendship=3)
+        return data
+        
 class Comments(models.Model, HttpRequestResponser, Formatter):
     commentid = models.IntegerField(primary_key=True)
     noteid = models.ForeignKey('Note', db_column='noteid')
@@ -103,61 +110,58 @@ class Comments(models.Model, HttpRequestResponser, Formatter):
 
 
 class Filter(models.Model, HttpRequestResponser, Formatter):
-    stateid = models.ForeignKey('State', db_column='stateid', primary_key=True)
-    tagid = models.ForeignKey('Tag', db_column='tagid', primary_key=True)
+    stateid      = models.ForeignKey('State', db_column='stateid', primary_key=True)
+    tagid        = models.ForeignKey('Tag', db_column='tagid', primary_key=True)
     f_start_time = models.DateTimeField(null=True, blank=True)
-    f_stop_time = models.DateTimeField(null=True, blank=True)
-    f_repeat = models.IntegerField(null=True, blank=True)
+    f_stop_time  = models.DateTimeField(null=True, blank=True)
+    f_repeat     = models.IntegerField(null=True, blank=True)
     f_visibility = models.IntegerField()
-    uid = models.ForeignKey('State', db_column='uid', primary_key=True)
-    is_checked = models.IntegerField(null=True, blank=True)
+    uid          = models.ForeignKey('State', db_column='uid', primary_key=True)
+    is_checked   = models.IntegerField(null=True, blank=True)
 
     class Meta:
         db_table = 'filter'
 
     def categorizeFiltersIntoSystags(self, data, filterset):
-        result      = []
-        tmp_sysTags = []
-        #sysTags    = Tag().getUserSysTags(data)
-        sysTags = Tag().getSysTags()
-        #print "Here ==========>"
-        #print sysTags
+        result, sysTags = [[], {}]
+        
+        # get default system tags
+        for sys in Tag().getSysTags():
+            sys['tags']           = []
+            sys['is_checked']     = 0
+            sysTags[sys['tagid']] = sys
+        
+        # categorize each filter into the right system tag as a child tag
+        for row in filterset:
+            tagid     = row['tagid_id']
+            sys_tagid = row['sys_tagid'] 
+            
+            # this is a system tag
+            if tagid >= 0 and tagid <= 10:
+                sysTags[tagid]['is_checked'] = row['is_checked']
+                
+            # this is a child tag
+            if tagid > 10:
+                sysTags[sys_tagid]['is_checked'] = row['is_checked']
+                sysTags[sys_tagid]['tags'].append(row)
+        
         for sys in sysTags:
-            sys['tags'] = []
-            sys['is_checked'] = 0
-            tmp_sysTags.append(sys)
-        print "sys"
-        print len(tmp_sysTags)
-        for sys in tmp_sysTags:
-            for row in filterset:
-                tagid_id = row['tagid_id']
-
-                if sys['tagid'] == tagid_id and (tagid_id >= 0 and tagid_id <= 10):
-                    sys['is_checked'] = row['is_checked']
-
-                if tagid_id > 10 and sys['tagid'] == row['sys_tagid']:
-                    sys['is_checked'] = 1
-                    sys['tags'].append(row)
-                    ##print "result row ================"
-                    ##print sys
-            result.append(sys)
+            result.append(sysTags[sys])
+        
         return result
 
     def extendFilterWithTagInfo(self, data, filterset):
         result = []
         for row in filterset:
-            tagid_id = row['tagid_id']
-            tag = Tag.objects.get(tagid=tagid_id)
-            row['tag_name'] = tag.tag_name
+            tagid_id         = row['tagid_id']
+            tag              = Tag.objects.get(tagid=tagid_id)
+            row['tag_name']  = tag.tag_name
             row['sys_tagid'] = tag.sys_tagid
-            print row
             result.append(row)
         return result
 
     def getUserStateFilters(self, data):
         filterset = Filter.objects.filter(uid_id=data['uid_id'], stateid=data['stateid']).values()
-        print "state filters"
-        print filterset
         filterset = self.extendFilterWithTagInfo(data, filterset)
         filterset = self.categorizeFiltersIntoSystags(data, filterset)
         if len(filterset) == 0:
@@ -167,8 +171,7 @@ class Filter(models.Model, HttpRequestResponser, Formatter):
             return filterset
 
     def getDefaultFilterDataArray(self, data):
-        return [int(data['stateid']), data['tagid'], N_START_TIME, N_STOP_TIME, 1, 0, int(data['uid']),
-                IS_CHECKED_DEFAULT]
+        return [int(data['stateid']), data['tagid'], N_START_TIME, N_STOP_TIME, 1, 0, int(data['uid']),IS_CHECKED_DEFAULT]
 
     def addFilterAndTag(self, request):
         data = self.readData(request)
@@ -188,9 +191,9 @@ class Filter(models.Model, HttpRequestResponser, Formatter):
         SQLExecuter().doInsertData(args)
 
     def addDefaultFilter(self, data):
-        for i in range(0, N_SYSTEM_TAGS):
+        for i in range(1, N_SYSTEM_TAGS):
             data['tagid'] = i
-            values = self.getDefaultFilterDataArray(data)
+            values        = self.getDefaultFilterDataArray(data)
             self.addFilter(values)
         return i
 
@@ -202,7 +205,7 @@ class Filter(models.Model, HttpRequestResponser, Formatter):
                               {'field': 'stateid', 'logic': 'And'}]
         args['values'] = [data['tagid'], data['uid'], data['stateid']]
         SQLExecuter().doDeleteData(args)
-        return self.createResultSet(data, 'json')
+        return self.createResultSet(data)
 
     def updateFilter(self, request):
         data = self.readData(request)
@@ -213,7 +216,7 @@ class Filter(models.Model, HttpRequestResponser, Formatter):
         Filter.objects.filter(stateid=data['stateid'], uid=data['uid'], tagid=data['tagid']).update(
             f_start_time=data['f_start_time'], f_stop_time=data['f_stop_time'], f_repeat=data['f_repeat'],
             f_visibility=data['f_visibility'])
-        return self.createResultSet(data, 'json')
+        return self.createResultSet(data)
 
     def activateFilter(self, request):
         data = self.readData(request)
@@ -223,7 +226,7 @@ class Filter(models.Model, HttpRequestResponser, Formatter):
             self.addFilter(values)
         else:
             objFilter.update(is_checked=data['is_checked'])
-        return self.createResultSet(data, 'json')
+        return self.createResultSet(data)
 
     def retrieveFilter(self, request):
         data = self.readData(request)
@@ -423,17 +426,19 @@ class State(models.Model, HttpRequestResponser, Formatter):
         filt = Filter()
         datalist = []
         uslist = self.getUserStatesList(data)  # get user's all states
-        for row in uslist:
-            filterset = filt.getUserStateFilters(row)
-            row['filters'] = filterset
-            datalist.append(row)
+        for state in uslist:
+            filterset = filt.getUserStateFilters(state)
+            state['filters'] = filterset
+            print "now the state has"
+            print len(filterset)
+            datalist.append(state)
         return datalist
 
     def setDefaultState(self, request):
         data = self.readData(request)
         State.objects.all().update(is_current=0)
         State.objects.filter(stateid=data['stateid'], uid=data['uid']).update(is_current=1)
-        return self.createResultSet(data, 'json')
+        return self.createResultSet(data)
 
     def insertState(self, uid, is_current, stateid):
         data = [stateid, STATE_NAME_DEFAULT, uid, is_current]
@@ -463,12 +468,12 @@ class State(models.Model, HttpRequestResponser, Formatter):
         args['attributes'] = [{'field': 'stateid', 'logic': 'And'}, {'field': 'uid', 'logic': 'And'}]
         args['values'] = [data['stateid'], data['uid']]
         SQLExecuter().doDeleteData(args)
-        return self.createResultSet(data, 'json')
+        return self.createResultSet(data)
 
     def updateState(self, request):
         data = self.readData(request)
         State.objects.filter(stateid=data['stateid'], uid=data['uid']).update(state_name=data['state_name'])
-        return self.createResultSet(data, 'json')
+        return self.createResultSet(data)
 
 
 class Tag(models.Model, HttpRequestResponser, Formatter):
@@ -480,7 +485,9 @@ class Tag(models.Model, HttpRequestResponser, Formatter):
     class Meta:
         db_table = 'tag'
 
-    def getSysTags(self):
+    def getSysTags(self, type='omit'):
+        if type == 'omit':
+            return Tag.objects.order_by('tagid').filter(tagid__gte=1, tagid__lte=10).values()
         return Tag.objects.order_by('tagid').filter(tagid__gte=0, tagid__lte=10).values()
 
     def getNewTagid(self):
@@ -504,13 +511,13 @@ class Tag(models.Model, HttpRequestResponser, Formatter):
             result.append(sys)
         return result
 
-    def getUserTagsList(self, request, returnType='html'):
+    def getUserTagsList(self, request):
         data = self.readData(request)
         data['uid'] = '1'
         taglist = list(Tag.objects.filter(uid=data['uid']).order_by('tagid').values())
         defaultlist = list(Tag.objects.filter(uid=None).order_by('tagid').values())
         data = dict([('tagslist', taglist + defaultlist)])
-        return self.createResultSet(data, returnType)
+        return self.createResultSet(data)
 
     def getUserCategoryTagsList(self, data):
         tmp = []
@@ -547,12 +554,12 @@ class Tag(models.Model, HttpRequestResponser, Formatter):
         args['attributes'] = [{'field': 'stateid', 'logic': 'And'}, {'field': 'uid', 'logic': 'And'}]
         args['values'] = [data['tagid'], data['uid']]
         SQLExecuter().doDeleteData(args)
-        return self.createResultSet(data, 'json')
+        return self.createResultSet(data)
 
     def updateTag(self, request):
         data = self.readData(request)
         data = Tag.objects.filter(tagid=data['tagid'], uid=data['uid']).update(state_name=data['tag_name'])
-        return self.createResultSet(data, 'json')
+        return self.createResultSet(data)
 
 
 class User(models.Model, HttpRequestResponser, Formatter):
@@ -566,8 +573,10 @@ class User(models.Model, HttpRequestResponser, Formatter):
         db_table = 'user'
 
     def setUserSession(self, request, usr):
-        request.session['uid']     = usr['uid']
-        request.session['usrdata'] = usr
+        data                          = self.getUserProfile(usr)
+        request.session['uid']        = usr['uid']
+        request.session['usrdata']    = data['usr']
+        request.session['usrprofile'] = data
 
     def getNewUid(self):
         if len(User.objects.all().values()) == 0:
@@ -595,37 +604,44 @@ class User(models.Model, HttpRequestResponser, Formatter):
         return User.objects.filter(email=data['email']).values()
 
     def signup(self, request):
-        result = RESULT_SUCCESS
-        message = []
-        verifier = DataVerifier()
-        data = self.readData(request)
+        message, result, response = [{}, RESULT_FAIL, {}]
+        verifier                  = DataVerifier()
+        data                      = self.readData(request)
+        
+        if len(data) == 0:
+            message['error'] = MESSAGE_REQUEST_ERROR
+        else: 
+            if not verifier.isValidFormat(data['email'], 'email'):
+                message['email'] = 'The email address is invalid.'
 
-        if not verifier.isValidFormat(data['email'], 'email'):
-            message.append('The email address is invalid.')
-            result = 'fail'
+            if not verifier.isEmailUnique(User.objects, data['email']):
+                message['email'] = 'The email address is already taken.'
 
-        if not verifier.isEmailUnique(User.objects, data['email']):
-            message.append('The email address is already taken.')
-            result = 'fail'
-
-        usr = self.simplifyObjToDateString(self.addUser(data))[0]
-        usr['state_name'] = STATE_NAME_DEFAULT
-        state = State().addState(usr, 'default')[0]
-        state['uid'] = state['uid_id']
-        ufilter = Filter().addDefaultFilter(state)
-
-        self.setUserSession(request, usr)
+        if len(message) == 0:
+            result                 = RESULT_SUCCESS
+            response               = self.simplifyObjToDateString(self.addUser(data))[0]
+            response['state_name'] = STATE_NAME_DEFAULT
+            state                  = State().addState(response, 'default')[0]
+            state['uid']           = state['uid_id']
+            ufilter                = Filter().addDefaultFilter(state)
+            self.setUserSession(request, response)
+        
+        return self.createResultSet(response, result, message)
 
     def login(self, request):
-        message  = {}
-        result   = RESULT_FAIL
-        response = {}
+        message, result, response = [{}, RESULT_FAIL, {}]
         
         if request.session.get('uid', False):
             result = RESULT_SUCCESS
         else:
+            check = []
             data  = self.readData(request)
-            check = User.objects.filter(email=data['email']).values()
+            
+            if len(data) == 0:
+                message['error'] = MESSAGE_REQUEST_ERROR
+            else:
+                check = User.objects.filter(email=data['email']).values()
+                
             if len(check) == 0:
                 message['email'] = MESSAGE_EMAIL_ERROR
                 
@@ -634,10 +650,10 @@ class User(models.Model, HttpRequestResponser, Formatter):
                 
             if len(check) > 0 and check[0]['password'] == data['password']:
                 result   = RESULT_SUCCESS
-                response = self.simplifyObjToDateString(check)
-                self.setUserSession(request, check[0])
+                response = self.simplifyObjToDateString(check)[0]
+                self.setUserSession(request, response)
             
-        return self.createResultSet(response, 'html', result, message)
+        return self.createResultSet(response, result, message)
     
     def logout(self, request):
         try:
@@ -645,17 +661,16 @@ class User(models.Model, HttpRequestResponser, Formatter):
             request.session.clear()
         except KeyError:
             message = LOGOUT_FAIL
-            return self.createResultSet({}, 'html', RESULT_FAIL, message)
+            return self.createResultSet({}, RESULT_FAIL, message)
         message = LOGOUT_SUCCESS
-        return self.createResultSet({}, 'html', RESULT_SUCCESS, message)
+        return self.createResultSet({}, RESULT_SUCCESS, message)
 
-    def getUserProfile(self, request):
-        uid = request.session['uid']
-        usr = self.getUserData(uid)
-        data = dict([('user', usr), ('stateslist', State().getUserStatesAndFiltersList(usr))])
-        ##print data
-        return self.createResultSet(data)
-
+    def getUserProfile(self, data):
+        uid  = data['uid']
+        usr  = self.getUserData(uid)
+        data = dict([('usr', usr), ('stateslist', State().getUserStatesAndFiltersList(usr))])
+        return data
+    
     def postNote(self, request):
         dataset = []
         data = self.readData(request)
@@ -713,9 +728,15 @@ class User(models.Model, HttpRequestResponser, Formatter):
 
                 return self.createResultSet(note)
 
+    def unfollow(self, request):
+        data = self.readData(request)
+        Friend().cancelFriendship(data)
+        return self.createResultSet(data)
+    
     def sendInvitation(self, request):
         data = self.readData(request)
-        return Friend().addInvitation(data)
+        data = Friend().addInvitation(data)
+        return self.createResultSet(data)
     
     def replyInvitation(self, request):
         data = self.readData(request)

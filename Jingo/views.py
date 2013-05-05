@@ -29,27 +29,33 @@ def admin(request):
     page = 'admin.html'
     return http_res.response(request, page)
 
+def isRedirect(request, target='index'):
+    if request.session.get('uid', False):
+        return redirect(target)
+    return False
+
 # redirect to specific pages
 def pages(request, mode):
-    data = {}
     if mode == 'signup':
-        page = 'signup.html'
+        return http_res.response(request, 'signup.html')
 
     if mode == 'login':
-        page = 'login.html'
+        if request.session.get('uid', False):
+            return redirect('index')
+        else:
+            return http_res.response(request, 'login.html')
 
     if mode == 'profile':
-        page = 'profile.html'
-        #page = 'response.html'
         if request.session.get('uid', False):
-            data = User().getUserProfile(request)
-        else:
-            page = 'login.html'
+            return http_res.response(request, 'profile.html', request.session['usrprofile'])
+        else: 
+            return redirect('/pages/login/')
+            
     if mode == 'friends':
-        page = 'friends.html'
-        data = User().initFriendArea(request)
-        
-    return http_res.response(request, page, data)
+        if request.session.get('uid', False):
+            return http_res.response(request, 'friends.html', User().initFriendArea(request))
+        else: 
+            return redirect('/pages/login/')
 
 # deal with AJAX request and database access
 def tasks(request, mode):
@@ -61,7 +67,10 @@ def tasks(request, mode):
     if mode == 'signup':
         page = 'profile.html'
         data = User().signup(request)
-        return redirect('/pages/profile/')
+        if data['result']:
+            return redirect('/pages/profile/')
+        else:
+            return http_res.response(request, 'signup.html', data)
 
     if mode == 'login':
         data = User().login(request)
