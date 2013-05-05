@@ -1,5 +1,4 @@
-var map;
-var fakeMarker;
+var map, fakeMarker, uid = $("#uid").val();
 function initialize() {
     var mapOptions = {
         zoom: 16,
@@ -143,7 +142,7 @@ $("#accordion2").on("click", ".add-tag",function () {
 $("#searchBtn").click(function () {
     getMarkerPosition(function (latLng) {
         $.post("/tasks/searchNotes/", {
-            uid: $("#uid").val(),
+            uid: uid,
             keywords: $("#searchMaps").val(),
             u_latitude: latLng.lat(),
             u_longitude: latLng.lng()
@@ -164,7 +163,7 @@ function renderNoteList(data) {
 }
 function receiveNotes(latLng) {
     $.post("/tasks/receiveNotes/", {
-        uid: $("#uid").val(),
+        uid: uid,
         u_latitude: latLng.lat(),
         u_longitude: latLng.lng()
     }, renderNoteList);
@@ -224,12 +223,30 @@ function dropMarker(note) {
                         });
                     }).css({
                         maxHeight: content.height()
-                    }).on("click", ".note-like-button", function () {
+                    }).on("click", ".note-like-button",function () {
                         var likesNum = $(this).closest(".note-container").find(".likes-num");
                         $.post("/tasks/clickLike/", {
                             noteid: note.noteid
                         }, function (data) {
                             likesNum.html(data.n_like);
+                        });
+                    }).on("click", ".follow-friend",function () {
+                        var followFriendBtn = $(this), requestPendingBtn = followFriendBtn.next(".request-pending");
+                        $.post("/tasks/sendInvitation/", {
+                            uid: uid,
+                            f_uid: $(this).closest(".note-container").attr("poster-uid")
+                        }, function () {
+                            followFriendBtn.hide();
+                            requestPendingBtn.show();
+                        });
+                    }).on("click", ".unfollow-friend", function () {
+                        var unfollowFriendBtn = $(this), followFriendBtn = unfollowFriendBtn.prev(".follow-friend");
+                        $.post("/tasks/unfollow/", {
+                            uid: uid,
+                            f_uid: $(this).closest(".note-container").attr("poster-uid")
+                        }, function () {
+                            unfollowFriendBtn.hide();
+                            followFriendBtn.show();
                         });
                     });
             });

@@ -1,9 +1,12 @@
-<div class="container note-container">
+<div class="container note-container" poster-uid="{{ poster.uid }}">
     <div>{{ poster.u_name }}
         {% if is_friendship %}
-            <button class="btn btn-mini follow-friend" type="button">Follow</button>{% endif %}
+            <button class="btn btn-mini follow-friend btn-primary" type="button">Follow</button>
+        {% endif %}
         {% if is_friendship %}
-            <button class="btn btn-mini follow-friend btn-danger" type="button">Unfollow</button>{% endif %}
+            <button class="btn btn-mini unfollow-friend btn-danger" type="button">Unfollow</button>
+        {% endif %}
+        <button class="btn btn-mini btn-info disabled request-pending" type="button">Friend request pending</button>
     </div>
     <div><span class="muted note-time">{{ n_timestamp }}</span>
         {% if n_visibility == 0 %}<i class="icon-globe"></i>{% endif %}
