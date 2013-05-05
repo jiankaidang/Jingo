@@ -622,7 +622,7 @@ class User(models.Model, HttpRequestResponser, Formatter):
             # raise Http404('Only POSTs are allowed')
         ##print request.session.get('uid', False)
         if request.session.get('uid', False):
-            #print 'you already logged in!'
+            print 'you already logged in!'
             return dict([('result', 'fail'), ('data', '')])
         else:
             data = self.readData(request)

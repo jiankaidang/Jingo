@@ -66,6 +66,8 @@ def tasks(request, mode):
     if mode == 'login':
         page = 'index.html'
         data = User().login(request)
+        if len(data['message']) > 0:
+            page = 'login.html'
         return http_res.response(request, page, data)
 
     # API for profile settings
