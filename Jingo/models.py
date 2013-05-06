@@ -27,7 +27,9 @@ class Friend(models.Model, HttpRequestResponser, Formatter):
         return Friend.objects.filter(uid=input_uid, is_friendship=2).order_by('invitationid').values()
 
     def getFriendsList(self, data):
-        return list(Friend.objects.filter(uid=data['uid'], is_friendship=1).order_by('invitationid').values('f_uid'))
+        alist = list(Friend.objects.filter(uid=data['uid'], is_friendship=1).order_by('invitationid').values('f_uid'))
+        blist = list(Friend.objects.filter(f_uid=data['uid'], is_friendship=1).order_by('invitationid').values('uid'))
+        return alist + blist
 
     def addInvitation(self, data):
         newInvitationid = self.getNewInvitationid()
@@ -126,7 +128,7 @@ class Filter(models.Model, HttpRequestResponser, Formatter):
         result, sysTags = [[], {}]
         
         # get default system tags
-        for sys in Tag().getSysTags():
+        for sys in Tag().getSysTags('include'):
             sys['tags']           = []
             sys['is_checked']     = 0
             sysTags[sys['tagid']] = sys
@@ -137,7 +139,7 @@ class Filter(models.Model, HttpRequestResponser, Formatter):
             sys_tagid = row['sys_tagid'] 
             
             # this is a system tag
-            if tagid >= 1 and tagid <= 10:
+            if tagid >= 0 and tagid <= 10:
                 sysTags[tagid]['is_checked'] = row['is_checked']
                 
             # this is a child tag
@@ -213,9 +215,19 @@ class Filter(models.Model, HttpRequestResponser, Formatter):
             data['f_repeat'] = 1
         else:
             data['f_repeat'] = 0
+        
+        args               = {}
+        args['table']      = 'Filter'
+        args['attributes'] = ['f_start_time', 'f_stop_time', 'f_repeat', 'f_visibility']
+        args['values']     = [data['f_start_time'], data['f_stop_time'], data['f_repeat'], data['f_visibility'], data['stateid'], data['uid'], data['tagid']]
+        args['conditions'] = [{'field':'stateid', 'logic': 'And'}, {'field':'uid', 'logic': 'And'}, {'field':'tagid','logic': 'And'}]
+        SQLExecuter().doUpdateData(args)
+        
+        '''
         Filter.objects.filter(stateid=data['stateid'], uid=data['uid'], tagid=data['tagid']).update(
             f_start_time=data['f_start_time'], f_stop_time=data['f_stop_time'], f_repeat=data['f_repeat'],
             f_visibility=data['f_visibility'])
+            '''
         return self.createResultSet(data)
 
     def activateFilter(self, request):
@@ -818,44 +830,98 @@ class NoteFilter(HttpRequestResponser, Formatter):
         return result
 
     def filterByTime(self, uProfile, noteslist, currenttime):
-        result = []
-        sys_tagset = []
+        result      = []
+        sys_tagset  = []
         currenttime = datetime.datetime.strptime(currenttime, '%Y-%m-%d %H:%M:%S')
 
         for filter in uProfile:
             if filter['f_repeat']:
                 current = currenttime.strftime('%H:%M:%S')
-                start = filter['f_start_time'].strftime('%H:%M:%S')
-                end = filter['f_stop_time'].strftime('%H:%M:%S')
+                start   = filter['f_start_time'].strftime('%H:%M:%S')
+                end     = filter['f_stop_time'].strftime('%H:%M:%S')
             else:
                 current = currenttime.strftime('%Y-%m-%d %H:%M:%S')
-                start = filter['f_start_time']
-                end = filter['f_stop_time']
-
+                start   = filter['f_start_time']
+                end     = filter['f_stop_time']
+            print "current %s" % current
+            print "start %s" % start
+            print "end %s" % end
             if current >= start and current <= end:
                 sys_tagset.append(filter['sys_tagid'])
+                
+        print "active sys_tagset"
+        print sys_tagset
 
         for note in noteslist:
+            print "note " + str(note['noteid']) + " has sys:" + str(note['sys_tagid'])
             if note['sys_tagid'] in sys_tagset:
+                print "note " + str(note['noteid']) + " passed"
                 result.append(note)
         return result
 
     def filterByVisibility(self, data, uProfile, noteslist):
         friendslist = Friend().getFriendsList(data)
+        print "friendslist"
+        print friendslist
         # generalize visibility of user tags based on sys_tags
         sys_visset = {}
         result = []
+        print "current uProfile"
+        print uProfile
         for ufilter in uProfile:
-            sys_tag = ufilter['sys_tagid']
+            sys_tag    = ufilter['sys_tagid']
             visibility = ufilter['f_visibility']
             if (sys_tag in sys_visset and sys_visset[sys_tag] < visibility) or (sys_tag not in sys_visset):
                 sys_visset[sys_tag] = visibility
+        print "visibility of sys_tag"
+        print sys_visset
 
         for note in noteslist:
+            print "with sys:" + str(note['sys_tagid']) + ", note " + str(note['noteid']) + " has vis:" + str(note['n_visibility']) + " while user has vis:" + str(sys_visset[note['sys_tagid']])
+            case_a, case_b, case_c, case_d, case_e, case_f, case_g = [False, False, False, False, False, False, False]
+            if note['sys_tagid'] in sys_visset:
+                # if both of them have visibilities of public
+                if sys_visset[note['sys_tagid']] == 0 and note['n_visibility'] == 0:
+                    case_a = True
+                    print "note " + str(note['noteid']) + " passed because of case_a"
+                
+                if sys_visset[note['sys_tagid']] == 0 and note['n_visibility'] == 1:
+                    case_b = True
+                    print "note " + str(note['noteid']) + " passed because of case_b"   
+                    
+                if sys_visset[note['sys_tagid']] == 0 and note['n_visibility'] == 2 and note['uid'] == data['uid']:
+                    case_c = True
+                    print "note " + str(note['noteid']) + " passed because of case_c"
+                    
+                if sys_visset[note['sys_tagid']] == 1 and note['n_visibility'] == 0 and not (note['uid'] != data['uid'] and note['uid'] not in friendslist):
+                    case_d = True
+                    print "note " + str(note['noteid']) + " passed because of case_d"    
+                    
+                if sys_visset[note['sys_tagid']] == 1 and note['n_visibility'] == 1 and not (note['uid'] != data['uid'] and note['uid'] not in friendslist):
+                    case_e = True
+                    print "note " + str(note['noteid']) + " passed because of case_e"  
+                
+                if sys_visset[note['sys_tagid']] == 1 and note['n_visibility'] == 2 and note['uid'] == data['uid']:
+                    case_f = True
+                    print "note " + str(note['noteid']) + " passed because of case_f" 
+                
+                # if reader has private and he is poster also
+                print data['uid']
+                print note['uid']
+                if sys_visset[note['sys_tagid']] == 2 and str(note['uid']) == str(data['uid']):
+                    case_g = True
+                    print "note " + str(note['noteid']) + " passed because of case_g" 
+                    
+                if case_a or case_b or case_c or case_d or case_e or case_f or case_g:
+                    result.append(note)
+                    
+                    '''
             if note['sys_tagid'] in sys_visset and sys_visset[note['sys_tagid']] == note['n_visibility']:
                 if (note['n_visibility'] == 1 and note['uid'] in friendslist) or note['n_visibility'] == 0:
                     result.append(note)
-
+                    '''
+        print "after visibility"
+        print result
         return result
 
     def filterByLocation(self, data, noteslist):

@@ -54,13 +54,23 @@ class SQLExecuter:
 			strValues += attr['field'] + '=%s ' + attr['logic'] + ' '
 			last_logic = len(attr['logic']) + 1
 		return strValues[:len(strValues)-last_logic]
-	'''
+	
 	def getUpdateString(self, args):
+		result = {}
 		strValues  = ''
 		for attr in args['attributes']:
 			strValues += attr + '=%s, '
-		return strValues[:len(strValues)-last_logic]
-'''
+		result['fields'] = strValues[:len(strValues) - 2]
+		
+		strConditions = ''
+		last_logic = 0
+		for attr in args['conditions']:
+			strConditions += attr['field'] + '=%s ' + attr['logic'] + ' '
+			last_logic = len(attr['logic']) + 1
+		result['conditions'] = strConditions[:len(strConditions) - last_logic]
+		
+		return result
+	
 	def doInsertData(self, args):
 		strValues = self.getInsertString(args)
 		strSQL    = "Insert Into " + args['table'] + " Values (" + strValues + ")"
@@ -77,8 +87,8 @@ class SQLExecuter:
 	
 	def doUpdateData(self, args):
 		strValues = self.getUpdateString(args)
-		strSQL    = "Update " + args['table'] + "Set " + strValues['fields'] + " Where " + strValues
-		#print strSQL
+		strSQL    = "Update " + args['table'] + " Set " + strValues['fields'] + " Where " + strValues['conditions']
+		print strSQL
 		self.cursor.execute(strSQL, args['values'])
 		transaction.commit_unless_managed()
 		
