@@ -103,5 +103,10 @@ class SQLExecuter:
 	
 	def doRawSQL(self, strSQL, args=[]):
 		print strSQL
-		self.cursor.execute(strSQL, args)
+		if len(args) == 0:
+			self.cursor.execute(strSQL)
+		else:
+			self.cursor.execute(strSQL, args)
+		print "after query====>"
+		print self.cursor._executed
 		return self.dictfetchall(self.cursor)

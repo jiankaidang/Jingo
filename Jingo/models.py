@@ -1,5 +1,5 @@
 from __future__ import unicode_literals
-import datetime
+import datetime, string
 from math import radians, cos, sin, asin, sqrt
 from django.utils import timezone
 from django.db import models
@@ -799,16 +799,31 @@ class NoteFilter(HttpRequestResponser, Formatter):
             result.append(row[key])
         return result
 
-    '''
-    def getKeywordset(self, data):
-        (a.note like %s Or c.tag_name like %s)
-    '''
+    
+    def getKeywordString(self, data):
+        result, keywordset, sql = [{}, [], '']
+        keywords = string.split(data['keywords'], ' ')
+        for word in keywords:
+            keywordset.append('%' + word + '%')
+            keywordset.append('%' + word + '%')
+            sql += '(a.note like %s Or c.tag_name like %s) And '
+        
+        result['sql']        = '(' + sql[:len(sql) - 5] + ')'
+        result['keywords']   = keywordset
+        result['n_keywords'] = len(keywordset)
+        return result
+    
     def getNoteInfoListByKewords(self, data, currenttime):
-        data['keywords'] = '%' + data['keywords'] + '%'
-        strSQL = "Select a.*, b.tagid, c.sys_tagid, c.tag_name, d.n_start_time, d.n_stop_time, n_repeat From note as a, note_tag as b, tag as c, (Select * From note_time Where %s between n_start_time And n_stop_time And n_repeat=0) as d Where a.noteid=b.noteid And b.tagid=c.tagid And a.noteid=d.noteid And (a.note like %s Or c.tag_name like %s) Union Select a.*, b.tagid, c.sys_tagid, c.tag_name, d.n_start_time, d.n_stop_time, n_repeat From note as a, note_tag as b, tag as c, (Select * From note_time Where %s between n_start_time And n_stop_time And n_repeat=1) as d Where a.noteid=b.noteid And b.tagid=c.tagid And a.noteid=d.noteid And (a.note like %s Or c.tag_name like %s)"
-        noteslist = self.sql.doRawSQL(strSQL,
-                                      [currenttime, data['keywords'], data['keywords'], currenttime, data['keywords'],
-                                       data['keywords']])
+        #data['keywords'] = '%' + data['keywords'] + '%'
+        keywordset  = self.getKeywordString(data)
+        #strSQL = "Select a.*, b.tagid, c.sys_tagid, c.tag_name, d.n_start_time, d.n_stop_time, n_repeat From note as a, note_tag as b, tag as c, (Select * From note_time Where %s between n_start_time And n_stop_time And n_repeat=0) as d Where a.noteid=b.noteid And b.tagid=c.tagid And a.noteid=d.noteid And (a.note like %s Or c.tag_name like %s) Union Select a.*, b.tagid, c.sys_tagid, c.tag_name, d.n_start_time, d.n_stop_time, n_repeat From note as a, note_tag as b, tag as c, (Select * From note_time Where %s between n_start_time And n_stop_time And n_repeat=1) as d Where a.noteid=b.noteid And b.tagid=c.tagid And a.noteid=d.noteid And (a.note like %s Or c.tag_name like %s)"
+        strSQL      = "Select a.*, b.tagid, c.sys_tagid, c.tag_name, d.n_start_time, d.n_stop_time, n_repeat From note as a, note_tag as b, tag as c, (Select * From note_time Where %s between n_start_time And n_stop_time And n_repeat=0) as d Where a.noteid=b.noteid And b.tagid=c.tagid And a.noteid=d.noteid And %s Union Select a.*, b.tagid, c.sys_tagid, c.tag_name, d.n_start_time, d.n_stop_time, n_repeat From note as a, note_tag as b, tag as c, (Select * From note_time Where %s between n_start_time And n_stop_time And n_repeat=1) as d Where a.noteid=b.noteid And b.tagid=c.tagid And a.noteid=d.noteid And %s" % ('%s', keywordset['sql'], '%s',keywordset['sql'])
+        
+        values = keywordset['keywords'] * 2
+        values.insert(0, currenttime)
+        values.insert(int(keywordset['n_keywords']) + 1, currenttime)
+        print values
+        noteslist   = self.sql.doRawSQL(strSQL, values)
         return noteslist
 
     def getNoteInfoList(self, currenttime):

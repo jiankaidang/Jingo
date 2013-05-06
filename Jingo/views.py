@@ -4,6 +4,10 @@ from Jingo.models import *
 http_res = HttpRequestResponser()
 
 def init(request):
+    data = {}
+    data['keywords'] = 'This is a new world!'
+    NoteFilter().getKeywordString(data)
+    
     data        = {}
     data['uid'] = request.session['uid']
     data        = Tag().getUserCategoryTagsList(data)
