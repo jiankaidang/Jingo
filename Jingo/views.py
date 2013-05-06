@@ -13,11 +13,6 @@ def init(request):
     return Formatter().createResultSet(data)
 
 def index(request):
-    #print User().searchNotes([])
-    #data={}
-    #data['uid'] = 4
-    #print Tag().getUserCategoryTagsList(data)
-    #request.session.clear()
     page = 'login.html'
     if request.session.get('uid', False):
         page = 'index.html'
@@ -82,9 +77,8 @@ def tasks(request, mode):
 
     # API for profile settings
     if mode == 'setDefaultState':
-        page = 'response.html'
         data = State().setDefaultState(request)
-        return http_res.response(request, page, data, 'json')
+        return http_res.responseJSON(request, data)
 
     if mode == 'addState':
         page = 'state.html'
@@ -92,35 +86,29 @@ def tasks(request, mode):
         return http_res.response(request, page, data)
 
     if mode == 'deleteState':
-        page = 'response.html'
         data = State().deleteState(request)
-        return http_res.response(request, page, data, 'json')
+        return http_res.responseJSON(request, data)
 
     if mode == 'updateState':
-        page = 'response.html'
         data = State().updateState(request)
-        return http_res.response(request, page, data, 'json')
+        return http_res.responseJSON(request, data)
 
     # API for filter settings
     if mode == 'activateFilter':
-        page = 'response.html'
         data = Filter().activateFilter(request)
-        return http_res.response(request, page, data, 'json')
+        return http_res.responseJSON(request, data)
 
     if mode == 'addFilter':
-        page = 'response.html'
         data = Filter().addFilterAndTag(request)
-        return http_res.response(request, page, data, 'json')
+        return http_res.responseJSON(request, data)
 
     if mode == 'deleteFilter':
-        page = 'response.html'
         data = Filter().deleteFilter(request)
-        return http_res.response(request, page, data, 'json')
+        return http_res.responseJSON(request, data)
 
     if mode == 'updateFilter':
-        page = 'response.html'
         data = Filter().updateFilter(request)
-        return http_res.response(request, page, data, 'json')
+        return http_res.responseJSON(request, data)
 
     if mode == 'retrieveFilter':
         page = 'filter.html'
@@ -129,39 +117,32 @@ def tasks(request, mode):
 
     # API for note settings
     if mode == 'postNote':
-        page = 'response.html'
         data = User().postNote(request)
-        return http_res.response(request, page, data, 'json')
+        return http_res.responseJSON(request, data)
 
     if mode == 'searchNotes':
-        page = 'response.html'
         data = User().searchNotes(request)
-        return http_res.response(request, page, data, 'json')
+        return http_res.responseJSON(request, data)
 
     if mode == 'postComment':
-        page = 'response.html'
         data = User().postComment(request)
-        return http_res.response(request, page, data, 'json')
+        return http_res.responseJSON(request, data)
         
     if mode == 'deleteNoteTag':
-        page = 'response.html'
         data = User().deleteNoteTag(request)
-        return http_res.response(request, page, data, 'json')
+        return http_res.responseJSON(request, data)
 
     if mode == 'addExtraNoteTag':
-        page = 'response.html'
         data = User().addExtraNoteTag(request)
-        return http_res.response(request, page, data, 'json')
+        return http_res.responseJSON(request, data)
 
     if mode == 'clickLike':
-        page = 'response.html'
         data = User().clickLike(request)
-        return http_res.response(request, page, data, 'json')
+        return http_res.responseJSON(request, data)
 
     if mode == 'receiveNotes':
-        page = 'response.html'
         data = User().receiveNotes(request)
-        return http_res.response(request, page, data, 'json')
+        return http_res.responseJSON(request, data)
     
     if mode == 'readNote':
         page = 'note.html'
@@ -171,9 +152,13 @@ def tasks(request, mode):
     # API for Friendship settings
     if mode == 'sendInvitation':
         data = User().sendInvitation(request)
-        return http_res.response(request, page, data, 'json')
+        return http_res.responseJSON(request, data)
     
     if mode == 'replyInvitation':
         data = User().replyInvitation(request)
-        return http_res.response(request, page, data, 'json')
+        return http_res.responseJSON(request, data)
+    
+    if mode == 'unfollow':
+        data = User().unfollow(request)
+        return http_res.responseJSON(request, data)
     

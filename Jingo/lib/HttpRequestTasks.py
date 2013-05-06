@@ -28,13 +28,13 @@ class HttpRequestResponser(Formatter):
         print "POST/GET data"
         print data
         return data
-
+    
+    def responseJSON(self, request, data):
+        return self.response(request, '', data, 'json')
+        
     def response(self, request, page, data={}, dataType='default'):
         if dataType == 'json':
-            #resultset['result'] = json.dumps(data)
             resultset = self.jsonEncoder(data)
-            #resultset = dict([('result', self.jsonEncoder(data))])
-            #resultset = dict([('result', json.dumps(data))])
             print "final json data"
             print resultset
             return HttpResponse(resultset, mimetype="application/json")

@@ -102,6 +102,6 @@ class SQLExecuter:
 		return self.dictfetchall(self.cursor)
 	
 	def doRawSQL(self, strSQL, args=[]):
-		#print strSQL
+		print strSQL
 		self.cursor.execute(strSQL, args)
 		return self.dictfetchall(self.cursor)

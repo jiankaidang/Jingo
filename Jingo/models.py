@@ -50,26 +50,50 @@ class Friend(models.Model, HttpRequestResponser, Formatter):
     
     def getFriendsInfoList(self, data):
         flist = []
-        for friend in Friend.objects.filter(uid=data['uid'],is_friendship=data['is_friendship']).values():
+        alist = Friend.objects.filter(uid=data['uid'],is_friendship=1).values()
+        blist = Friend.objects.filter(f_uid=data['uid'],is_friendship=1).values()
+        for friend in alist:
             fuser                 = User.objects.filter(uid=friend['f_uid_id']).values()[0]
             fuser['invitationid'] = friend['invitationid']
             flist.append(fuser)
         
-        for friend in Friend.objects.filter(f_uid=data['uid'],is_friendship=data['is_friendship']).values():
+        for friend in blist:
             fuser                 = User.objects.filter(uid=friend['uid_id']).values()[0]
             fuser['invitationid'] = friend['invitationid']
             flist.append(fuser)
             
         return flist
     
+    def getPendingsInfoList(self, data):
+        strSQL = 'Select uid, invitationid From friend Where is_friendship = 2 And f_uid= %s And uid Not In (Select f_uid From friend Where is_friendship = 1 And uid = %s)'
+        args   = [data['uid'], data['uid']]
+        plist  = SQLExecuter().doRawSQL(strSQL, args)
+        flist  = []
+        for friend in plist:
+            fuser                 = User.objects.filter(uid=friend['uid']).values()[0]
+            fuser['invitationid'] = friend['invitationid']
+            flist.append(fuser)
+        return flist
+    
     def checkFriendship(self, reader, poster):
-        if Friend.objects.filter(uid=reader, f_uid=poster).count():
+        alist = Friend.objects.filter(uid=reader, f_uid=poster).values_list('is_friendship', flat=True)
+        blist = Friend.objects.filter(uid=poster, f_uid=reader).values_list('is_friendship', flat=True)
+        print "friend_status"
+        print alist
+        print blist
+        if 1 in alist or 1 in blist:
+            print "you are 1"
             return 1
+        
+        if (0 in alist and 2 in blist) or (2 in alist and 0 in blist) or (2 in alist and 2 in blist) or (3 in alist and 2 in blist) or (2 in alist and 3 in blist):
+            print "you are 2"
+            return 2
+        
         return 0
 
     def cancelFriendship(self, data):
-        Friend.objects.filter(uid=data['uid'], f_uid=data['f_uid'], is_friendship=1).update(is_friendship=3)
-        Friend.objects.filter(uid=data['f_uid'], f_uid=data['uid'], is_friendship=1).update(is_friendship=3)
+        Friend.objects.filter(uid=data['uid'], f_uid=data['f_uid'], is_friendship__in=[1,2]).update(is_friendship=3)
+        Friend.objects.filter(uid=data['f_uid'], f_uid=data['uid'], is_friendship__in=[1,2]).update(is_friendship=3)
         return data
         
 class Comments(models.Model, HttpRequestResponser, Formatter):
@@ -725,17 +749,18 @@ class User(models.Model, HttpRequestResponser, Formatter):
         for note in request.session['noteslist']:
             if str(note['noteid']) == str(data['noteid']):
                 note['is_friendship'] = 0
-                note['n_comments'] = 0
-                reader = str(request.session['uid'])
-                poster = str(note['uid'])
+                note['n_comments']    = 0
+                reader                = str(request.session['uid'])
+                poster                = str(note['uid'])
                 if reader != poster:
                     note['is_friendship'] = Friend().checkFriendship(reader, poster)
-
-                comments = Comments().retrieveComments(data)
-                note['n_comments'] = len(comments)
+                else:
+                    note['is_friendship'] = 4
+                    
+                comments             = Comments().retrieveComments(data)
+                note['n_comments']   = len(comments)
                 note['commentslist'] = comments
-
-                note['poster'] = User.objects.filter(uid=poster).values()[0]
+                note['poster']       = User.objects.filter(uid=poster).values()[0]
 
                 return self.createResultSet(note)
 
@@ -755,14 +780,12 @@ class User(models.Model, HttpRequestResponser, Formatter):
         return self.createResultSet(data)
     
     def initFriendArea(self, request):
-        #data                  = self.readData(request)
         data                  = {}
         data['uid']           = request.session['uid']
         data['is_friendship'] = 1
         flist                 = Friend().getFriendsInfoList(data)
         data['is_friendship'] = 2
-        print data
-        plist                 = Friend().getFriendsInfoList(data)
+        plist                 = Friend().getPendingsInfoList(data)
         data                  = dict([('friendslist', flist), ('n_friends', len(flist)), ('pendingslist', plist), ('n_pendings', len(plist))])
         return self.createResultSet(data)
     
@@ -889,19 +912,19 @@ class NoteFilter(HttpRequestResponser, Formatter):
                     case_b = True
                     print "note " + str(note['noteid']) + " passed because of case_b"   
                     
-                if sys_visset[note['sys_tagid']] == 0 and note['n_visibility'] == 2 and note['uid'] == data['uid']:
+                if sys_visset[note['sys_tagid']] == 0 and note['n_visibility'] == 2 and str(note['uid']) == str(data['uid']):
                     case_c = True
                     print "note " + str(note['noteid']) + " passed because of case_c"
                     
-                if sys_visset[note['sys_tagid']] == 1 and note['n_visibility'] == 0 and not (note['uid'] != data['uid'] and note['uid'] not in friendslist):
+                if sys_visset[note['sys_tagid']] == 1 and note['n_visibility'] == 0 and not (str(note['uid']) != str(data['uid']) and note['uid'] not in friendslist):
                     case_d = True
                     print "note " + str(note['noteid']) + " passed because of case_d"    
                     
-                if sys_visset[note['sys_tagid']] == 1 and note['n_visibility'] == 1 and not (note['uid'] != data['uid'] and note['uid'] not in friendslist):
+                if sys_visset[note['sys_tagid']] == 1 and note['n_visibility'] == 1 and not (str(note['uid']) != str(data['uid']) and note['uid'] not in friendslist):
                     case_e = True
                     print "note " + str(note['noteid']) + " passed because of case_e"  
                 
-                if sys_visset[note['sys_tagid']] == 1 and note['n_visibility'] == 2 and note['uid'] == data['uid']:
+                if sys_visset[note['sys_tagid']] == 1 and note['n_visibility'] == 2 and str(note['uid']) == str(data['uid']):
                     case_f = True
                     print "note " + str(note['noteid']) + " passed because of case_f" 
                 
