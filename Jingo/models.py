@@ -134,7 +134,6 @@ class Comments(models.Model, HttpRequestResponser, Formatter):
             result.append(comm)
         return result
 
-
 class Filter(models.Model, HttpRequestResponser, Formatter):
     stateid      = models.ForeignKey('State', db_column='stateid', primary_key=True)
     tagid        = models.ForeignKey('Tag', db_column='tagid', primary_key=True)
@@ -270,7 +269,6 @@ class Filter(models.Model, HttpRequestResponser, Formatter):
         objFilter['tag_name'] = Tag.objects.get(tagid=data['tagid']).tag_name
         return self.createResultSet(objFilter)
 
-
 class Note(models.Model, HttpRequestResponser, Formatter):
     note = models.CharField(max_length=140)
     n_timestamp = models.DateTimeField()
@@ -343,7 +341,6 @@ class Note(models.Model, HttpRequestResponser, Formatter):
         notesets = Note.objects.filter(n_visibility__in=[0, 1], noteid__in=nlist)
         return data
 
-
 class Note_Tag(models.Model, HttpRequestResponser, Formatter):
     noteid = models.ForeignKey('Note', db_column='noteid', primary_key=True)
     tagid = models.ForeignKey('Tag', db_column='tagid', primary_key=True)
@@ -399,7 +396,6 @@ class Note_Tag(models.Model, HttpRequestResponser, Formatter):
         Note_Tag.objects.filter(tagid=data['tagid'], noteid=data['noteid']).delete()
         return 0
 
-
 class Note_Time(models.Model, HttpRequestResponser, Formatter):
     timeid = models.IntegerField(primary_key=True)
     noteid = models.ForeignKey('Note', db_column='noteid')
@@ -437,7 +433,6 @@ class Note_Time(models.Model, HttpRequestResponser, Formatter):
             data['n_stop_time'] = timezone.now() + datetime.timedelta(days=1)
 
         Note_Time().addNoteTime(data)
-
 
 class State(models.Model, HttpRequestResponser, Formatter):
     stateid = models.IntegerField(primary_key=True)
@@ -509,7 +504,6 @@ class State(models.Model, HttpRequestResponser, Formatter):
         data = self.readData(request)
         State.objects.filter(stateid=data['stateid'], uid=data['uid']).update(state_name=data['state_name'])
         return self.createResultSet(data)
-
 
 class Tag(models.Model, HttpRequestResponser, Formatter):
     tagid = models.IntegerField(primary_key=True)
@@ -596,7 +590,6 @@ class Tag(models.Model, HttpRequestResponser, Formatter):
         data = Tag.objects.filter(tagid=data['tagid'], uid=data['uid']).update(state_name=data['tag_name'])
         return self.createResultSet(data)
 
-
 class User(models.Model, HttpRequestResponser, Formatter):
     uid = models.IntegerField(primary_key=True)
     u_name = models.CharField(max_length=45)
@@ -645,13 +638,31 @@ class User(models.Model, HttpRequestResponser, Formatter):
         
         if len(data) == 0:
             message['error'] = MESSAGE_REQUEST_ERROR
-        else: 
+        else:
+            # check username 
+            if not len(data['u_name']) >= USERNAME_LENGTH:
+                message['u_name'] = USERNAME_TOO_SHORT
+            
+            if not verifier.isValidFormat(data['u_name'], 'user'):
+                message['u_name'] = USERNAME_INVALID
+            
+            # check email
             if not verifier.isValidFormat(data['email'], 'email'):
-                message['email'] = 'The email address is invalid.'
+                message['email'] = EMAIL_INVAILD
 
             if not verifier.isEmailUnique(User.objects, data['email']):
-                message['email'] = 'The email address is already taken.'
-
+                message['email'] = EMAIL_TAKEN
+            
+            # check password
+            if not len(data['password']) >= PASSWORD_LENGTH:    
+                message['password'] = PASSWORD_TOO_SHORT
+                
+            if not verifier.isValidFormat(data['password'], 'password'):
+                message['password'] = PASSWORD_INVALID
+            
+            if not data['password'] == data['confirm_password']:
+                message['password'] = PASSWORD_CONFIRM_ERROR
+            
         if len(message) == 0:
             result                 = RESULT_SUCCESS
             response               = self.simplifyObjToDateString(self.addUser(data))[0]

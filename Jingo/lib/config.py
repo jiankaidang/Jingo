@@ -1,3 +1,14 @@
+# form data error message
+USERNAME_LENGTH        = 6
+USERNAME_INVALID       = 'User name should be at least ' + str(USERNAME_LENGTH) + ' characters, including alphabet and digits.'
+USERNAME_TOO_SHORT     = 'User name should be at least ' + str(USERNAME_LENGTH) + ' characters.'
+EMAIL_TAKEN            = 'The email address is already taken.'
+EMAIL_INVAILD          = 'The email address is invalid.'
+PASSWORD_LENGTH        = 6
+PASSWORD_INVALID       = 'Password should be at least ' + str(PASSWORD_LENGTH) + ' characters, including lowercase or uppercase alphabet and digits.'
+PASSWORD_TOO_SHORT     = 'Password should be at least ' + str(PASSWORD_LENGTH) + ' characters.'
+PASSWORD_CONFIRM_ERROR = 'The confirm-password does not match your password.'
+
 # default state name
 STATE_NAME_DEFAULT     = 'myState'
 

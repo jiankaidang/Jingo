@@ -5,8 +5,8 @@
         <form action="{% url 'tasks' mode='signup' %}" method="post">
             {% csrf_token %}
             <h2>Please sign up</h2>
-            {% if message.u_name %} {{ message.u_name }} {% endif %}
-            {% if message.email %} {{ message.email }} {% endif %}
+            {% if message.u_name %} {{ message.u_name }} <br/>{% endif %}
+            {% if message.email %} {{ message.email }} <br/>{% endif %}
             {% if message.password %} {{ message.password }} {% endif %}
             <input type="text" class="input-block-level" placeholder="User name" name="u_name">
             <input type="text" class="input-block-level" placeholder="Email address" name="email">

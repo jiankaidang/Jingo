@@ -14,6 +14,7 @@ class DataVerifier:
     def setRulesBase(self):
         self.re['email']    = re.compile("[a-zA-Z0-9.!#$%&'*+-/=?\^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*")
         self.re['password'] = re.compile("^[a-zA-Z0-9*]+$")
+        self.re['user'] = re.compile("^[a-zA-Z0-9*]+$")
         
     def isValidFormat(self, data, dataType):
         if self.re[dataType].match(data):
