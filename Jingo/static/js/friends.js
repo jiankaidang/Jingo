@@ -10,21 +10,21 @@ $(function () {
             uid: uid,
             f_uid: $(this).attr("f_uid")
         }, function () {
-            location.href.reload();
+            location.reload();
         });
     }).on("click", ".accept-friend",function () {
             $.post("/tasks/replyInvitation/", {
                 invitationid: $(this).closest("li").attr("invitationid"),
                 reply: 1
             }, function () {
-                location.href.reload();
+                location.reload();
             });
         }).on("click", ".deny-friend", function () {
             $.post("/tasks/replyInvitation/", {
                 invitationid: $(this).closest("li").attr("invitationid"),
                 reply: 0
             }, function () {
-                location.href.reload();
+                location.reload();
             });
         });
 });
