@@ -47,7 +47,7 @@ $(function () {
                     newTagLi.remove();
                     return;
                 }
-                var stateid = $(this).closest(".accordion-group").attr("data-stateid");
+                var stateid = $(this).closest(".accordion-body").attr("data-state-id");
                 $.post("/tasks/addFilter/", {
                     uid: uid,
                     sys_tagid: tagid,
@@ -67,7 +67,7 @@ $(function () {
             $.post("/tasks/deleteFilter/", {
                 uid: uid,
                 tagid: tagLi.attr("data-tagid"),
-                stateid: $(this).closest(".accordion-group").attr("data-stateid")
+                stateid: $(this).closest(".accordion-body").attr("data-state-id")
             }, function () {
                 tagLi.remove();
             })
@@ -79,7 +79,7 @@ $(function () {
             }
             $.post("/tasks/activateFilter/", {
                 uid: uid,
-                stateid: $(this).closest(".accordion-group").attr("data-stateid"),
+                stateid: $(this).closest(".accordion-body").attr("data-state-id"),
                 tagid: $(this).closest("li").attr("data-tagid"),
                 is_checked: $(this).is(":checked") ? 1 : 0
             })

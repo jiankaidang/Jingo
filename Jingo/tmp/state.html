@@ -10,7 +10,8 @@
     <a href="javascript:void(0);" class="pull-right update-state"><i class="icon-pencil"></i></a>
     <input type="text" value="{{ state.state_name }}" required="" class="updateStateName">
 </div>
-<div id="collapse{{ state.stateid }}" class="accordion-body{% if is_first %} in{% endif %} collapse">
+<div id="collapse{{ state.stateid }}" class="accordion-body{% if is_first %} in{% endif %} collapse"
+     data-state-id="{{ state.stateid }}">
     <div class="accordion-inner">
         <ul class="unstyled">
             {% for filter in state.filters %}
