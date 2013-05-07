@@ -795,6 +795,7 @@ class User(models.Model, HttpRequestResponser, Formatter):
             if str(note['noteid']) == str(data['noteid']):
                 note['is_friendship'] = 0
                 note['n_comments']    = 0
+                note['n_like']        = Note.objects.filter(noteid=data['noteid']).values()[0]['n_like']
                 reader                = str(request.session['uid'])
                 poster                = str(note['uid'])
                 if reader != poster:
