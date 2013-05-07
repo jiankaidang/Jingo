@@ -5,10 +5,12 @@ http_res = HttpRequestResponser()
 
 def init(request):
     # for post notes
-    data        = {}
-    data['uid'] = request.session['uid']
-    data        = Tag().getUserCategoryTagsList(data)
-    data        = dict([('tagslist', data)])
+    data              = {}
+    data['uid']       = request.session['uid']
+    data['tagslist']  = Tag().getUserCategoryTagsList(data)
+    #data              = dict([('tagslist', data)])
+    #print data
+    data['n_request'] = len(Friend.objects.filter(f_uid=data['uid'], is_friendship=2).values())
     return Formatter().createResultSet(data)
 
 def index(request):

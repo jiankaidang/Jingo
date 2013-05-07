@@ -753,8 +753,8 @@ class User(models.Model, HttpRequestResponser, Formatter):
     
     def postNote(self, request):
         dataset = []
-        data = self.readData(request)
-        data = Note().addNote(data)
+        data    = self.readData(request)
+        data    = Note().addNote(data)
         Note_Time().addNoteTimeRange(data)
         Note_Tag().addMultipleNoteTags(data)
         dataset.append(data)
