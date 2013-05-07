@@ -7,6 +7,33 @@ from Jingo.lib.config import *
 from Jingo.lib.SQLExecution import SQLExecuter
 
 
+class Log_Keywords(models.Model, HttpRequestResponser, Formatter):
+    logid   = models.IntegerField(primary_key=True)
+    uid     = models.ForeignKey('User', db_column='uid')
+    keyword = models.CharField(max_length=60)
+    k_longitude = models.DecimalField(max_digits=9, decimal_places=6)
+    k_latitude = models.DecimalField(max_digits=9, decimal_places=6)
+    k_timestamp = models.DateTimeField()
+    
+    class Meta:
+        db_table = 'log_keywords'
+
+    def getNewLogid(self):
+        if len(Log_Keywords.objects.all().values()) == 0:
+            return 1
+        else:
+            log = Log_Keywords.objects.all().order_by('logid').latest('logid')
+            return log.logid + 1
+        
+    def logUserKeywords(self, data, keywords):
+        currenttime         = timezone.now()
+        data['u_longitude'] = "%.6f" % float(data['u_longitude'])
+        data['u_latitude']  = "%.6f" % float(data['u_latitude'])
+        for keyword in keywords:
+            values = [self.getNewLogid(), int(data['uid']), keyword, data['u_longitude'], data['u_latitude'], currenttime]
+            args   = dict([('table', 'log_keywords'), ('values', values)])
+            SQLExecuter().doInsertData(args)
+
 class Friend(models.Model, HttpRequestResponser, Formatter):
     uid = models.ForeignKey('User', db_column='uid')
     f_uid = models.ForeignKey('User', db_column='f_uid')
@@ -810,10 +837,14 @@ class NoteFilter(HttpRequestResponser, Formatter):
             result.append(row[key])
         return result
 
-    
     def getKeywordString(self, data):
         result, keywordset, sql = [{}, [], '']
         keywords = string.split(data['keywords'], ' ')
+        
+        # log keywords the user uses and his location
+        Log_Keywords().logUserKeywords(data, keywords)
+        
+        # make query string
         for word in keywords:
             keywordset.append('%' + word + '%')
             keywordset.append('%' + word + '%')
@@ -1006,4 +1037,45 @@ class NoteFilter(HttpRequestResponser, Formatter):
     def retrieveNotesByKeywords(self, data):
         return self.filterNotes(data, 'keyword')
         
+class AdminArea(HttpRequestResponser):  
+    
+    def init(self):
+        result = {}
+        result['Statistic']       = self.getStatistic()
+        result['AreasRanking']    = self.getAreasRanking()
+        result['KeywordsRanking'] = self.getKeywordsRanking()
+        result['NotesRanking']    = self.getNotesRanking()
+        result['PosterRanking']   = self.getPosterRanking()
+        result['TagsRanking']     = self.getTagsRanking()
+        return self.createResultSet(result)
         
+    def getStatistic(self):
+        strSQL = 'Select * From v_statistic'
+        result = SQLExecuter().doRawSQL(strSQL)
+        return result
+    
+    def getAreasRanking(self):
+        strSQL = 'Select n_longitude, n_latitude, n_notes, top_tag From v_areas_ranking'
+        result = SQLExecuter().doRawSQL(strSQL)
+        return result
+    
+    def getKeywordsRanking(self):
+        strSQL = 'Select * From v_keywords_ranking'
+        result = SQLExecuter().doRawSQL(strSQL)
+        return result
+    
+    def getNotesRanking(self):
+        strSQL = 'Select * From v_notes_ranking'
+        result = SQLExecuter().doRawSQL(strSQL)
+        return result
+
+    def getPosterRanking(self):
+        strSQL = 'Select u_name, n_notes From v_poster_ranking'
+        result = SQLExecuter().doRawSQL(strSQL)
+        return result
+    
+    def getTagsRanking(self):
+        strSQL = 'Select tag_name, n_notes From v_tags_ranking'
+        result = SQLExecuter().doRawSQL(strSQL)
+        return result
+      

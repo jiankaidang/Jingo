@@ -1,11 +1,111 @@
-{% extends "base.html" %}
-{% load staticfiles %}
-{% block title %}Jingo Test{% endblock title %}
-{% block css %}
-    <link rel="stylesheet" type="text/css" href="{% static 'css/index.css' %}"/>
-{% endblock css %}
-{% block content %}
-{% endblock content %}
-{% block js %}
-    <script type="text/javascript" src="{% static 'js/index.js' %}"></script>
+{% extends "base.html" %} {% load staticfiles %} {% block title %}Jingo
+Log Report{% endblock title %} {% block css %}
+<link rel="stylesheet" type="text/css"
+	href="{% static 'css/admin.css' %}" />
+{% endblock css %} {% block content %}
+<h2>Jingo Statistic Report</h2>
+<div class='OverallStatistic'>
+	<h3>Overall Statistic</h3>
+	<table>
+		<thead>
+			<td>N_Members</td>
+			<td>N_Notes</td>
+			<td>N_Comments</td>
+			<td>N_Tags</td>
+			<td>N_Areas</td>
+		</thead>
+		{% for row in TagsRanking %}
+		<tr>
+			<td>{{ row.users }}</td>
+			<td>{{ row.notes }}</td>
+			<td>{{ row.comments }}</td>
+			<td>{{ row.tags }}</td>
+			<td>{{ row.areas }}</td>
+		</tr>
+		{% endfor %}
+	</table>
+</div>
+<div class='AreasRanking'>
+	<h3>Keywords Ranking</h3>
+	<table>
+		<thead>
+			<td>Keyword</td>
+			<td>N_Kewywords</td>
+		</thead>
+		{% for row in KeywordsRanking %}
+		<tr>
+			<td>{{ row.keyword }}</td>
+			<td>{{ row.n_keywords }}</td>
+		</tr>
+		{% endfor %}
+	</table>
+</div>
+<div class='AreasRanking'>
+	<h3>Areas Ranking</h3>
+	<table>
+		<thead>
+			<td>Longitude</td>
+			<td>Latitude</td>
+			<td>N_Notes</td>
+			<td>Top Tag</td>
+		</thead>
+		{% for row in AreasRanking %}
+		<tr>
+			<td>{{ row.n_longitude }}</td>
+			<td>{{ row.n_latitude }}</td>
+			<td>{{ row.n_notes }}</td>
+			<td>{{ row.top_tag }}</td>
+		</tr>
+		{% endfor %}
+	</table>
+</div>
+<div class='NotesRanking'>
+	<h3>Notes Ranking</h3>
+	<table>
+		<thead>
+			<td>Member</td>
+			<td>Note</td>
+			<td>N_Likes</td>
+		</thead>
+		{% for row in NotesRanking %}
+		<tr>
+			<td>{{ row.u_name }}</td>
+			<td>{{ row.note }}</td>
+			<td>{{ row.n_likes }}</td>
+		</tr>
+		{% endfor %}
+	</table>
+</div>
+<div class='PosterRanking'>
+	<h3>Poster Ranking</h3>
+	<table>
+		<thead>
+			<td>Member</td>
+			<td>N_Notes</td>
+		</thead>
+		{% for row in PosterRanking %}
+		<tr>
+			<td>{{ row.u_name }}</td>
+			<td>{{ row.n_notes }}</td>
+		</tr>
+		{% endfor %}
+	</table>
+</div>
+<div class='TagsRanking'>
+	<h3>Tags Ranking</h3>
+	<table>
+		<thead>
+			<td>Tag</td>
+			<td>N_Notes</td>
+		</thead>
+		{% for row in TagsRanking %}
+		<tr>
+			<td>{{ row.tag_name }}</td>
+			<td>{{ row.n_notes }}</td>
+		</tr>
+		{% endfor %}
+	</table>
+</div>
+{% endblock content %} {% block js %}
+<script type="text/javascript" src="{% static 'js/admin.js' %}"></script>
 {% endblock js %}

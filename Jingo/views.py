@@ -20,8 +20,11 @@ def index(request):
     return http_res.response(request, page)
 
 def admin(request):
-    page = 'admin.html'
-    return http_res.response(request, page)
+    if isRedirect(request):
+        page = 'admin.html'
+        data = AdminArea().init()
+        
+    return http_res.response(request, page, data)
 
 def isRedirect(request, target='index'):
     if request.session.get('uid', False):
