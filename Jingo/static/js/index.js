@@ -1,4 +1,4 @@
-var map, fakeMarker, uid = $("#uid").val();
+var map, fakeMarker, uid = $("#uid").val(), bouncingMarker, infoWindow;
 function initialize() {
     var mapOptions = {
         zoom: 16,
@@ -28,11 +28,13 @@ function initialize() {
         fakeMarker.setPosition(event.latLng);
         fakeMarker.setVisible(true);
         receiveNotes(event.latLng);
+        $(".top-bar,#note-form").show();
     });
     google.maps.event.addListener(map, 'click', function (event) {
         fakeMarker.setPosition(event.latLng);
         fakeMarker.setVisible(true);
         receiveNotes(event.latLng);
+        $(".top-bar,#note-form").show();
     });
     var myloc = new google.maps.Marker({
         clickable: false,
@@ -62,20 +64,6 @@ function initialize() {
 }
 
 function handleNoGeolocation(errorFlag) {
-    if (errorFlag) {
-        var content = 'Error: The Geolocation service failed.';
-    } else {
-        var content = 'Error: Your browser doesn\'t support geolocation.';
-    }
-
-    var options = {
-        map: map,
-        position: new google.maps.LatLng(60, 105),
-        content: content
-    };
-
-    var infowindow = new google.maps.InfoWindow(options);
-    map.setCenter(options.position);
 }
 
 google.maps.event.addDomListener(window, 'load', initialize);
@@ -186,12 +174,17 @@ function dropMarker(note) {
     });
     markersArray.push(marker);
     google.maps.event.addListener(marker, 'click', function () {
+        if (bouncingMarker) {
+            infoWindow.close();
+            bouncingMarker.setAnimation(null);
+        }
+        bouncingMarker = marker;
         $(".top-bar,#note-form").hide();
         marker.setAnimation(google.maps.Animation.BOUNCE);
         $.post("/tasks/readNote/", {
             noteid: note.noteid
         }, function (data) {
-            var infoWindow = new google.maps.InfoWindow({
+            infoWindow = new google.maps.InfoWindow({
                 content: $(data)[0]
             });
             google.maps.event.addListener(infoWindow, 'domready', function () {
@@ -258,7 +251,7 @@ function dropMarker(note) {
         });
     });
 }
-if (true) {
+if ($("#note-bar").attr("data-n-request")) {
     setInterval(function () {
         $(".icon-heart").toggleClass("icon-white");
     }, 500);
