@@ -1,8 +1,8 @@
 <div class="container note-container" poster-uid="{{ poster.uid }}">
-    <div>{{ poster.u_name }} {{ is_friendship }}   
-        <button class="btn btn-mini follow-friend btn-primary" type="button">Follow</button>
-        <button class="btn btn-mini unfollow-friend btn-danger" type="button">Unfollow</button>
-        <button class="btn btn-mini btn-info disabled request-pending" type="button">Friend request pending</button>
+    <div>{{ poster.u_name }}   
+        <button class="btn btn-mini follow-friend btn-primary" type="button" {% if is_friendship != 3 %}style="display: none;"{% endif %}>Follow</button>
+        <button class="btn btn-mini unfollow-friend btn-danger" type="button" {% if is_friendship == 4 or is_friendship != 1 %}style="display: none;"{% endif %}>Unfollow</button>
+        <button class="btn btn-mini btn-info disabled request-pending" type="button" {% if is_friendship == 4 or is_friendship != 2 %}style="display: none;"{% endif %}>Friend request pending</button>
     </div>
     <div><span class="muted note-time">{{ n_timestamp }}</span>
         {% if n_visibility == 0 %}<i class="icon-globe"></i>{% endif %}

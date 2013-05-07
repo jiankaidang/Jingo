@@ -6,7 +6,7 @@
 {% endblock css %}
 {% block content %}
     <div class="container">
-        <h2>Profile</h2>
+        <h2>{{ request.session.usrdata.u_name }}'s Profile</h2>
 
         <div class="btn-toolbar">
             <button class="btn btn-mini" id="editState" type="button">Edit</button>

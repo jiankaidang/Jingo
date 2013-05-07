@@ -222,9 +222,12 @@ class Filter(models.Model, HttpRequestResponser, Formatter):
             filterset = self.simplifyObjToDateString(filterset)  # datetime to iso format
             return filterset
 
-    def getDefaultFilterDataArray(self, data):
-        return [int(data['stateid']), data['tagid'], N_START_TIME, N_STOP_TIME, 1, 0, int(data['uid']),IS_CHECKED_DEFAULT]
-
+    def getDefaultFilterDataArray(self, data, isSignup=True):
+        if isSignup:
+            return [int(data['stateid']), data['tagid'], N_START_TIME, N_STOP_TIME, 1, 0, int(data['uid']),IS_CHECKED_DEFAULT]
+        else:
+            return [int(data['stateid']), data['tagid'], N_START_TIME, N_STOP_TIME, 1, 0, int(data['uid']),0]
+        
     def addFilterAndTag(self, request):
         data = self.readData(request)
         data['tagid'] = Tag().addTag(data)
@@ -242,10 +245,13 @@ class Filter(models.Model, HttpRequestResponser, Formatter):
         args = dict([('table', 'filter'), ('values', data)])
         SQLExecuter().doInsertData(args)
 
-    def addDefaultFilter(self, data):
+    def addDefaultFilter(self, data, isSignup=True):
         for i in range(0, N_SYSTEM_TAGS):
             data['tagid'] = i
-            values        = self.getDefaultFilterDataArray(data)
+            if isSignup:
+                values = self.getDefaultFilterDataArray(data)
+            else:
+                values = self.getDefaultFilterDataArray(data, False)
             self.addFilter(values)
         return i
 
@@ -504,18 +510,19 @@ class State(models.Model, HttpRequestResponser, Formatter):
 
     def addState(self, request, mode='user-defined'):
 
-        if mode == 'default':
+        if mode == 'default': 
             self.insertState(request['uid'], 1, 0)
             data = State.objects.filter(stateid=0, uid=request['uid']).values()
             return data
         else:
-            request = self.readData(request)
-            newStateid = self.getNewStateid()
+            request             = self.readData(request)
+            newStateid          = self.getNewStateid()
             self.insertState(request['uid'], 0, newStateid)
-            newState = State.objects.filter(stateid=newStateid).values()[0]
-            #newState['filters'] = Filter().getUserStateFilters(newState)
+            newState            = State.objects.filter(stateid=newStateid).values()[0]
+            newState['uid']     = request['uid'] 
+            ufilter             = Filter().addDefaultFilter(newState, False)
             newState['filters'] = Tag().getSysTags()
-            data = dict([('state', newState)])
+            data                = dict([('state', newState)])
             return self.createResultSet(data)
 
     def deleteState(self, request):
@@ -725,7 +732,7 @@ class User(models.Model, HttpRequestResponser, Formatter):
                 result   = RESULT_SUCCESS
                 response = self.simplifyObjToDateString(check)[0]
                 self.setUserSession(request, response)
-            
+        
         return self.createResultSet(response, result, message)
     
     def logout(self, request):
