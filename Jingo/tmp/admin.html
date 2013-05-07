@@ -14,13 +14,13 @@ Log Report{% endblock title %} {% block css %}
 			<td>N_Tags</td>
 			<td>N_Areas</td>
 		</thead>
-		{% for row in TagsRanking %}
+		{% for row in Statistic %}
 		<tr>
-			<td>{{ row.users }}</td>
-			<td>{{ row.notes }}</td>
-			<td>{{ row.comments }}</td>
-			<td>{{ row.tags }}</td>
-			<td>{{ row.areas }}</td>
+			<td>{{ row.n_users }}</td>
+			<td>{{ row.n_notes }}</td>
+			<td>{{ row.n_comments }}</td>
+			<td>{{ row.n_tags }}</td>
+			<td>{{ row.n_areas }}</td>
 		</tr>
 		{% endfor %}
 	</table>
