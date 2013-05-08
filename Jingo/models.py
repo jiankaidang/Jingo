@@ -54,8 +54,8 @@ class Friend(models.Model, HttpRequestResponser, Formatter):
         return Friend.objects.filter(uid=input_uid, is_friendship=2).order_by('invitationid').values()
 
     def getFriendsList(self, data):
-        alist = list(Friend.objects.filter(uid=data['uid'], is_friendship=1).order_by('invitationid').values('f_uid'))
-        blist = list(Friend.objects.filter(f_uid=data['uid'], is_friendship=1).order_by('invitationid').values('uid'))
+        alist = list(Friend.objects.filter(uid=data['uid'], is_friendship=1).order_by('invitationid').values_list('f_uid', flat=True))
+        blist = list(Friend.objects.filter(f_uid=data['uid'], is_friendship=1).order_by('invitationid').values_list('uid', flat=True))
         return alist + blist
 
     def addInvitation(self, data):
@@ -103,22 +103,38 @@ class Friend(models.Model, HttpRequestResponser, Formatter):
         return flist
     
     def checkFriendship(self, reader, poster):
-        alist = Friend.objects.filter(uid=reader, f_uid=poster).order_by('invitationid').lastest('is_friendship')
-        blist = Friend.objects.filter(uid=poster, f_uid=reader).order_by('invitationid').lastest('is_friendship')
+        print reader
+        print poster
+        alist = Friend.objects.filter(uid=reader, f_uid=poster)
+        blist = Friend.objects.filter(uid=poster, f_uid=reader)
+        print alist.values()
+        print blist.values()
+        n_alist = len(alist)
+        n_blist = len(blist)
+        
+        print "n_alist=" + str(n_alist) + ", nblist=" + str(n_blist)
         print "friend_status"
-        print alist
-        print blist
+        if n_alist == 0: 
+            blist = blist.order_by('invitationid').latest('invitationid')
+            print "blist"
+            print blist
+            print blist.is_friendship
+            return blist.is_friendship
+            
+        if n_blist == 0:
+            alist = alist.order_by('invitationid').latest('invitationid')
+            print "alist"
+            print alist
+            print alist.is_friendship
+            return alist.is_friendship
         
-        
-        '''
-        if 1 in alist or 1 in blist:
-            print "you are 1"
-            return 1
-        
-        if (0 in alist and 2 in blist) or (2 in alist and 0 in blist) or (2 in alist and 2 in blist) or (3 in alist and 2 in blist) or (2 in alist and 3 in blist):
-            print "you are 2"
-            return 2
-        '''
+        if n_alist > 0 and n_blist > 0:
+            alist = alist.order_by('invitationid').latest('invitationid')
+            blist = blist.order_by('invitationid').latest('invitationid')
+            if int(alist.invitationid) > int(blist.invitationid):
+                return alist.is_friendship
+            else:
+                return blist.is_friendship
         return 0
 
     def cancelFriendship(self, data):
@@ -953,6 +969,7 @@ class NoteFilter(HttpRequestResponser, Formatter):
 
     def filterByVisibility(self, data, uProfile, noteslist):
         friendslist = Friend().getFriendsList(data)
+        
         print "friendslist"
         print friendslist
         # generalize visibility of user tags based on sys_tags
@@ -972,12 +989,14 @@ class NoteFilter(HttpRequestResponser, Formatter):
             print "with sys:" + str(note['sys_tagid']) + ", note " + str(note['noteid']) + " has vis:" + str(note['n_visibility']) + " while user has vis:" + str(sys_visset[note['sys_tagid']])
             case_a, case_b, case_c, case_d, case_e, case_f, case_g = [False, False, False, False, False, False, False]
             if note['sys_tagid'] in sys_visset:
+                print str(note['uid']) in friendslist
                 # if both of them have visibilities of public
                 if sys_visset[note['sys_tagid']] == 0 and note['n_visibility'] == 0:
                     case_a = True
                     print "note " + str(note['noteid']) + " passed because of case_a"
                 
-                if sys_visset[note['sys_tagid']] == 0 and note['n_visibility'] == 1:
+                #if sys_visset[note['sys_tagid']] == 0 and note['n_visibility'] == 1 and (str(note['uid']) != str(data['uid']) and note['uid'] in friendslist):
+                if sys_visset[note['sys_tagid']] == 0 and note['n_visibility'] == 1 and not ((str(note['uid']) != str(data['uid']) and note['uid'] not in friendslist)):
                     case_b = True
                     print "note " + str(note['noteid']) + " passed because of case_b"   
                     
