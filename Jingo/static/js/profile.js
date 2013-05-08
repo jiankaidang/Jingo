@@ -104,5 +104,9 @@ $(function () {
     $("#updateFilter").click(function () {
         $.post("/tasks/updateFilter/", $("#filterForm").serialize());
     });
-})
-;
+    $('#myModal').on('shown',function () {
+        $("#myModalLabel").html($("#tag_name").val());
+    }).on('hidden', function () {
+            $("#myModalLabel").html("").find(".modal-body").html("");
+        });
+});

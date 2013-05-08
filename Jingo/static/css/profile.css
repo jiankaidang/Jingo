@@ -33,7 +33,7 @@
 
 #accordion2.edit-state .pull-right {
     visibility: visible;
-    margin-right: 8px;
+    margin-right: 10px;
 }
 
 #accordion2.edit-state .current-state .remove-state {
@@ -59,4 +59,8 @@
 
 .btn-toolbar #doneState {
     display: none;
+}
+
+#f_stop_time {
+    margin-left: 17px;
 }
