@@ -24,23 +24,27 @@
     </div>
     <div>
         <button class="btn btn-mini note-button note-like-button"><i class="icon-thumbs-up"></i> Like</button>
-        <button class="btn btn-mini note-button note-comment-button"><i class="icon-comment"></i> Comment</button>
+        {% if is_comment %}
+            <button class="btn btn-mini note-button note-comment-button"><i class="icon-comment"></i> Comment</button>
+        {% endif %}
     </div>
-    <div class="note-comments-container">
-        <div class="control-group">
-            <div class="controls">
-                <div class="input-append">
-                    <textarea placeholder="Write a comment..." rows="1" required
-                              class="note-comment-textarea"></textarea>
-                    <a class="add-on publish-comment-btn" href="#"><i class="icon-share"></i></a></div>
+    {% if is_comment %}
+        <div class="note-comments-container">
+            <div class="control-group">
+                <div class="controls">
+                    <div class="input-append">
+                        <textarea placeholder="Write a comment..." rows="1" required
+                                  class="note-comment-textarea"></textarea>
+                        <a class="add-on publish-comment-btn" href="#"><i class="icon-share"></i></a></div>
+                </div>
+                <dl class="comments-list">
+                    {% for reply in commentslist %}
+                        <dt>{{ reply.replier }}</dt>
+                        <dd>{{ reply.comment }}</dd>
+                        <p class="muted">{{ reply.c_timestamp|date:'Y-m-d H:i:s' }}</p>
+                    {% endfor %}
+                </dl>
             </div>
-            <dl class="comments-list">
-                {% for reply in commentslist %}
-                    <dt>{{ reply.replier }}</dt>
-                    <dd>{{ reply.comment }}</dd>
-                    <p class="muted">{{ reply.c_timestamp|date:'Y-m-d H:i:s' }}</p>
-                {% endfor %}
-            </dl>
         </div>
-    </div>
+    {% endif %}
 </div>
