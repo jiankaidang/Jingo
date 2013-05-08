@@ -224,7 +224,7 @@ function dropMarker(note) {
                             likesNum.html(data.n_like);
                         });
                     }).on("click", ".follow-friend",function () {
-                        var followFriendBtn = $(this), requestPendingBtn = followFriendBtn.next(".request-pending");
+                        var followFriendBtn = $(this), requestPendingBtn = followFriendBtn.closest(".note-container").find(".request-pending");
                         $.post("/tasks/sendInvitation/", {
                             uid: uid,
                             f_uid: $(this).closest(".note-container").attr("poster-uid")
@@ -233,7 +233,7 @@ function dropMarker(note) {
                             requestPendingBtn.show();
                         });
                     }).on("click", ".unfollow-friend", function () {
-                        var unfollowFriendBtn = $(this), followFriendBtn = unfollowFriendBtn.prev(".follow-friend");
+                        var unfollowFriendBtn = $(this), followFriendBtn = unfollowFriendBtn.closest(".note-container").find(".follow-friend");
                         $.post("/tasks/unfollow/", {
                             uid: uid,
                             f_uid: $(this).closest(".note-container").attr("poster-uid")
@@ -251,7 +251,7 @@ function dropMarker(note) {
         });
     });
 }
-if ($("#note-bar").attr("data-n-request")) {
+if (parseInt($("#note-bar").attr("data-n-request"))) {
     setInterval(function () {
         $(".icon-heart").toggleClass("icon-white");
     }, 500);

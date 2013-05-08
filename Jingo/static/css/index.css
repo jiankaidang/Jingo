@@ -1,98 +1,122 @@
 .input-bar-width {
-  width: 212px;
+    width: 212px;
 }
+
 html {
-  height: 100%;
+    height: 100%;
 }
+
 html body {
-  height: 100%;
-  margin: 0;
-  padding: 0;
+    height: 100%;
+    margin: 0;
+    padding: 0;
 }
+
 html body #map-canvas {
-  height: 100%;
+    height: 100%;
 }
+
 html body #map-canvas img {
-  max-width: none;
+    max-width: none;
 }
+
 html body .control-group.top-bar {
-  position: absolute;
-  z-index: 1;
-  left: 50%;
-  margin: 5px 0 0 -150px;
+    position: absolute;
+    z-index: 1;
+    left: 50%;
+    margin: 5px 0 0 -150px;
 }
+
 html body .control-group.top-bar .controls .input-prepend.input-append #searchMaps {
-  width: 212px;
+    width: 212px;
 }
+
 html body .bottom-bar {
-  position: absolute;
-  z-index: 1;
-  left: 50%;
-  bottom: -1%;
-  margin: 0 0 5px -150px;
-  background: #ffffff;
+    position: absolute;
+    z-index: 1;
+    left: 50%;
+    bottom: -1%;
+    margin: 0 0 5px -150px;
+    background: #ffffff;
 }
+
 html body .bottom-bar #note-bar {
-  margin-bottom: 0;
+    margin-bottom: 0;
 }
+
 html body .bottom-bar #note-bar .controls .input-prepend.input-append #note {
-  width: 212px;
+    width: 212px;
 }
+
 html body .bottom-bar .control-label {
-  margin-left: 7px;
-  text-align: right;
+    margin-left: 7px;
+    text-align: right;
 }
+
 html body .bottom-bar .control-label input {
-  width: 195px;
-  margin-right: 25px;
-  margin-left: 10px;
+    width: 195px;
+    margin-right: 25px;
+    margin-left: 10px;
 }
+
 html body .bottom-bar #note-detail {
-  height: 200px;
-  overflow: auto;
-  padding-top: 20px;
-  display: none;
+    height: 200px;
+    overflow: auto;
+    padding-top: 20px;
+    display: none;
 }
+
 html body .bottom-bar #note-detail #accordion2 {
-  width: 265px;
-  margin-left: 15px;
+    width: 265px;
+    margin-left: 15px;
 }
+
 html body .bottom-bar #note-detail #accordion2 .customized-tags {
-  list-style: none;
+    list-style: none;
 }
+
 html body .bottom-bar #note-detail #repeat label,
 html body .bottom-bar #note-detail #visibility label {
-  margin-left: 71px;
+    margin-left: 71px;
 }
+
 html body .note-container {
-  width: 273px;
-  overflow: auto;
-  top: 10px;
-  position: relative;
+    width: 273px;
+    overflow: auto;
+    top: 10px;
+    position: relative;
 }
-html body .note-container .follow-friend {
-  margin-left: 20px;
+
+html body .note-container .note-btns button {
+    margin-left: 20px;
 }
+
 html body .note-container .note-time {
-  margin-right: 10px;
+    margin-right: 10px;
 }
+
 html body .note-container .note-button {
-  margin-right: 20px;
+    margin-right: 20px;
 }
+
 html body .note-container .note-action-num {
-  margin-right: 20px;
+    margin-right: 20px;
 }
+
 html body .note-container .note-comments-container {
-  margin-top: 10px;
-  display: none;
+    margin-top: 10px;
+    display: none;
 }
+
 html body .note-container .note-comments-container .input-append {
-  margin-bottom: 0;
+    margin-bottom: 0;
 }
+
 html body .note-container .note-comments-container .input-append .note-comment-textarea {
-  width: 232px;
-  margin-bottom: 0;
+    width: 232px;
+    margin-bottom: 0;
 }
+
 html body .note-container .note-comments-container .comments-list dt {
-  border-top: 1px solid #dddddd;
+    border-top: 1px solid #dddddd;
 }

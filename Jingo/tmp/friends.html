@@ -1,6 +1,9 @@
 {% extends "base.html" %}
 {% load staticfiles %}
 {% block title %}Friends{% endblock title %}
+{% block css %}
+    <link href="{% static "css/friend.css" %}" rel="stylesheet">
+{% endblock css %}
 {% block content %}
     <div class="container">
         <h2>Friends</h2>
