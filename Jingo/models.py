@@ -103,11 +103,14 @@ class Friend(models.Model, HttpRequestResponser, Formatter):
         return flist
     
     def checkFriendship(self, reader, poster):
-        alist = Friend.objects.filter(uid=reader, f_uid=poster).values_list('is_friendship', flat=True)
-        blist = Friend.objects.filter(uid=poster, f_uid=reader).values_list('is_friendship', flat=True)
+        alist = Friend.objects.filter(uid=reader, f_uid=poster).order_by('invitationid').lastest('is_friendship')
+        blist = Friend.objects.filter(uid=poster, f_uid=reader).order_by('invitationid').lastest('is_friendship')
         print "friend_status"
         print alist
         print blist
+        
+        
+        '''
         if 1 in alist or 1 in blist:
             print "you are 1"
             return 1
@@ -115,7 +118,7 @@ class Friend(models.Model, HttpRequestResponser, Formatter):
         if (0 in alist and 2 in blist) or (2 in alist and 0 in blist) or (2 in alist and 2 in blist) or (3 in alist and 2 in blist) or (2 in alist and 3 in blist):
             print "you are 2"
             return 2
-        
+        '''
         return 0
 
     def cancelFriendship(self, data):

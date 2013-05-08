@@ -6,7 +6,7 @@
 {% endblock css %}
 {% block content %}
     <div class="container">
-        <h2>Friends</h2>
+        <h2>{{ request.session.usrdata.u_name }}'s Friends</h2>
 
         <div class="accordion" id="accordion2" data-uid="{{ request.session.uid }}">
             <div class="accordion-group">
