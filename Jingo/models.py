@@ -759,6 +759,10 @@ class User(models.Model, HttpRequestResponser, Formatter):
         Note_Tag().addMultipleNoteTags(data)
         dataset.append(data)
         data = self.simplifyObjToDateString(dataset)
+        # update to session
+        print request.session['noteslist']
+        request.session['noteslist'].append(data[0])
+        print request.session['noteslist']
         return self.createResultSet(data)
 
     def clickLike(self, request):
@@ -784,32 +788,29 @@ class User(models.Model, HttpRequestResponser, Formatter):
         return self.createResultSet(data)
 
     def receiveNotes(self, request):
-        data = self.readData(request)
-        data['noteslist'] = self.simplifyObjToDateString(NoteFilter().filterNotes(data), NORMAL_DATE_PATTERN)
+        data                         = self.readData(request)
+        data['noteslist']            = self.simplifyObjToDateString(NoteFilter().filterNotes(data), NORMAL_DATE_PATTERN)
         request.session['noteslist'] = data['noteslist']
         return self.createResultSet(data)
 
     def readNote(self, request):
-        data = self.readData(request)
-        for note in request.session['noteslist']:
-            if str(note['noteid']) == str(data['noteid']):
-                note['is_friendship'] = 0
-                note['n_comments']    = 0
-                note['n_like']        = Note.objects.filter(noteid=data['noteid']).values()[0]['n_like']
-                reader                = str(request.session['uid'])
-                poster                = str(note['uid'])
-                if reader != poster:
-                    note['is_friendship'] = Friend().checkFriendship(reader, poster)
-                else:
-                    note['is_friendship'] = 4
+        data                  = self.readData(request)
+        note                  = Note.objects.filter(noteid=data['noteid']).values()[0]
+        reader                = str(request.session['uid'])
+        poster                = str(note['uid_id'])
+        
+        if reader != poster:
+            note['is_friendship'] = Friend().checkFriendship(reader, poster)
+        else:
+            note['is_friendship'] = 4
                     
-                comments             = Comments().retrieveComments(data)
-                note['n_comments']   = len(comments)
-                note['commentslist'] = comments
-                note['poster']       = User.objects.filter(uid=poster).values()[0]
+        comments             = Comments().retrieveComments(data)
+        note['n_comments']   = len(comments)
+        note['commentslist'] = comments
+        note['poster']       = User.objects.filter(uid=poster).values()[0]
 
-                return self.createResultSet(note)
-
+        return self.createResultSet(note)
+    
     def unfollow(self, request):
         data = self.readData(request)
         Friend().cancelFriendship(data)
