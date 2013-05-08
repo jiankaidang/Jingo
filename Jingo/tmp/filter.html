@@ -6,19 +6,15 @@
 
     <div class="control-group">
         <div class="controls">
-            <label class="control-label" for="f_start_time">
-                From
-                <input type="datetime-local" id="f_start_time" name="f_start_time"
-                       value="{{ f_start_time|date:'Y-m-d\TH:i:s' }}">
+            <label class="control-label">From<input type="datetime-local" id="f_start_time" name="f_start_time"
+                                                    value="{{ f_start_time|date:'Y-m-d\TH:i:s' }}" class="pull-right">
             </label>
         </div>
     </div>
     <div class="control-group">
         <div class="controls">
-            <label class="control-label" for="f_stop_time">
-                To
-                <input type="datetime-local" id="f_stop_time" name="f_stop_time"
-                       value="{{ f_stop_time|date:'Y-m-d\TH:i:s' }}">
+            <label class="control-label">To<input type="datetime-local" id="f_stop_time" name="f_stop_time"
+                                                  value="{{ f_stop_time|date:'Y-m-d\TH:i:s' }}" class="pull-right">
             </label>
         </div>
     </div>

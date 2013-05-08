@@ -107,6 +107,7 @@ $(function () {
     $('#myModal').on('shown',function () {
         $("#myModalLabel").html($("#tag_name").val());
     }).on('hidden', function () {
-            $("#myModalLabel").html("").find(".modal-body").html("");
+            $("#myModalLabel").html("");
+            $("#myModal").removeData('modal');
         });
 });

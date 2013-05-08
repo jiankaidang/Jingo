@@ -88,6 +88,7 @@ $("#publishNote").click(function () {
         $("#n_longitude").val(latLng.lng());
         $.post("/tasks/postNote/", $("#note-form").serialize(), function (data) {
             $("#note-form")[0].reset();
+            $("#noteDetailTrigger").click();
             dropMarker({
                 noteid: data.noteid,
                 n_latitude: latLng.lat(),
