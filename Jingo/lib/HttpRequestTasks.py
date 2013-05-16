@@ -25,8 +25,8 @@ class HttpRequestResponser(Formatter):
     
     def readData(self, request):
         data = self.convertToDict(request)
-        print "POST/GET data"
-        print data
+        #print "POST/GET data"
+        #print data
         return data
     
     def responseJSON(self, request, data):
@@ -35,12 +35,12 @@ class HttpRequestResponser(Formatter):
     def response(self, request, page, data={}, dataType='default'):
         if dataType == 'json':
             resultset = self.jsonEncoder(data)
-            print "final json data"
-            print resultset
+            #print "final json data"
+            #print resultset
             return HttpResponse(resultset, mimetype="application/json")
         if dataType == 'default':
             resultset = data
-            print "final data"
-            print resultset
+            #print "final data"
+            #print resultset
             return render_to_response(page, resultset, context_instance=RequestContext(request))
         

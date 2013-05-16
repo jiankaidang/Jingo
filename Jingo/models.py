@@ -1,11 +1,11 @@
 from __future__ import unicode_literals
 import datetime, string
 from math import radians, cos, sin, asin, sqrt
-from django.utils import timezone
+#from django.utils import timezone
 from django.db import models
 from Jingo.lib.config import *
 from Jingo.lib.SQLExecution import SQLExecuter
-
+from Jingo.lib.DataVerification import JingoTimezone
 
 class Log_Keywords(models.Model, HttpRequestResponser, Formatter):
     logid   = models.IntegerField(primary_key=True)
@@ -26,7 +26,8 @@ class Log_Keywords(models.Model, HttpRequestResponser, Formatter):
             return log.logid + 1
         
     def logUserKeywords(self, data, keywords):
-        currenttime         = timezone.now()
+        #currenttime         = timezone.now()
+        currenttime         = JingoTimezone.getLocalTime()
         data['u_longitude'] = "%.6f" % float(data['u_longitude'])
         data['u_latitude']  = "%.6f" % float(data['u_latitude'])
         for keyword in keywords:
@@ -103,29 +104,29 @@ class Friend(models.Model, HttpRequestResponser, Formatter):
         return flist
     
     def checkFriendship(self, reader, poster):
-        print reader
-        print poster
+        #print reader
+        #print poster
         alist = Friend.objects.filter(uid=reader, f_uid=poster)
         blist = Friend.objects.filter(uid=poster, f_uid=reader)
-        print alist.values()
-        print blist.values()
+        #print alist.values()
+        #print blist.values()
         n_alist = len(alist)
         n_blist = len(blist)
         
-        print "n_alist=" + str(n_alist) + ", nblist=" + str(n_blist)
-        print "friend_status"
-        if n_alist == 0: 
+        #print "n_alist=" + str(n_alist) + ", nblist=" + str(n_blist)
+        #print "friend_status"
+        if n_alist == 0 and n_blist > 0: 
             blist = blist.order_by('invitationid').latest('invitationid')
-            print "blist"
-            print blist
-            print blist.is_friendship
+            #print "blist"
+            #print blist
+            #print blist.is_friendship
             return blist.is_friendship
             
-        if n_blist == 0:
+        if n_blist == 0 and n_alist > 0:
             alist = alist.order_by('invitationid').latest('invitationid')
-            print "alist"
-            print alist
-            print alist.is_friendship
+            #print "alist"
+            #print alist
+            #print alist.is_friendship
             return alist.is_friendship
         
         if n_alist > 0 and n_blist > 0:
@@ -165,9 +166,9 @@ class Comments(models.Model, HttpRequestResponser, Formatter):
         newCommentid = self.getNewCommentid()
         data['c_longitude'] = "%.6f" % float(data['c_longitude'])
         data['c_latitude'] = "%.6f" % float(data['c_latitude'])
-        values = [newCommentid, int(data['noteid']), timezone.now(), int(data['uid']), float(data['c_latitude']),
+        values = [newCommentid, int(data['noteid']), JingoTimezone().getLocalTime(), int(data['uid']), float(data['c_latitude']),
                   float(data['c_longitude']), data['comment']]
-        print values
+        #print values
         args = dict([('table', 'comments'), ('values', values)])
         SQLExecuter().doInsertData(args)
         return newCommentid
@@ -347,9 +348,12 @@ class Note(models.Model, HttpRequestResponser, Formatter):
 
     def addNote(self, data):
         newNoteid = self.getNewNoteid()
+        '''
         notetime = Note()
         notetime.note = data['note']
-        notetime.n_timestamp = timezone.now()
+        #notetime.n_timestamp = timezone.now()
+        print "======Insert time======"
+        notetime.n_timestamp = JingoTimezone().getLocalTime()
         notetime.link = ''
         notetime.noteid = newNoteid
         notetime.uid = User(uid=data['uid'])
@@ -370,6 +374,27 @@ class Note(models.Model, HttpRequestResponser, Formatter):
         notetime.n_longitude = data['n_longitude']
         notetime.n_like = N_LIKES
         notetime.save()
+        '''
+        if 'radius' in data:
+            radius = data['radius']
+            n_visibility = data['n_visibility']
+            if 'is_comment' in data:
+                is_comment = data['is_comment']
+            else:
+                is_comment = 0
+        else:
+            radius = N_DEFAULT_RADIUS     # default 200 yards
+            n_visibility = 0                    # default 0: public
+            is_comment = IS_COMMENT
+        
+        data['n_longitude'] = "%.6f" % float(data['n_longitude'])
+        data['n_latitude']  = "%.6f" % float(data['n_latitude'])
+        timestamp = JingoTimezone().getLocalTime()
+        values = [data['note'], timestamp, data['link'], newNoteid, data['uid'], radius, n_visibility, data['n_latitude'], data['n_longitude'], is_comment, N_LIKES]
+        #print values
+        args = dict([('table', 'note'), ('values', values)])
+        SQLExecuter().doInsertData(args)
+        
         data['noteid'] = newNoteid
         return data
 
@@ -379,7 +404,8 @@ class Note(models.Model, HttpRequestResponser, Formatter):
         return data
 
     def filterNotes(self, data):
-        nowtime = timezone.now()
+        #nowtime = timezone.now()
+        nowtime = JingoTimezone.getLocalTime()
         # retrieve user filter
         uCTags = self.getUserCategoryTagsList(data)
 
@@ -420,9 +446,9 @@ class Note_Tag(models.Model, HttpRequestResponser, Formatter):
 
         # add a default tag (all)
         data['tagid'] = 0
-        print data
+        #print data
         Note_Tag().addNoteTag(data)
-        print "finished"
+        #print "finished"
         return data
 
     def parseTagNames(self, data, stag_name):
@@ -481,8 +507,9 @@ class Note_Time(models.Model, HttpRequestResponser, Formatter):
             data['n_repeat'] = 0
 
         if len(data['n_start_time']) == 0 or len(data['n_stop_time']) == 0:
-            data['n_start_time'] = timezone.now()
-            data['n_stop_time'] = timezone.now() + datetime.timedelta(days=1)
+            localtime            = JingoTimezone().getLocalTime()
+            data['n_start_time'] = localtime
+            data['n_stop_time']  = localtime + datetime.timedelta(days=1)
 
         Note_Time().addNoteTime(data)
 
@@ -509,7 +536,7 @@ class State(models.Model, HttpRequestResponser, Formatter):
         filt     = Filter()
         datalist = []
         uslist   = self.getUserStatesList(data)  # get user's all states
-        print len(uslist)
+        #print len(uslist)
         for state in uslist:
             filterset        = filt.getUserStateFilters(state)
             state['filters'] = filterset
@@ -680,7 +707,8 @@ class User(models.Model, HttpRequestResponser, Formatter):
         usr.u_name = data['u_name']
         usr.email = data['email']
         usr.password = data['password']
-        usr.u_timestamp = timezone.now()
+        #usr.u_timestamp = timezone.now()
+        usr.u_timestamp = JingoTimezone().getLocalTime()
         usr.save()
         return User.objects.filter(email=data['email']).values()
 
@@ -779,9 +807,9 @@ class User(models.Model, HttpRequestResponser, Formatter):
         dataset.append(data)
         data = self.simplifyObjToDateString(dataset)
         # update to session
-        print request.session['noteslist']
+        #print request.session['noteslist']
         request.session['noteslist'].append(data[0])
-        print request.session['noteslist']
+        #print request.session['noteslist']
         return self.createResultSet(data)
 
     def clickLike(self, request):
@@ -892,7 +920,7 @@ class NoteFilter(HttpRequestResponser, Formatter):
         values = keywordset['keywords'] * 2
         values.insert(0, currenttime)
         values.insert(int(keywordset['n_keywords']) + 1, currenttime)
-        print values
+        #print values
         noteslist   = self.sql.doRawSQL(strSQL, values)
         return noteslist
 
@@ -951,77 +979,77 @@ class NoteFilter(HttpRequestResponser, Formatter):
                 current = currenttime.strftime('%Y-%m-%d %H:%M:%S')
                 start   = filter['f_start_time']
                 end     = filter['f_stop_time']
-            print "current %s" % current
-            print "start %s" % start
-            print "end %s" % end
+            #print "current %s" % current
+            #print "start %s" % start
+            #print "end %s" % end
             if current >= start and current <= end:
                 sys_tagset.append(filter['sys_tagid'])
                 
-        print "active sys_tagset"
-        print sys_tagset
+        #print "active sys_tagset"
+        #print sys_tagset
 
         for note in noteslist:
-            print "note " + str(note['noteid']) + " has sys:" + str(note['sys_tagid'])
+            #print "note " + str(note['noteid']) + " has sys:" + str(note['sys_tagid'])
             if note['sys_tagid'] in sys_tagset:
-                print "note " + str(note['noteid']) + " passed"
+                #print "note " + str(note['noteid']) + " passed"
                 result.append(note)
         return result
 
     def filterByVisibility(self, data, uProfile, noteslist):
         friendslist = Friend().getFriendsList(data)
         
-        print "friendslist"
-        print friendslist
+        #print "friendslist"
+        #print friendslist
         # generalize visibility of user tags based on sys_tags
         sys_visset = {}
         result = []
-        print "current uProfile"
-        print uProfile
+        #print "current uProfile"
+        #print uProfile
         for ufilter in uProfile:
             sys_tag    = ufilter['sys_tagid']
             visibility = ufilter['f_visibility']
             if (sys_tag in sys_visset and sys_visset[sys_tag] < visibility) or (sys_tag not in sys_visset):
                 sys_visset[sys_tag] = visibility
-        print "visibility of sys_tag"
-        print sys_visset
+        #print "visibility of sys_tag"
+        #print sys_visset
 
         for note in noteslist:
-            print "with sys:" + str(note['sys_tagid']) + ", note " + str(note['noteid']) + " has vis:" + str(note['n_visibility']) + " while user has vis:" + str(sys_visset[note['sys_tagid']])
+            #print "with sys:" + str(note['sys_tagid']) + ", note " + str(note['noteid']) + " has vis:" + str(note['n_visibility']) + " while user has vis:" + str(sys_visset[note['sys_tagid']])
             case_a, case_b, case_c, case_d, case_e, case_f, case_g = [False, False, False, False, False, False, False]
             if note['sys_tagid'] in sys_visset:
-                print str(note['uid']) in friendslist
+                #print str(note['uid']) in friendslist
                 # if both of them have visibilities of public
                 if sys_visset[note['sys_tagid']] == 0 and note['n_visibility'] == 0:
                     case_a = True
-                    print "note " + str(note['noteid']) + " passed because of case_a"
+                    #print "note " + str(note['noteid']) + " passed because of case_a"
                 
                 #if sys_visset[note['sys_tagid']] == 0 and note['n_visibility'] == 1 and (str(note['uid']) != str(data['uid']) and note['uid'] in friendslist):
                 if sys_visset[note['sys_tagid']] == 0 and note['n_visibility'] == 1 and not ((str(note['uid']) != str(data['uid']) and note['uid'] not in friendslist)):
                     case_b = True
-                    print "note " + str(note['noteid']) + " passed because of case_b"   
+                    #print "note " + str(note['noteid']) + " passed because of case_b"   
                     
                 if sys_visset[note['sys_tagid']] == 0 and note['n_visibility'] == 2 and str(note['uid']) == str(data['uid']):
                     case_c = True
-                    print "note " + str(note['noteid']) + " passed because of case_c"
+                    #print "note " + str(note['noteid']) + " passed because of case_c"
                     
                 if sys_visset[note['sys_tagid']] == 1 and note['n_visibility'] == 0 and not (str(note['uid']) != str(data['uid']) and note['uid'] not in friendslist):
                     case_d = True
-                    print "note " + str(note['noteid']) + " passed because of case_d"    
+                    #print "note " + str(note['noteid']) + " passed because of case_d"    
                     
                 if sys_visset[note['sys_tagid']] == 1 and note['n_visibility'] == 1 and not (str(note['uid']) != str(data['uid']) and note['uid'] not in friendslist):
                     case_e = True
-                    print "note " + str(note['noteid']) + " passed because of case_e"  
+                    #print "note " + str(note['noteid']) + " passed because of case_e"  
                 
                 if sys_visset[note['sys_tagid']] == 1 and note['n_visibility'] == 2 and str(note['uid']) == str(data['uid']):
                     case_f = True
-                    print "note " + str(note['noteid']) + " passed because of case_f" 
+                    #print "note " + str(note['noteid']) + " passed because of case_f" 
                 
                 # if reader has private and he is poster also
-                print data['uid']
-                print note['uid']
+                #print data['uid']
+                #print note['uid']
                 if sys_visset[note['sys_tagid']] == 2 and str(note['uid']) == str(data['uid']):
                     case_g = True
-                    print "note " + str(note['noteid']) + " passed because of case_g" 
+                    #print "note " + str(note['noteid']) + " passed because of case_g" 
                     
                 if case_a or case_b or case_c or case_d or case_e or case_f or case_g:
                     result.append(note)
@@ -1031,8 +1059,8 @@ class NoteFilter(HttpRequestResponser, Formatter):
                 if (note['n_visibility'] == 1 and note['uid'] in friendslist) or note['n_visibility'] == 0:
                     result.append(note)
                     '''
-        print "after visibility"
-        print result
+        #print "after visibility"
+        #print result
         return result
 
     def filterByLocation(self, data, noteslist):
@@ -1044,7 +1072,8 @@ class NoteFilter(HttpRequestResponser, Formatter):
         return result
 
     def filterNotes(self, data, mode='normal'):
-        currenttime = timezone.now().strftime('%Y-%m-%d %H:%M:%S')
+        localtime   = JingoTimezone().getLocalTime()
+        currenttime = localtime.strftime('%Y-%m-%d %H:%M:%S')
         if mode == 'normal':
             noteslist = self.getNoteInfoList(currenttime)
         else:

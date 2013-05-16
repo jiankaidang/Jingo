@@ -4,6 +4,16 @@ from Jingo.models import *
 import re, types, datetime, json, decimal
 from django.utils import simplejson
 from django.core.serializers.json import DjangoJSONEncoder
+from Jingo.settings import TIME_ZONE
+from pytz import timezone
+import pytz
+
+class JingoTimezone:
+    def getLocalTime(self, zone=TIME_ZONE):
+        tz        = timezone(zone)
+        #timestamp = tz.localize(datetime.datetime.now())
+        timestamp =datetime.datetime.now()
+        return timestamp
 
 class DataVerifier:
     

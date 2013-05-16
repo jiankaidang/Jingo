@@ -1,6 +1,5 @@
 from django.shortcuts import redirect
 from Jingo.models import *
-
 http_res = HttpRequestResponser()
 
 def init(request):
