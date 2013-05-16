@@ -3,7 +3,8 @@ import os
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
-
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+SESSION_COOKIE_AGE = 5 * 60
 ADMINS = (
 # ('Your Name', 'your_email@example.com'),
 )
