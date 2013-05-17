@@ -1,6 +1,9 @@
 from __future__ import unicode_literals
-import datetime, string
+import base64
+import datetime
+import string
 from math import radians, cos, sin, asin, sqrt
+
 #from django.utils import timezone
 from django.db import models
 from Jingo.lib.config import *
@@ -706,7 +709,7 @@ class User(models.Model, HttpRequestResponser, Formatter):
         usr.uid = self.getNewUid()
         usr.u_name = data['u_name']
         usr.email = data['email']
-        usr.password = data['password']
+        usr.password = base64.b64encode(data['password'])
         #usr.u_timestamp = timezone.now()
         usr.u_timestamp = JingoTimezone().getLocalTime()
         usr.save()
@@ -771,11 +774,11 @@ class User(models.Model, HttpRequestResponser, Formatter):
                 
             if len(check) == 0:
                 message['email'] = MESSAGE_EMAIL_ERROR
-                
-            if len(check) > 0 and check[0]['password'] != data['password']:
+
+            if len(check) > 0 and base64.b64decode(check[0]['password']) != data['password']:
                 message['password'] = MESSAGE_PASSWORD_ERROR
-                
-            if len(check) > 0 and check[0]['password'] == data['password']:
+
+            if len(check) > 0 and base64.b64decode(check[0]['password']) == data['password']:
                 result   = RESULT_SUCCESS
                 response = self.simplifyObjToDateString(check)[0]
                 self.setUserSession(request, response)
